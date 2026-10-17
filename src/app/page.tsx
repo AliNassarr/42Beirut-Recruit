@@ -45,14 +45,31 @@ export default function Home() {
   }, [hasHydrated, hasCheckedDraft, lastSavedTimestamp, currentStep, studentProfile, cvData.contact.fullName]);
 
   useEffect(() => {
-    // Check URL parameters for OAuth status, session ID, or errors
-    const params = new URLSearchParams(window.location.search);
-    const authStatus = params.get("auth");
-    const errorParam = params.get("error");
-    const sidParam = params.get("sid");
+    // Check URL parameters for OAuth status, session ID, or errors safely
+    let authStatus: string | null = null;
+    let errorParam: string | null = null;
+    let sidParam: string | null = null;
+
+    try {
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      if (search) {
+        const params = new URLSearchParams(search);
+        authStatus = params.get("auth");
+        errorParam = params.get("error");
+        sidParam = params.get("sid");
+      }
+    } catch (e) {
+      console.warn("Failed to parse URL search parameters:", e);
+    }
 
     if (errorParam) {
-      setAuthError(decodeURIComponent(errorParam));
+      let safeError = errorParam;
+      try {
+        safeError = decodeURIComponent(errorParam);
+      } catch {
+        safeError = errorParam;
+      }
+      setAuthError(safeError);
     }
 
     if (authStatus === "success" || sidParam) {

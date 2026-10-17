@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { MockIntraUser, format42ProjectDate } from "@/lib/intra/mock-data";
 import { createSession } from "@/lib/auth-session";
 
+function redirectToSafeError(origin: string, rawMessage: string): NextResponse {
+  // Strip HTML tags, remove newlines/tabs, and collapse whitespace
+  const cleanMessage = (rawMessage || "OAuth authorization failed")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const safeError = encodeURIComponent(cleanMessage.slice(0, 100));
+  return NextResponse.redirect(new URL(`/?error=${safeError}`, origin));
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -13,9 +24,7 @@ export async function GET(request: NextRequest) {
 
   if (error || !code) {
     console.error("42 OAuth callback error:", error, errorDescription);
-    const redirectUrl = new URL("/", origin);
-    redirectUrl.searchParams.set("error", errorDescription || error || "OAuth authorization failed");
-    return NextResponse.redirect(redirectUrl);
+    return redirectToSafeError(origin, errorDescription || error || "OAuth authorization failed");
   }
 
   const rawClientId = process.env.FORTY_TWO_CLIENT_ID || "";
@@ -25,9 +34,7 @@ export async function GET(request: NextRequest) {
   const clientSecret = rawClientSecret.replace(/^["']|["']$/g, "").trim();
 
   if (!clientId || !clientSecret) {
-    const redirectUrl = new URL("/", origin);
-    redirectUrl.searchParams.set("error", "OAuth credentials missing in .env");
-    return NextResponse.redirect(redirectUrl);
+    return redirectToSafeError(origin, "OAuth credentials missing in .env");
   }
 
   try {
@@ -54,9 +61,7 @@ export async function GET(request: NextRequest) {
     if (!tokenRes.ok) {
       const errBody = await tokenRes.text();
       console.error("42 token exchange failed:", errBody);
-      const redirectUrl = new URL("/", origin);
-      redirectUrl.searchParams.set("error", `Token exchange failed: ${errBody}`);
-      return NextResponse.redirect(redirectUrl);
+      return redirectToSafeError(origin, `Token exchange failed: ${errBody}`);
     }
 
     const tokenData = await tokenRes.json();
@@ -74,9 +79,7 @@ export async function GET(request: NextRequest) {
     if (!meRes.ok) {
       const errBody = await meRes.text();
       console.error("42 /v2/me fetch failed:", errBody);
-      const redirectUrl = new URL("/", origin);
-      redirectUrl.searchParams.set("error", "Failed to retrieve 42 profile");
-      return NextResponse.redirect(redirectUrl);
+      return redirectToSafeError(origin, "Failed to retrieve 42 profile");
     }
 
     const me = await meRes.json();
@@ -156,8 +159,6 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (err: any) {
     console.error("42 OAuth callback processing error:", err);
-    const redirectUrl = new URL("/", origin);
-    redirectUrl.searchParams.set("error", err.message || "OAuth error");
-    return NextResponse.redirect(redirectUrl);
+    return redirectToSafeError(origin, err?.message || "OAuth error");
   }
 }
