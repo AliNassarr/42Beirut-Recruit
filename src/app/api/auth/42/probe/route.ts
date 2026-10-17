@@ -22,20 +22,16 @@ export async function GET() {
 
   const testList = [
     {
-      name: "http2-chrome-tls",
-      fn: () => requestHttp2("POST", "/oauth/token", dummyBody, undefined, authHeaders),
+      name: "cloudflare-pages-proxy",
+      fn: () => requestFetch("POST", "/oauth/token", dummyBody, { Authorization: `Basic ${dummyBasicAuth}` }),
     },
     {
-      name: "http2-curl-ua",
-      fn: () => requestHttp2("POST", "/oauth/token", dummyBody, "curl/8.5.0", authHeaders),
-    },
-    {
-      name: "system-curl",
+      name: "proxy-curl",
       fn: () => requestCurl("POST", "/oauth/token", dummyBody, { Authorization: `Basic ${dummyBasicAuth}` }),
     },
     {
-      name: "undici-baseline",
-      fn: () => requestFetch("POST", "/oauth/token", dummyBody, { Authorization: `Basic ${dummyBasicAuth}` }),
+      name: "http2-chrome-tls",
+      fn: () => requestHttp2("POST", "/oauth/token", dummyBody, undefined, authHeaders),
     },
   ];
 

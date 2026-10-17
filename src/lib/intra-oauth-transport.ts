@@ -27,6 +27,10 @@ export function isCloudflareBlocked(status: number, body: string): boolean {
   );
 }
 
+export const FORTY_TWO_API_BASE = (
+  process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+).replace(/\/+$/, "");
+
 // 1. Native node:http2 with Chrome TLS 1.3/1.2 cipher & ALPN h2 emulation
 export function requestHttp2(
   method: "GET" | "POST",
@@ -43,12 +47,17 @@ export function requestHttp2(
     }, 8000);
 
     try {
-      client = http2.connect("https://api.intra.42.fr", {
+      const urlObj = new URL(FORTY_TWO_API_BASE);
+      const isHttps = urlObj.protocol === "https:";
+      const targetHost = urlObj.hostname;
+      const targetPort = urlObj.port ? parseInt(urlObj.port, 10) : (isHttps ? 443 : 80);
+
+      client = http2.connect(FORTY_TWO_API_BASE, {
         createConnection: () =>
           tls.connect({
-            host: "api.intra.42.fr",
-            port: 443,
-            servername: "api.intra.42.fr",
+            host: targetHost,
+            port: targetPort,
+            servername: targetHost,
             ALPNProtocols: ["h2", "http/1.1"],
             ciphers: CHROME_CIPHERS,
             ecdhCurve: "X25519:P-256:P-384",
@@ -65,8 +74,8 @@ export function requestHttp2(
       const headers: Record<string, string | number> = {
         ":method": method,
         ":path": path,
-        ":scheme": "https",
-        ":authority": "api.intra.42.fr",
+        ":scheme": urlObj.protocol.replace(":", ""),
+        ":authority": targetHost,
         accept: "application/json",
         "user-agent": userAgent,
         ...extraHeaders,
@@ -121,7 +130,7 @@ export function requestCurl(
   extraHeaders: Record<string, string> = {}
 ): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
-    const url = `https://api.intra.42.fr${path}`;
+    const url = `${FORTY_TWO_API_BASE}${path}`;
     const args = ["-s", "-i", "-X", method, url, "-H", "Accept: application/json"];
     for (const [k, v] of Object.entries(extraHeaders)) {
       args.push("-H", `${k}: ${v}`);
@@ -160,7 +169,7 @@ export async function requestFetch(
   bodyString?: string,
   extraHeaders: Record<string, string> = {}
 ): Promise<{ status: number; body: string }> {
-  const url = `https://api.intra.42.fr${path}`;
+  const url = `${FORTY_TWO_API_BASE}${path}`;
   const headers: Record<string, string> = {
     Accept: "application/json",
     "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
@@ -205,20 +214,16 @@ export async function exchange42TokenOnServer(params: {
     fn: () => Promise<{ status: number; body: string }>;
   }[] = [
     {
-      name: "http2-chrome-tls",
-      fn: () => requestHttp2("POST", "/oauth/token", bodyString, CHROME_UA, authHeaders),
+      name: "proxy-fetch",
+      fn: () => requestFetch("POST", "/oauth/token", bodyString, { Authorization: `Basic ${basicAuth}` }),
     },
     {
-      name: "http2-curl-ua",
-      fn: () => requestHttp2("POST", "/oauth/token", bodyString, "curl/8.5.0", authHeaders),
-    },
-    {
-      name: "system-curl",
+      name: "proxy-curl",
       fn: () => requestCurl("POST", "/oauth/token", bodyString, { Authorization: `Basic ${basicAuth}` }),
     },
     {
-      name: "undici-fetch",
-      fn: () => requestFetch("POST", "/oauth/token", bodyString, { Authorization: `Basic ${basicAuth}` }),
+      name: "http2-chrome-tls",
+      fn: () => requestHttp2("POST", "/oauth/token", bodyString, CHROME_UA, authHeaders),
     },
   ];
 
@@ -286,10 +291,9 @@ export async function fetch42ProfileOnServer(accessToken: string): Promise<any> 
   };
 
   const attempts: (() => Promise<{ status: number; body: string }>)[] = [
-    () => requestHttp2("GET", "/v2/me", undefined, CHROME_UA, authHeaders),
-    () => requestHttp2("GET", "/v2/me", undefined, "curl/8.5.0", authHeaders),
-    () => requestCurl("GET", "/v2/me", undefined, { Authorization: `Bearer ${accessToken}` }),
     () => requestFetch("GET", "/v2/me", undefined, { Authorization: `Bearer ${accessToken}` }),
+    () => requestCurl("GET", "/v2/me", undefined, { Authorization: `Bearer ${accessToken}` }),
+    () => requestHttp2("GET", "/v2/me", undefined, CHROME_UA, authHeaders),
   ];
 
   for (const fn of attempts) {

@@ -162,98 +162,78 @@ export default function Home() {
 
           // 2. Obtain token and profile using residential relays
           currentStepName = "browser-token-exchange";
-          setBridgeLoadingText("Exchanging credentials via residential relay...");
+          const FORTY_TWO_API_BASE = (
+            process.env.NEXT_PUBLIC_FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+          ).replace(/\/+$/, "");
 
-          // Stage 1: Try Local Residential Relay (http://localhost:3000/api/auth/42/local-relay)
+          setBridgeLoadingText("Exchanging credentials via Cloudflare proxy...");
+
+          const tokenBody = new URLSearchParams({
+            grant_type: "authorization_code",
+            client_id: bridgeData.clientId,
+            client_secret: bridgeData.clientSecret,
+            code: bridgeData.code,
+            redirect_uri: bridgeData.redirectUri,
+          });
+
+          // Stage 1: Cloudflare Pages Proxy (Universal CORS-enabled Cloudflare relay)
           try {
-            const localRelayRes = await fetch("http://localhost:3000/api/auth/42/local-relay", {
+            const proxyRes = await fetch(`${FORTY_TWO_API_BASE}/oauth/token`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(bridgeData),
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: tokenBody,
             });
 
-            if (localRelayRes.ok) {
-              const localData = await localRelayRes.json();
-              if (localData.accessToken && localData.profile) {
-                accessToken = localData.accessToken;
-                profilePayload = localData.profile;
-              }
+            if (proxyRes.ok) {
+              const proxyJson = await proxyRes.json();
+              accessToken = proxyJson.access_token;
             }
-          } catch (localErr) {
-            console.warn("Local residential relay unavailable, attempting next stage:", localErr);
+          } catch (proxyErr) {
+            console.warn("Cloudflare Pages proxy exchange failed, trying secondary fallback:", proxyErr);
           }
 
-          // Stage 2: If local relay wasn't available, try CORS-enabled proxy and direct browser fetch
-          if (!accessToken || !profilePayload) {
-            const tokenBody = new URLSearchParams({
-              grant_type: "authorization_code",
-              client_id: bridgeData.clientId,
-              client_secret: bridgeData.clientSecret,
-              code: bridgeData.code,
-              redirect_uri: bridgeData.redirectUri,
-            });
-
-            // Try corsproxy.io first
+          // Stage 2: Local Residential Relay fallback (if running on user's machine)
+          if (!accessToken) {
             try {
-              const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent("https://api.intra.42.fr/oauth/token");
-              const proxyRes = await fetch(proxyUrl, {
+              const localRelayRes = await fetch("http://localhost:3000/api/auth/42/local-relay", {
                 method: "POST",
-                body: tokenBody,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bridgeData),
               });
 
-              if (proxyRes.ok) {
-                const proxyJson = await proxyRes.json();
-                accessToken = proxyJson.access_token;
-              }
-            } catch (proxyErr) {
-              console.warn("Proxy relay exchange failed:", proxyErr);
-            }
-
-            // Direct browser fetch attempt
-            if (!accessToken) {
-              try {
-                const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
-                  method: "POST",
-                  body: tokenBody,
-                });
-
-                if (directTokenRes.ok) {
-                  const tokenJson = await directTokenRes.json();
-                  accessToken = tokenJson.access_token;
+              if (localRelayRes.ok) {
+                const localData = await localRelayRes.json();
+                if (localData.accessToken && localData.profile) {
+                  accessToken = localData.accessToken;
+                  profilePayload = localData.profile;
                 }
-              } catch (directErr) {
-                console.warn("Direct fetch hit CORS:", directErr);
               }
+            } catch (localErr) {
+              console.warn("Local residential relay unavailable:", localErr);
             }
+          }
 
-            if (!accessToken) {
-              throw new Error("Unable to retrieve OAuth token via any residential or proxy relay");
-            }
+          if (!accessToken) {
+            throw new Error("Unable to retrieve OAuth token via proxy or relay");
+          }
 
-            // Fetch profile
+          // Stage 3: Fetch 42 Profile
+          if (!profilePayload) {
             currentStepName = "browser-profile-fetch";
             setBridgeLoadingText("Retrieving 42 student profile...");
 
-            // Try simple GET with access_token param
             try {
-              const meUrl = `https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`;
-              const meRes = await fetch(meUrl);
+              const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  Accept: "application/json",
+                },
+              });
               if (meRes.ok) {
                 profilePayload = await meRes.json();
               }
-            } catch {
-              // fallback to proxy for profile
-              try {
-                const proxyMeUrl =
-                  "https://corsproxy.io/?" +
-                  encodeURIComponent(`https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`);
-                const proxyMeRes = await fetch(proxyMeUrl);
-                if (proxyMeRes.ok) {
-                  profilePayload = await proxyMeRes.json();
-                }
-              } catch (proxyMeErr) {
-                console.warn("Proxy profile fetch failed:", proxyMeErr);
-              }
+            } catch (meErr) {
+              console.warn("Proxy profile fetch failed:", meErr);
             }
           }
 

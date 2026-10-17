@@ -41,21 +41,84 @@ export async function GET(request: NextRequest) {
     return redirectToSafeError(origin, "OAuth credentials missing in .env");
   }
 
+  const FORTY_TWO_API_BASE = (
+    process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+  ).replace(/\/+$/, "");
+
   try {
-    // 1. Multi-Transport Server-Side OAuth Exchange (HTTP/2 Chrome TLS, curl subprocess, etc.)
-    const transportResult = await exchange42TokenOnServer({
-      clientId,
-      clientSecret,
-      code,
-      redirectUri,
-    });
+    // 1. Direct Cloudflare Pages Proxy OAuth Token Exchange (${FORTY_TWO_API_BASE}/oauth/token)
+    let accessToken: string | null = null;
+    try {
+      const tokenRes = await fetch(`${FORTY_TWO_API_BASE}/oauth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+          "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
+        },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+        }),
+      });
 
-    // If server transports bypassed Cloudflare and succeeded:
-    if (transportResult.passedCloudflare && transportResult.status === 200 && transportResult.data?.access_token) {
-      const accessToken = transportResult.data.access_token;
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json().catch(() => null);
+        if (tokenData?.access_token) {
+          accessToken = tokenData.access_token;
+        }
+      } else {
+        const errJson = await tokenRes.json().catch(() => null);
+        if (errJson?.error) {
+          return redirectToSafeError(origin, `42 Intra: ${errJson.error_description || errJson.error}`);
+        }
+      }
+    } catch (proxyErr) {
+      console.warn("Direct proxy token fetch encountered error, trying multi-transport fallback:", proxyErr);
+    }
 
-      // Fetch profile using multi-transport
-      const me = await fetch42ProfileOnServer(accessToken);
+    // 2. Multi-Transport Server-Side OAuth Exchange Fallback
+    if (!accessToken) {
+      const transportResult = await exchange42TokenOnServer({
+        clientId,
+        clientSecret,
+        code,
+        redirectUri,
+      });
+
+      if (transportResult.passedCloudflare && transportResult.status === 200 && transportResult.data?.access_token) {
+        accessToken = transportResult.data.access_token;
+      } else if (transportResult.passedCloudflare && transportResult.data?.error) {
+        const errMsg = transportResult.data.error_description || transportResult.data.error;
+        return redirectToSafeError(origin, `42 Intra: ${errMsg}`);
+      }
+    }
+
+    // 3. If access token retrieved, fetch profile from ${FORTY_TWO_API_BASE}/v2/me
+    if (accessToken) {
+      let me: any = null;
+      try {
+        const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/json",
+            "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
+          },
+        });
+        if (meRes.ok) {
+          me = await meRes.json().catch(() => null);
+        }
+      } catch (meErr) {
+        console.warn("Proxy /v2/me fetch failed, falling back to multi-transport profile fetch:", meErr);
+      }
+
+      if (!me) {
+        me = await fetch42ProfileOnServer(accessToken);
+      }
+
       if (me && me.login) {
         const studentProfile = extractIntraProfile(me);
         const sid = createSession(studentProfile);
@@ -75,13 +138,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If 42 Intra returned a real OAuth failure (e.g. expired code):
-    if (transportResult.passedCloudflare && transportResult.data?.error) {
-      const errMsg = transportResult.data.error_description || transportResult.data.error;
-      return redirectToSafeError(origin, `42 Intra: ${errMsg}`);
-    }
-
-    // If Cloudflare blocked server-side transports (or profile fetch failed), initiate residential bridge:
+    // 4. If Cloudflare blocked server-side transports (or profile fetch failed), initiate browser bridge:
     console.warn("Server-side transports challenged by Cloudflare. Handing over to residential browser bridge with stateless HMAC ticket...");
     const ts = Date.now().toString();
     const sig = generateBridgeSignature(code, ts);

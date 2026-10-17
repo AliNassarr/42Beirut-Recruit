@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
 
     let rawMe = profile;
 
+    const FORTY_TWO_API_BASE = (
+      process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+    ).replace(/\/+$/, "");
+
     // 2. ONLY attempt server-side fetch if profile was NOT provided by browser and accessToken is present
     if (!rawMe && accessToken) {
-      console.warn("Profile not provided by browser, attempting server-side /v2/me fallback...");
-      const meRes = await fetch("https://api.intra.42.fr/v2/me", {
+      console.warn("Profile not provided by browser, attempting server-side /v2/me fallback via proxy...");
+      const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           Accept: "application/json",
