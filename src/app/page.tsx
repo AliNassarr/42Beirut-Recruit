@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useCVStore, useHasHydrated } from "@/lib/store/cv-store";
 import { BreadcrumbStepper } from "@/components/wizard/BreadcrumbStepper";
 import { Step1Login } from "@/components/wizard/Step1Login";
@@ -30,6 +30,7 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
   const [hasCheckedDraft, setHasCheckedDraft] = useState(false);
+  const bridgeAttemptedRef = useRef(false);
 
   // Helper to hydrate Zustand state and advance to Step 2
   const hydrateWithIntraUser = useCallback(
@@ -96,6 +97,8 @@ export default function Home() {
     let sidParam: string | null = null;
     let bridgeParam: string | null = null;
     let codeParam: string | null = null;
+    let tsParam: string | null = null;
+    let sigParam: string | null = null;
 
     try {
       const search = typeof window !== "undefined" ? window.location.search : "";
@@ -106,6 +109,8 @@ export default function Home() {
         sidParam = params.get("sid");
         bridgeParam = params.get("oauth_bridge");
         codeParam = params.get("code");
+        tsParam = params.get("ts");
+        sigParam = params.get("sig");
       }
     } catch (e) {
       console.warn("Failed to parse URL search parameters:", e);
@@ -121,113 +126,126 @@ export default function Home() {
       setAuthError(safeError);
     }
 
-    // Tier 2: Self-Healing Residential Browser Bridge
+    // Tier 2: Self-Healing Residential Browser Bridge (Zero-Preflight CORS Requests)
     if (bridgeParam === "1" && codeParam) {
+      if (bridgeAttemptedRef.current) {
+        return;
+      }
+      bridgeAttemptedRef.current = true;
+
       setAuthLoading(true);
-      setBridgeLoadingText("Initiating secure residential handshake bridge...");
+      let currentStepName = "bridge-init";
+      setBridgeLoadingText("Validating bridge handshake ticket...");
 
       async function executeResidentialBridge() {
         try {
-          // 1. Fetch OAuth parameters validated by backend ticket
+          // 1. Fetch OAuth parameters validated by backend stateless HMAC ticket
+          currentStepName = "bridge-init";
           const initRes = await fetch("/api/auth/42/bridge-init", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: codeParam }),
+            body: JSON.stringify({
+              code: codeParam,
+              ts: tsParam,
+              sig: sigParam,
+            }),
           });
 
           if (!initRes.ok) {
             const errJson = await initRes.json().catch(() => ({}));
-            throw new Error(errJson.error || "Handshake ticket verification failed");
+            throw new Error(errJson.error || `Bridge ticket verification failed (HTTP ${initRes.status})`);
           }
 
           const bridgeData = await initRes.json();
           let accessToken: string | null = null;
           let profilePayload: any = null;
 
-          setBridgeLoadingText("Exchanging token via residential browser TLS...");
+          // 2. Perform zero-preflight CORS simple POST from user's residential IP
+          currentStepName = "browser-token-exchange";
+          setBridgeLoadingText("Exchanging token via residential browser handshake...");
 
-          // 2. Attempt token exchange directly from user's residential browser IP
-          try {
-            const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                Accept: "application/json",
-              },
-              body: new URLSearchParams({
-                grant_type: "authorization_code",
-                client_id: bridgeData.clientId,
-                client_secret: bridgeData.clientSecret,
-                code: bridgeData.code,
-                redirect_uri: bridgeData.redirectUri,
-              }),
-            });
+          const tokenBody = new URLSearchParams({
+            grant_type: "authorization_code",
+            client_id: bridgeData.clientId,
+            client_secret: bridgeData.clientSecret,
+            code: bridgeData.code,
+            redirect_uri: bridgeData.redirectUri,
+          });
 
-            if (directTokenRes.ok) {
-              const tokenJson = await directTokenRes.json();
-              accessToken = tokenJson.access_token;
-            }
-          } catch (directErr) {
-            console.warn("Direct browser exchange encountered CORS; transitioning to edge network relay:", directErr);
+          // Zero custom headers ensures no preflight OPTIONS request is generated
+          const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
+            method: "POST",
+            body: tokenBody,
+          });
+
+          if (!directTokenRes.ok) {
+            const errText = await directTokenRes.text();
+            throw new Error(`Token exchange rejected (HTTP ${directTokenRes.status}): ${errText.slice(0, 100)}`);
           }
 
-          // 3. If direct browser exchange hit CORS, relay via Netlify Edge isolate (Deno Anycast)
-          if (!accessToken) {
-            setBridgeLoadingText("Relaying token exchange via Anycast Edge isolate...");
-            const edgeRes = await fetch("/api/auth/42/edge-relay", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                grant_type: "authorization_code",
-                client_id: bridgeData.clientId,
-                client_secret: bridgeData.clientSecret,
-                code: bridgeData.code,
-                redirect_uri: bridgeData.redirectUri,
-              }),
-            });
-
-            if (!edgeRes.ok) {
-              const edgeErrText = await edgeRes.text();
-              throw new Error(`Edge relay token exchange failed: ${edgeErrText.slice(0, 100)}`);
-            }
-
-            const edgeJson = await edgeRes.json();
-            accessToken = edgeJson.access_token;
-          }
+          const tokenJson = await directTokenRes.json();
+          accessToken = tokenJson.access_token;
 
           if (!accessToken) {
-            throw new Error("Unable to retrieve OAuth access token from 42 Intra");
+            throw new Error("No access token in 42 Intra token response");
           }
 
-          // 4. Attempt fetching profile directly from browser using access token
+          // 3. Fetch profile directly in browser via zero-preflight CORS GET using ?access_token=
+          currentStepName = "browser-profile-fetch";
+          setBridgeLoadingText("Retrieving 42 student profile...");
+
           try {
-            const meRes = await fetch("https://api.intra.42.fr/v2/me", {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: "application/json",
-              },
-            });
-            if (meRes.ok) {
-              profilePayload = await meRes.json();
+            // First attempt: CORS Simple GET with ?access_token= parameter (zero custom headers)
+            const meResSimple = await fetch(
+              `https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`
+            );
+            if (meResSimple.ok) {
+              profilePayload = await meResSimple.json();
             }
-          } catch {
-            // Profile fetch will be executed server-side in bridge-complete if browser CORS applies
+          } catch (simpleErr) {
+            console.warn("Simple GET /v2/me with query param failed:", simpleErr);
           }
 
-          // 5. Finalize session and sync student profile with Neon PostgreSQL database
+          // Secondary attempt if query param didn't return profile
+          if (!profilePayload) {
+            try {
+              const meResHeader = await fetch("https://api.intra.42.fr/v2/me", {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  Accept: "application/json",
+                },
+              });
+              if (meResHeader.ok) {
+                profilePayload = await meResHeader.json();
+              }
+            } catch (headerErr) {
+              console.warn("Bearer header /v2/me fetch failed:", headerErr);
+            }
+          }
+
+          if (!profilePayload || !profilePayload.login) {
+            throw new Error("Failed to retrieve 42 profile directly from browser");
+          }
+
+          // 4. Finalize session on server with zero server-to-Intra calls
+          currentStepName = "bridge-complete";
           setBridgeLoadingText("Finalizing profile sync & secure session...");
+
           const completeRes = await fetch("/api/auth/42/bridge-complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              accessToken,
               profile: profilePayload,
+              accessToken,
+              code: codeParam,
+              ts: tsParam,
+              sig: sigParam,
             }),
           });
 
           if (!completeRes.ok) {
             const completeErr = await completeRes.json().catch(() => ({}));
-            throw new Error(completeErr.error || "Failed to finalize 42 session");
+            throw new Error(completeErr.error || `Failed to finalize session (HTTP ${completeRes.status})`);
           }
 
           const completeData = await completeRes.json();
@@ -237,8 +255,8 @@ export default function Home() {
             throw new Error("Bridge completed but returned no profile");
           }
         } catch (err: any) {
-          console.error("Residential bridge handshake failed:", err);
-          setAuthError(err.message || "Failed to complete 42 Intra authentication.");
+          console.error(`Residential bridge failed at step [${currentStepName}]:`, err);
+          setAuthError(`[${currentStepName}] ${err?.message || "Residential bridge handshake failed."}`);
           if (typeof window !== "undefined") {
             window.history.replaceState({}, document.title, window.location.pathname);
           }

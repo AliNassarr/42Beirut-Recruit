@@ -2,16 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractIntraProfile } from "@/lib/intra/extract-profile";
 import { createSession } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
+import { verifyBridgeSignature } from "@/lib/auth-hmac";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { accessToken, profile } = body;
+    const { profile, accessToken, code, ts, sig } = body || {};
+
+    // 1. Verify HMAC signature if provided
+    if (code && ts && sig) {
+      const isValid = verifyBridgeSignature(code, ts, sig);
+      if (!isValid) {
+        return NextResponse.json(
+          { error: "Invalid or expired bridge handshake signature" },
+          { status: 401 }
+        );
+      }
+    }
 
     let rawMe = profile;
 
-    // If profile not provided by browser, fetch /v2/me using accessToken
+    // 2. ONLY attempt server-side fetch if profile was NOT provided by browser and accessToken is present
     if (!rawMe && accessToken) {
+      console.warn("Profile not provided by browser, attempting server-side /v2/me fallback...");
       const meRes = await fetch("https://api.intra.42.fr/v2/me", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -24,7 +37,7 @@ export async function POST(request: NextRequest) {
         const errText = await meRes.text();
         console.error("42 /v2/me fetch in bridge-complete failed:", errText);
         return NextResponse.json(
-          { error: `Failed to fetch 42 profile (${meRes.status})` },
+          { error: `Server profile fetch failed (${meRes.status}). Ensure browser fetches profile directly.` },
           { status: meRes.status }
         );
       }
@@ -34,15 +47,15 @@ export async function POST(request: NextRequest) {
 
     if (!rawMe || !rawMe.login) {
       return NextResponse.json(
-        { error: "Invalid student profile received from 42 Intra" },
+        { error: "Invalid student profile payload. Expected valid 42 Intra profile from browser." },
         { status: 400 }
       );
     }
 
-    // Transform into standard MockIntraUser format
+    // 3. Transform raw 42 Intra profile into standard MockIntraUser format
     const studentProfile = extractIntraProfile(rawMe);
 
-    // Persist or update student in Neon PostgreSQL database
+    // 4. Persist or update student in Neon PostgreSQL database
     try {
       await prisma.user.upsert({
         where: { login: studentProfile.login },
@@ -72,7 +85,7 @@ export async function POST(request: NextRequest) {
       console.warn("Non-fatal: Database persistence skipped in bridge-complete:", dbErr);
     }
 
-    // Save session in cache and generate sid
+    // 5. Save session in cache and generate sid
     const sid = createSession(studentProfile);
 
     const response = NextResponse.json({
@@ -81,7 +94,7 @@ export async function POST(request: NextRequest) {
       user: studentProfile,
     });
 
-    // Set forty_two_sid session cookie
+    // 6. Set forty_two_sid session cookie
     response.cookies.set("forty_two_sid", sid, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
@@ -90,7 +103,7 @@ export async function POST(request: NextRequest) {
       path: "/",
     });
 
-    // Clear one-time bridge ticket cookie
+    // 7. Clear one-time bridge ticket cookie if present
     response.cookies.delete("forty_two_bridge_ticket");
 
     return response;

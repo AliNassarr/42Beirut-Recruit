@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MockIntraUser } from "@/lib/intra/mock-data";
 import { extractIntraProfile } from "@/lib/intra/extract-profile";
 import { createSession } from "@/lib/auth-session";
+import { generateBridgeSignature } from "@/lib/auth-hmac";
 
 function redirectToSafeError(origin: string, rawMessage: string): NextResponse {
   // Strip HTML tags, remove newlines/tabs, and collapse whitespace
@@ -73,19 +74,19 @@ export async function GET(request: NextRequest) {
         errBody.includes("<html");
 
       if (isCloudflareChallenge) {
-        console.warn("Cloudflare 403 bot challenge detected on server. Handing over to residential browser bridge...");
-        const ticketPayload = JSON.stringify({
-          code,
-          ts: Date.now(),
-        });
-        const ticket = Buffer.from(ticketPayload).toString("base64");
+        console.warn("Cloudflare 403 bot challenge detected on server. Handing over to residential browser bridge with stateless HMAC ticket...");
+        const ts = Date.now().toString();
+        const sig = generateBridgeSignature(code, ts);
 
         const bridgeUrl = new URL("/", origin);
         bridgeUrl.searchParams.set("oauth_bridge", "1");
         bridgeUrl.searchParams.set("code", code);
+        bridgeUrl.searchParams.set("ts", ts);
+        bridgeUrl.searchParams.set("sig", sig);
 
         const bridgeResponse = NextResponse.redirect(bridgeUrl);
-        bridgeResponse.cookies.set("forty_two_bridge_ticket", ticket, {
+        const ticketPayload = JSON.stringify({ code, ts, sig });
+        bridgeResponse.cookies.set("forty_two_bridge_ticket", Buffer.from(ticketPayload).toString("base64"), {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
