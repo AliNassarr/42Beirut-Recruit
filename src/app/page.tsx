@@ -163,7 +163,7 @@ export default function Home() {
           // 2. Obtain token and profile using residential relays
           currentStepName = "browser-token-exchange";
           const FORTY_TWO_API_BASE = (
-            process.env.NEXT_PUBLIC_FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+            process.env.NEXT_PUBLIC_FORTY_TWO_API_BASE || "https://42beirut-worker.pages.dev"
           ).replace(/\/+$/, "");
 
           setBridgeLoadingText("Exchanging credentials via Cloudflare proxy...");

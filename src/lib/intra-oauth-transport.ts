@@ -28,7 +28,7 @@ export function isCloudflareBlocked(status: number, body: string): boolean {
 }
 
 export const FORTY_TWO_API_BASE = (
-  process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+  process.env.FORTY_TWO_API_BASE || "https://42beirut-worker.pages.dev"
 ).replace(/\/+$/, "");
 
 // 1. Native node:http2 with Chrome TLS 1.3/1.2 cipher & ALPN h2 emulation

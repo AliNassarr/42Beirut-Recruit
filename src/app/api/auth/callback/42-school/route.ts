@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   }
 
   const FORTY_TWO_API_BASE = (
-    process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+    process.env.FORTY_TWO_API_BASE || "https://42beirut-worker.pages.dev"
   ).replace(/\/+$/, "");
 
   try {

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     let rawMe = profile;
 
     const FORTY_TWO_API_BASE = (
-      process.env.FORTY_TWO_API_BASE || "https://42beirut-proxy.pages.dev"
+      process.env.FORTY_TWO_API_BASE || "https://42beirut-worker.pages.dev"
     ).replace(/\/+$/, "");
 
     // 2. ONLY attempt server-side fetch if profile was NOT provided by browser and accessToken is present
