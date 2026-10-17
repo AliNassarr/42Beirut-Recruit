@@ -160,71 +160,105 @@ export default function Home() {
           let accessToken: string | null = null;
           let profilePayload: any = null;
 
-          // 2. Perform zero-preflight CORS simple POST from user's residential IP
+          // 2. Obtain token and profile using residential relays
           currentStepName = "browser-token-exchange";
-          setBridgeLoadingText("Exchanging token via residential browser handshake...");
+          setBridgeLoadingText("Exchanging credentials via residential relay...");
 
-          const tokenBody = new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: bridgeData.clientId,
-            client_secret: bridgeData.clientSecret,
-            code: bridgeData.code,
-            redirect_uri: bridgeData.redirectUri,
-          });
-
-          // Zero custom headers ensures no preflight OPTIONS request is generated
-          const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
-            method: "POST",
-            body: tokenBody,
-          });
-
-          if (!directTokenRes.ok) {
-            const errText = await directTokenRes.text();
-            throw new Error(`Token exchange rejected (HTTP ${directTokenRes.status}): ${errText.slice(0, 100)}`);
-          }
-
-          const tokenJson = await directTokenRes.json();
-          accessToken = tokenJson.access_token;
-
-          if (!accessToken) {
-            throw new Error("No access token in 42 Intra token response");
-          }
-
-          // 3. Fetch profile directly in browser via zero-preflight CORS GET using ?access_token=
-          currentStepName = "browser-profile-fetch";
-          setBridgeLoadingText("Retrieving 42 student profile...");
-
+          // Stage 1: Try Local Residential Relay (http://localhost:3000/api/auth/42/local-relay)
           try {
-            // First attempt: CORS Simple GET with ?access_token= parameter (zero custom headers)
-            const meResSimple = await fetch(
-              `https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`
-            );
-            if (meResSimple.ok) {
-              profilePayload = await meResSimple.json();
+            const localRelayRes = await fetch("http://localhost:3000/api/auth/42/local-relay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(bridgeData),
+            });
+
+            if (localRelayRes.ok) {
+              const localData = await localRelayRes.json();
+              if (localData.accessToken && localData.profile) {
+                accessToken = localData.accessToken;
+                profilePayload = localData.profile;
+              }
             }
-          } catch (simpleErr) {
-            console.warn("Simple GET /v2/me with query param failed:", simpleErr);
+          } catch (localErr) {
+            console.warn("Local residential relay unavailable, attempting next stage:", localErr);
           }
 
-          // Secondary attempt if query param didn't return profile
-          if (!profilePayload) {
+          // Stage 2: If local relay wasn't available, try CORS-enabled proxy and direct browser fetch
+          if (!accessToken || !profilePayload) {
+            const tokenBody = new URLSearchParams({
+              grant_type: "authorization_code",
+              client_id: bridgeData.clientId,
+              client_secret: bridgeData.clientSecret,
+              code: bridgeData.code,
+              redirect_uri: bridgeData.redirectUri,
+            });
+
+            // Try corsproxy.io first
             try {
-              const meResHeader = await fetch("https://api.intra.42.fr/v2/me", {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  Accept: "application/json",
-                },
+              const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent("https://api.intra.42.fr/oauth/token");
+              const proxyRes = await fetch(proxyUrl, {
+                method: "POST",
+                body: tokenBody,
               });
-              if (meResHeader.ok) {
-                profilePayload = await meResHeader.json();
+
+              if (proxyRes.ok) {
+                const proxyJson = await proxyRes.json();
+                accessToken = proxyJson.access_token;
               }
-            } catch (headerErr) {
-              console.warn("Bearer header /v2/me fetch failed:", headerErr);
+            } catch (proxyErr) {
+              console.warn("Proxy relay exchange failed:", proxyErr);
+            }
+
+            // Direct browser fetch attempt
+            if (!accessToken) {
+              try {
+                const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
+                  method: "POST",
+                  body: tokenBody,
+                });
+
+                if (directTokenRes.ok) {
+                  const tokenJson = await directTokenRes.json();
+                  accessToken = tokenJson.access_token;
+                }
+              } catch (directErr) {
+                console.warn("Direct fetch hit CORS:", directErr);
+              }
+            }
+
+            if (!accessToken) {
+              throw new Error("Unable to retrieve OAuth token via any residential or proxy relay");
+            }
+
+            // Fetch profile
+            currentStepName = "browser-profile-fetch";
+            setBridgeLoadingText("Retrieving 42 student profile...");
+
+            // Try simple GET with access_token param
+            try {
+              const meUrl = `https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`;
+              const meRes = await fetch(meUrl);
+              if (meRes.ok) {
+                profilePayload = await meRes.json();
+              }
+            } catch {
+              // fallback to proxy for profile
+              try {
+                const proxyMeUrl =
+                  "https://corsproxy.io/?" +
+                  encodeURIComponent(`https://api.intra.42.fr/v2/me?access_token=${encodeURIComponent(accessToken)}`);
+                const proxyMeRes = await fetch(proxyMeUrl);
+                if (proxyMeRes.ok) {
+                  profilePayload = await proxyMeRes.json();
+                }
+              } catch (proxyMeErr) {
+                console.warn("Proxy profile fetch failed:", proxyMeErr);
+              }
             }
           }
 
           if (!profilePayload || !profilePayload.login) {
-            throw new Error("Failed to retrieve 42 profile directly from browser");
+            throw new Error("Failed to retrieve 42 profile directly from browser or relay");
           }
 
           // 4. Finalize session on server with zero server-to-Intra calls
