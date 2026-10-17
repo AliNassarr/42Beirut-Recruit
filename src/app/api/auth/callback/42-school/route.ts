@@ -38,6 +38,8 @@ export async function GET(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        "User-Agent": "42Beirut-Recruit/1.0 (Netlify Serverless)",
         Authorization: `Basic ${basicAuth}`,
       },
       body: new URLSearchParams({
@@ -64,6 +66,8 @@ export async function GET(request: NextRequest) {
     const meRes = await fetch("https://api.intra.42.fr/v2/me", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        "User-Agent": "42Beirut-Recruit/1.0 (Netlify Serverless)",
       },
     });
 
