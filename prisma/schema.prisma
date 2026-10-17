@@ -1,0 +1,285 @@
+// This is your Prisma schema file
+// Learn more at: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// AUTHENTICATION MODELS (NextAuth.js v5)
+// ==========================================
+
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+
+  // 42 Intra Specific Metadata
+  intraId          Int?      @unique
+  login            String?   @unique
+  firstLoginAt     DateTime  @default(now())
+  lastSyncedAt     DateTime  @default(now())
+
+  // 42 Academic Standing
+  primaryCampusId  Int?
+  campusName       String?   @default("Beirut")
+  currentLevel     Float?    @default(0.0)
+  grade            String?   @default("Learner")
+  poolMonth        String?
+  poolYear         Int?
+  isAlumnus        Boolean   @default(false)
+
+  // Coalition
+  coalitionId      Int?
+  coalitionName    String?
+  coalitionColor   String?
+
+  // Relations
+  accounts         Account[]
+  sessions         Session[]
+  resumes          Resume[]
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==========================================
+// RESUME BUILDER MODELS (Dr. Wissam CV)
+// ==========================================
+
+model Resume {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Meta
+  title              String   @default("Software Engineering CV")
+  targetRole         String?  @default("Software Engineer")
+  isPrimary          Boolean  @default(false)
+
+  // Personal Contact Info
+  fullName           String
+  email              String
+  phoneNumber        String?
+  location           String   @default("Beirut, Lebanon")
+  githubUrl          String?
+  linkedinUrl        String?
+
+  // Dr. Wissam Template Settings
+  // Education State: STATE_A_CORE | STATE_B_SPECIALIZATION | STATE_C_ALUMNUS
+  educationState     String   @default("STATE_A_CORE")
+  showExperience     Boolean  @default(false)
+  specialization     String?  // Only for State B (e.g., "Cybersecurity", "Web")
+
+  // Section ordering and style (JSON)
+  sectionOrder       String?  // JSON array of section keys
+  styleSettings      String?  // JSON: { fontSizePt, marginInches, density }
+
+  // Relational Child Sections
+  educationEntries      EducationEntry[]
+  experienceEntries     ExperienceEntry[]
+  projectEntries        ProjectEntry[]
+  skillCategories       SkillCategory[]
+  courseworkEntries     CourseworkEntry[]
+  extracurricularEntries ExtracurricularEntry[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model EducationEntry {
+  id             String  @id @default(cuid())
+  resumeId       String
+  resume         Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  institution    String  @default("42 Beirut")
+  degree         String
+  fieldOfStudy   String  @default("Computer Science")
+  location       String  @default("Beirut, Lebanon")
+  startDate      String  // "2024" or "2024-01"
+  endDate        String? // null = Present
+  isCurrent      Boolean @default(true)
+  levelAchieved  Float?  // e.g., 9.48
+  highlights     String? // JSON array of strings
+  sortOrder      Int     @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model ExperienceEntry {
+  id             String  @id @default(cuid())
+  resumeId       String
+  resume         Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  company        String
+  role           String
+  location       String?
+  startDate      String
+  endDate        String?
+  isCurrent      Boolean @default(false)
+  bulletPoints   String  // JSON array of strings
+  sortOrder      Int     @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model ProjectEntry {
+  id             String  @id @default(cuid())
+  resumeId       String
+  resume         Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  title          String  // Display name, e.g. "Minishell"
+  slug           String? // 42 project slug, e.g. "minishell"
+  is42Project    Boolean @default(true)
+  intraProjectId Int?
+  validatedMark  Int?    // 100, 125, etc.
+  techStack      String  // Comma-separated: "C, Unix System Calls, Process Management"
+  bulletPoints   String  // JSON array of strings
+  date           String  // "September 2025"
+  sortOrder      Int     @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+// Strict 4-category layout per Dr. Wissam template:
+// LANGUAGES | DEVELOPER_TOOLS | TECHNOLOGIES_FRAMEWORKS | PROJECT_MANAGEMENT
+model SkillCategory {
+  id          String @id @default(cuid())
+  resumeId    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // Must be one of: LANGUAGES, DEVELOPER_TOOLS, TECHNOLOGIES_FRAMEWORKS, PROJECT_MANAGEMENT
+  category    String
+  items       String // JSON array of skill name strings
+  sortOrder   Int    @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([resumeId, category])
+  @@index([resumeId])
+}
+
+model CourseworkEntry {
+  id          String @id @default(cuid())
+  resumeId    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  name        String   // e.g., "42 Beirut Extracurricular Cybersecurity Piscine"
+  institution String   @default("42 Beirut")
+  date        String?  // "May 2025"
+  sortOrder   Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model ExtracurricularEntry {
+  id           String  @id @default(cuid())
+  resumeId     String
+  resume       Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  organization String  @default("42 Beirut")
+  role         String
+  startDate    String
+  endDate      String?
+  isCurrent    Boolean @default(true)
+  bulletPoints String  // JSON array of strings
+  sortOrder    Int     @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+// Pre-seeded 42 project knowledge base for questionnaire generation
+model ProjectKnowledgeBase {
+  id              String @id @default(cuid())
+  slug            String @unique  // "minishell", "webserv", etc.
+  displayName     String          // "Minishell"
+  circle          Int             // 0-6
+  category        String          // "Unix System", "Web", "Graphics", etc.
+  description     String          // What the project is about
+  defaultTechStack String         // Comma-separated default tech
+  // JSON array of questionnaire questions for this project
+  questionnaireQuestions String
+  // JSON array of default bullet point templates
+  defaultBullets  String
+  // JSON array of related skills to auto-populate
+  relatedSkills   String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Anti-Duplication Ledger: Tracks every generated bullet across students to enforce 100% uniqueness
+model GeneratedBullet {
+  id          String   @id @default(cuid())
+  projectSlug String
+  bulletText  String
+  userLogin   String?
+  createdAt   DateTime @default(now())
+
+  @@index([projectSlug])
+}
+

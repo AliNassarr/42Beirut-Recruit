@@ -1,0 +1,44 @@
+{
+  "name": "42beirut-recruit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^0.0.55",
+    "@ai-sdk/openai": "^0.0.66",
+    "@prisma/client": "^5.22.0",
+    "ai": "^3.4.33",
+    "clsx": "^2.1.1",
+    "docx": "^8.5.0",
+    "lucide-react": "^0.460.0",
+    "mammoth": "^1.13.0",
+    "next": "14.2.24",
+    "next-auth": "^4.24.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-to-print": "^3.0.2",
+    "tailwind-merge": "^2.5.4",
+    "unpdf": "^1.7.0",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.24",
+    "postcss": "^8.4.47",
+    "prisma": "^5.22.0",
+    "puppeteer-core": "^24.43.1",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
+  }
+}
