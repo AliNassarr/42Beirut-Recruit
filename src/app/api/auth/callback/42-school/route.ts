@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
-        "User-Agent": "42Beirut-Recruit/1.0 (Netlify Serverless)",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
         Authorization: `Basic ${basicAuth}`,
       },
       body: new URLSearchParams({
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": "42Beirut-Recruit/1.0 (Netlify Serverless)",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
       },
     });
 
