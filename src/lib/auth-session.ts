@@ -1,7 +1,4 @@
 import { MockIntraUser } from "@/lib/intra/mock-data";
-import { randomUUID } from "crypto";
-import fs from "fs";
-import path from "path";
 
 // Server-side in-memory + file-backed session cache
 // Survives page navigations, hot reloads, and avoids browser 4KB cookie size limits
@@ -14,16 +11,27 @@ if (!globalForSessions.fortyTwoSessions) {
 }
 
 const sessions = globalForSessions.fortyTwoSessions;
-const CACHE_FILE = path.join(process.cwd(), ".sessions-cache.json");
+
+function getSafeUuid(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "sid_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
 
 function loadFileCache() {
   try {
-    if (fs.existsSync(CACHE_FILE)) {
-      const data = JSON.parse(fs.readFileSync(CACHE_FILE, "utf-8"));
-      const now = Date.now();
-      for (const [sid, entry] of Object.entries(data as Record<string, { user: MockIntraUser; expiresAt: number }>)) {
-        if (entry.expiresAt > now && !sessions.has(sid)) {
-          sessions.set(sid, entry);
+    if (typeof process !== "undefined" && process.cwd) {
+      const fs = require("fs");
+      const path = require("path");
+      const cacheFile = path.join(process.cwd(), ".sessions-cache.json");
+      if (fs.existsSync(cacheFile)) {
+        const data = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
+        const now = Date.now();
+        for (const [sid, entry] of Object.entries(data as Record<string, { user: MockIntraUser; expiresAt: number }>)) {
+          if (entry.expiresAt > now && !sessions.has(sid)) {
+            sessions.set(sid, entry);
+          }
         }
       }
     }
@@ -34,14 +42,19 @@ function loadFileCache() {
 
 function saveFileCache() {
   try {
-    const obj: Record<string, { user: MockIntraUser; expiresAt: number }> = {};
-    const now = Date.now();
-    for (const [sid, entry] of sessions.entries()) {
-      if (entry.expiresAt > now) {
-        obj[sid] = entry;
+    if (typeof process !== "undefined" && process.cwd) {
+      const fs = require("fs");
+      const path = require("path");
+      const cacheFile = path.join(process.cwd(), ".sessions-cache.json");
+      const obj: Record<string, { user: MockIntraUser; expiresAt: number }> = {};
+      const now = Date.now();
+      for (const [sid, entry] of sessions.entries()) {
+        if (entry.expiresAt > now) {
+          obj[sid] = entry;
+        }
       }
+      fs.writeFileSync(cacheFile, JSON.stringify(obj, null, 2), "utf-8");
     }
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(obj, null, 2), "utf-8");
   } catch {
     // Non-fatal if filesystem write fails
   }
@@ -51,7 +64,7 @@ function saveFileCache() {
 loadFileCache();
 
 export function createSession(user: MockIntraUser): string {
-  const sid = randomUUID();
+  const sid = getSafeUuid();
   // 24 hours expiry
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
   sessions.set(sid, { user, expiresAt });

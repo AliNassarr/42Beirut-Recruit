@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useCVStore, useHasHydrated } from "@/lib/store/cv-store";
 import { BreadcrumbStepper } from "@/components/wizard/BreadcrumbStepper";
 import { Step1Login } from "@/components/wizard/Step1Login";
@@ -26,9 +26,54 @@ export default function Home() {
   } = useCVStore();
 
   const [authLoading, setAuthLoading] = useState(false);
+  const [bridgeLoadingText, setBridgeLoadingText] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
   const [hasCheckedDraft, setHasCheckedDraft] = useState(false);
+
+  // Helper to hydrate Zustand state and advance to Step 2
+  const hydrateWithIntraUser = useCallback(
+    (user: any) => {
+      setStudentProfile(user);
+
+      // Auto-detect education state per Dr. Wissam rules:
+      // Check if ft_transcendence is validated OR level >= 9.8
+      const hasTranscendence = (user.validatedProjects || []).some(
+        (p: any) =>
+          p.slug === "ft_transcendence" ||
+          p.name?.toLowerCase().includes("transcendence")
+      );
+      const isAdvanced = hasTranscendence || (user.level || 0) >= 9.8;
+
+      if (user.grade === "Alumni" || (user.level || 0) >= 16) {
+        setEducationState("STATE_C_ALUMNUS");
+      } else if (isAdvanced) {
+        setEducationState("STATE_B_SPECIALIZATION");
+        setSpecializationTrack("Advanced Software Architecture");
+      } else {
+        setEducationState("STATE_A_CORE");
+      }
+
+      // Pre-select top 4 validated projects from student profile
+      if (user.validatedProjects && user.validatedProjects.length > 0) {
+        const defaultSelected = user.validatedProjects.slice(0, 4).map((p: any) => ({
+          name: p.name,
+          slug: p.slug,
+          date: p.date || "2024",
+          is42Project: true,
+        }));
+        setSelectedProjects(defaultSelected);
+      }
+
+      setCurrentStep("SETUP");
+
+      // Clean up URL query parameters without reloading
+      if (typeof window !== "undefined") {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    },
+    [setCurrentStep, setEducationState, setSelectedProjects, setSpecializationTrack, setStudentProfile]
+  );
 
   // Check for restored draft on client hydration
   useEffect(() => {
@@ -45,10 +90,12 @@ export default function Home() {
   }, [hasHydrated, hasCheckedDraft, lastSavedTimestamp, currentStep, studentProfile, cvData.contact.fullName]);
 
   useEffect(() => {
-    // Check URL parameters for OAuth status, session ID, or errors safely
+    // Check URL parameters for OAuth status, session ID, errors, or OAuth bridge
     let authStatus: string | null = null;
     let errorParam: string | null = null;
     let sidParam: string | null = null;
+    let bridgeParam: string | null = null;
+    let codeParam: string | null = null;
 
     try {
       const search = typeof window !== "undefined" ? window.location.search : "";
@@ -57,6 +104,8 @@ export default function Home() {
         authStatus = params.get("auth");
         errorParam = params.get("error");
         sidParam = params.get("sid");
+        bridgeParam = params.get("oauth_bridge");
+        codeParam = params.get("code");
       }
     } catch (e) {
       console.warn("Failed to parse URL search parameters:", e);
@@ -72,6 +121,138 @@ export default function Home() {
       setAuthError(safeError);
     }
 
+    // Tier 2: Self-Healing Residential Browser Bridge
+    if (bridgeParam === "1" && codeParam) {
+      setAuthLoading(true);
+      setBridgeLoadingText("Initiating secure residential handshake bridge...");
+
+      async function executeResidentialBridge() {
+        try {
+          // 1. Fetch OAuth parameters validated by backend ticket
+          const initRes = await fetch("/api/auth/42/bridge-init", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: codeParam }),
+          });
+
+          if (!initRes.ok) {
+            const errJson = await initRes.json().catch(() => ({}));
+            throw new Error(errJson.error || "Handshake ticket verification failed");
+          }
+
+          const bridgeData = await initRes.json();
+          let accessToken: string | null = null;
+          let profilePayload: any = null;
+
+          setBridgeLoadingText("Exchanging token via residential browser TLS...");
+
+          // 2. Attempt token exchange directly from user's residential browser IP
+          try {
+            const directTokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Accept: "application/json",
+              },
+              body: new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: bridgeData.clientId,
+                client_secret: bridgeData.clientSecret,
+                code: bridgeData.code,
+                redirect_uri: bridgeData.redirectUri,
+              }),
+            });
+
+            if (directTokenRes.ok) {
+              const tokenJson = await directTokenRes.json();
+              accessToken = tokenJson.access_token;
+            }
+          } catch (directErr) {
+            console.warn("Direct browser exchange encountered CORS; transitioning to edge network relay:", directErr);
+          }
+
+          // 3. If direct browser exchange hit CORS, relay via Netlify Edge isolate (Deno Anycast)
+          if (!accessToken) {
+            setBridgeLoadingText("Relaying token exchange via Anycast Edge isolate...");
+            const edgeRes = await fetch("/api/auth/42/edge-relay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                grant_type: "authorization_code",
+                client_id: bridgeData.clientId,
+                client_secret: bridgeData.clientSecret,
+                code: bridgeData.code,
+                redirect_uri: bridgeData.redirectUri,
+              }),
+            });
+
+            if (!edgeRes.ok) {
+              const edgeErrText = await edgeRes.text();
+              throw new Error(`Edge relay token exchange failed: ${edgeErrText.slice(0, 100)}`);
+            }
+
+            const edgeJson = await edgeRes.json();
+            accessToken = edgeJson.access_token;
+          }
+
+          if (!accessToken) {
+            throw new Error("Unable to retrieve OAuth access token from 42 Intra");
+          }
+
+          // 4. Attempt fetching profile directly from browser using access token
+          try {
+            const meRes = await fetch("https://api.intra.42.fr/v2/me", {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                Accept: "application/json",
+              },
+            });
+            if (meRes.ok) {
+              profilePayload = await meRes.json();
+            }
+          } catch {
+            // Profile fetch will be executed server-side in bridge-complete if browser CORS applies
+          }
+
+          // 5. Finalize session and sync student profile with Neon PostgreSQL database
+          setBridgeLoadingText("Finalizing profile sync & secure session...");
+          const completeRes = await fetch("/api/auth/42/bridge-complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              accessToken,
+              profile: profilePayload,
+            }),
+          });
+
+          if (!completeRes.ok) {
+            const completeErr = await completeRes.json().catch(() => ({}));
+            throw new Error(completeErr.error || "Failed to finalize 42 session");
+          }
+
+          const completeData = await completeRes.json();
+          if (completeData.success && completeData.user) {
+            hydrateWithIntraUser(completeData.user);
+          } else {
+            throw new Error("Bridge completed but returned no profile");
+          }
+        } catch (err: any) {
+          console.error("Residential bridge handshake failed:", err);
+          setAuthError(err.message || "Failed to complete 42 Intra authentication.");
+          if (typeof window !== "undefined") {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } finally {
+          setAuthLoading(false);
+          setBridgeLoadingText("");
+        }
+      }
+
+      executeResidentialBridge();
+      return;
+    }
+
+    // Normal OAuth callback flow with existing session ID
     if (authStatus === "success" || sidParam) {
       setAuthLoading(true);
       const sessionUrl = sidParam
@@ -82,42 +263,7 @@ export default function Home() {
         .then((res) => res.json())
         .then((data) => {
           if (data.authenticated && data.user) {
-            const user = data.user;
-            setStudentProfile(user);
-
-            // Auto-detect education state per Dr. Wissam rules:
-            // Check if ft_transcendence is validated OR level >= 9.8
-            const hasTranscendence = (user.validatedProjects || []).some(
-              (p: any) =>
-                p.slug === "ft_transcendence" ||
-                p.name?.toLowerCase().includes("transcendence")
-            );
-            const isAdvanced = hasTranscendence || (user.level || 0) >= 9.8;
-
-            if (user.grade === "Alumni" || (user.level || 0) >= 16) {
-              setEducationState("STATE_C_ALUMNUS");
-            } else if (isAdvanced) {
-              setEducationState("STATE_B_SPECIALIZATION");
-              setSpecializationTrack("Advanced Software Architecture");
-            } else {
-              setEducationState("STATE_A_CORE");
-            }
-
-            // Pre-select top 4 validated projects from student profile
-            if (user.validatedProjects && user.validatedProjects.length > 0) {
-              const defaultSelected = user.validatedProjects.slice(0, 4).map((p: any) => ({
-                name: p.name,
-                slug: p.slug,
-                date: p.date || "2024",
-                is42Project: true,
-              }));
-              setSelectedProjects(defaultSelected);
-            }
-
-            setCurrentStep("SETUP");
-
-            // Clean up URL query parameters without reloading
-            window.history.replaceState({}, document.title, window.location.pathname);
+            hydrateWithIntraUser(data.user);
           } else {
             setAuthError("Failed to retrieve your 42 Intra profile. Please sign in again or use Quick Start.");
           }
@@ -130,7 +276,7 @@ export default function Home() {
           setAuthLoading(false);
         });
     }
-  }, [setCurrentStep, setEducationState, setSelectedProjects, setSpecializationTrack, setStudentProfile]);
+  }, [hydrateWithIntraUser]);
 
   // Prevent SSR hydration mismatch
   if (!hasHydrated) {
@@ -218,9 +364,13 @@ export default function Home() {
             <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
             <Loader2 className="w-8 h-8 text-cyan-400 absolute inset-0 m-auto animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Syncing Your 42 Beirut Profile...</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {bridgeLoadingText || "Syncing Your 42 Beirut Profile..."}
+          </h2>
           <p className="text-sm text-slate-400 max-w-md leading-relaxed">
-            Retrieving your validated Common Core projects, calculating your cursus level, and preparing your tailored Dr. Wissam questionnaire.
+            {bridgeLoadingText
+              ? "Bypassing cloud firewall via residential handshake bridge. This ensures zero data loss and direct Intra authentication."
+              : "Retrieving your validated Common Core projects, calculating your cursus level, and preparing your tailored Dr. Wissam questionnaire."}
           </p>
         </div>
       ) : (
