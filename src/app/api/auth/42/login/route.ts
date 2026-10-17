@@ -4,7 +4,8 @@ export async function GET(request: NextRequest) {
   const rawClientId = process.env.FORTY_TWO_CLIENT_ID || "";
   const clientId = rawClientId.replace(/^["']|["']$/g, "").trim();
 
-  const origin = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const rawOrigin = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const origin = rawOrigin.replace(/\/+$/, "");
   const redirectUri = `${origin}/api/auth/callback/42-school`;
 
   if (!clientId) {

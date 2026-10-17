@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
-  const origin = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const rawOrigin = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const origin = rawOrigin.replace(/\/+$/, "");
   const redirectUri = `${origin}/api/auth/callback/42-school`;
 
   if (error || !code) {
@@ -38,16 +39,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Exchange authorization code for access_token
-    // Include both Basic Auth header and form body parameters to guarantee compatibility with 42 Intra Doorkeeper
-    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    // 1. Exchange authorization code for access_token with browser emulation headers to prevent Cloudflare challenge
     const tokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-        Authorization: `Basic ${basicAuth}`,
+        Origin: "https://api.intra.42.fr",
+        Referer: "https://api.intra.42.fr/",
       },
       body: new URLSearchParams({
         grant_type: "authorization_code",
@@ -59,9 +59,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenRes.ok) {
+      const status = tokenRes.status;
+      const statusText = tokenRes.statusText;
       const errBody = await tokenRes.text();
-      console.error("42 token exchange failed:", errBody);
-      return redirectToSafeError(origin, `Token exchange failed: ${errBody}`);
+      console.error(`42 token exchange failed [HTTP ${status} ${statusText}]:`, errBody);
+      return redirectToSafeError(origin, `Token exchange failed (${status}): ${errBody}`);
     }
 
     const tokenData = await tokenRes.json();
@@ -73,13 +75,16 @@ export async function GET(request: NextRequest) {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        Referer: "https://api.intra.42.fr/",
       },
     });
 
     if (!meRes.ok) {
+      const status = meRes.status;
+      const statusText = meRes.statusText;
       const errBody = await meRes.text();
-      console.error("42 /v2/me fetch failed:", errBody);
-      return redirectToSafeError(origin, "Failed to retrieve 42 profile");
+      console.error(`42 /v2/me fetch failed [HTTP ${status} ${statusText}]:`, errBody);
+      return redirectToSafeError(origin, `Failed to retrieve 42 profile (${status})`);
     }
 
     const me = await meRes.json();
