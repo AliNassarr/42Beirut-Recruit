@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const rawClientId = process.env.FORTY_TWO_CLIENT_ID || "";
   const clientId = rawClientId.replace(/^["']|["']$/g, "").trim();
 
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth/callback/42-school`;
+  const origin = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const redirectUri = `${origin}/api/auth/callback/42-school`;
 
   if (!clientId) {
     return NextResponse.json(
