@@ -14,9 +14,9 @@ import {
   Minimize2,
   Printer,
   Download,
-  AlertTriangle,
   CheckCircle2,
-  RotateCcw,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 
 interface CanvasPreviewViewportProps {
@@ -27,6 +27,7 @@ interface CanvasPreviewViewportProps {
   onHeightBudgetChange?: (budget: HeightBudget) => void;
   onPrintPDF?: () => void;
   onExportDocx?: () => void;
+  onAutoFit?: () => void;
 }
 
 export function CanvasPreviewViewport({
@@ -37,14 +38,15 @@ export function CanvasPreviewViewport({
   onHeightBudgetChange,
   onPrintPDF,
   onExportDocx,
+  onAutoFit,
 }: CanvasPreviewViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState<number>(0.85);
+  const [scale, setScale] = useState<number>(0.9);
   const [zoomMode, setZoomMode] = useState<"fit" | "custom">("fit");
   const [budget, setBudget] = useState<HeightBudget>({
-    height: 980,
+    height: 820,
     printableBudget: 1027,
-    percentage: 95,
+    percentage: 80,
     isOverflow: false,
   });
 
@@ -55,7 +57,7 @@ export function CanvasPreviewViewport({
     const paperWidth = 794; // A4 standard width at 96 DPI
     const padding = isFullScreen ? 80 : 48;
     const availableWidth = containerWidth - padding;
-    const fitScale = Math.min(1.2, Math.max(0.45, availableWidth / paperWidth));
+    const fitScale = Math.min(1.15, Math.max(0.5, availableWidth / paperWidth));
     setScale(Number(fitScale.toFixed(3)));
   }, [isFullScreen]);
 
@@ -80,7 +82,7 @@ export function CanvasPreviewViewport({
 
   const handleZoom = (delta: number) => {
     setZoomMode("custom");
-    setScale((prev) => Math.min(1.5, Math.max(0.4, Number((prev + delta).toFixed(2)))));
+    setScale((prev) => Math.min(1.4, Math.max(0.4, Number((prev + delta).toFixed(2)))));
   };
 
   const handleSetZoom = (val: number) => {
@@ -96,50 +98,48 @@ export function CanvasPreviewViewport({
   return (
     <div
       ref={containerRef}
-      className={`relative flex flex-col bg-[#1E293B] text-slate-100 ${
+      className={`relative flex flex-col bg-[#18181B] text-zinc-100 ${
         isFullScreen
           ? "fixed inset-0 z-50 overflow-hidden"
-          : "w-full h-full min-h-[780px] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden"
+          : "w-full h-full min-h-[780px] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden"
       }`}
     >
-      {/* Top Floating Viewport Control Deck */}
-      <div className="flex items-center justify-between px-6 py-3 bg-[#0F172A]/90 backdrop-blur-md border-b border-slate-800 z-30 shrink-0">
-        {/* Left: Height Budget Telemetry Pill */}
-        <div className="flex items-center gap-3">
+      {/* Top Single Horizontal Control Deck — Zero Vertical Wrapping */}
+      <div className="flex items-center justify-between px-6 py-3.5 bg-[#09090B] border-b border-zinc-800 z-30 shrink-0 gap-4 flex-nowrap">
+        {/* Left: Height Budget Telemetry */}
+        <div className="flex items-center gap-3 shrink-0">
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
               budget.isOverflow
-                ? "bg-red-500/20 text-red-300 border-red-500/40 animate-pulse"
-                : budget.percentage > 92
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                : "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                ? "bg-red-950/60 text-red-400 border-red-800"
+                : "bg-zinc-900 text-white border-zinc-700"
             }`}
           >
             {budget.isOverflow ? (
               <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
             ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
             )}
             <span>
-              {budget.height}px / 1027px ({budget.percentage}% 1-Page Line Budget)
+              {budget.height}px / 1027px · {budget.percentage}% 1-Page Line Budget
             </span>
           </div>
 
-          <span className="hidden sm:inline text-xs text-slate-400">
+          <span className="hidden xl:inline text-xs text-zinc-400">
             {budget.isOverflow
-              ? "Warning: Resume overflows onto page 2! Trim bullets or switch to compact."
-              : "100% compliant with Dr. Wissam Single-Page Rule"}
+              ? "Over-budget: Trimming required to fit single page"
+              : "100% Dr. Wissam 1-Page Compliant"}
           </span>
         </div>
 
         {/* Right: Zoom & Export Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Zoom Buttons */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs text-slate-300">
+          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs text-zinc-300">
             <button
               type="button"
               onClick={() => handleZoom(-0.1)}
-              className="p-1.5 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+              className="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
@@ -147,8 +147,8 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={handleResetFit}
-              className={`px-2 py-1 text-xs font-mono font-semibold hover:text-white rounded transition cursor-pointer ${
-                zoomMode === "fit" ? "text-cyan-400" : "text-slate-300"
+              className={`px-2 py-1 text-xs font-mono font-bold hover:text-white rounded transition cursor-pointer ${
+                zoomMode === "fit" ? "text-white" : "text-zinc-400"
               }`}
               title="Reset to Fit"
             >
@@ -157,44 +157,56 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={() => handleZoom(0.1)}
-              className="p-1.5 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+              className="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Quick preset zoom pills */}
-          <div className="hidden lg:flex items-center gap-1 text-[11px] font-mono text-slate-400">
+          {/* Preset Zoom Pills */}
+          <div className="hidden lg:flex items-center gap-1 text-[11px] font-mono text-zinc-400">
             <button
               type="button"
               onClick={() => handleSetZoom(0.75)}
-              className="px-1.5 py-0.5 hover:text-cyan-400 hover:bg-slate-800 rounded transition cursor-pointer"
+              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               75%
             </button>
             <button
               type="button"
               onClick={() => handleSetZoom(0.9)}
-              className="px-1.5 py-0.5 hover:text-cyan-400 hover:bg-slate-800 rounded transition cursor-pointer"
+              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               90%
             </button>
             <button
               type="button"
               onClick={() => handleSetZoom(1.0)}
-              className="px-1.5 py-0.5 hover:text-cyan-400 hover:bg-slate-800 rounded transition cursor-pointer"
+              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               100%
             </button>
           </div>
+
+          {/* Auto-Fit 1-Page Trigger */}
+          {onAutoFit && (
+            <button
+              type="button"
+              onClick={onAutoFit}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Auto-Fit 1-Page</span>
+            </button>
+          )}
 
           {/* Print PDF Trigger */}
           {onPrintPDF && (
             <button
               type="button"
               onClick={onPrintPDF}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold transition shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-zinc-200 text-black rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print PDF</span>
@@ -206,7 +218,7 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={onExportDocx}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Word</span>
@@ -218,7 +230,7 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={onToggleFullScreen}
-              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-lg transition cursor-pointer"
+              className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-md transition cursor-pointer"
               title={isFullScreen ? "Exit Fullscreen" : "Fullscreen Preview"}
             >
               {isFullScreen ? (
@@ -232,22 +244,22 @@ export function CanvasPreviewViewport({
       </div>
 
       {/* Main Canvas Scroll Area */}
-      <div className="flex-1 overflow-auto p-6 flex justify-center items-start">
-        {/* Dynamic Matrix Scale Container */}
+      <div className="flex-1 overflow-auto p-6 md:p-10 flex justify-center items-start">
+        {/* Dynamic Scale Container */}
         <div
           id="resume-preview"
           style={{
-            transform: `matrix(${scale}, 0, 0, ${scale}, 0, 0)`,
+            transform: `scale(${scale})`,
             transformOrigin: "top center",
             width: "794px",
             minHeight: "1123px",
           }}
-          className="relative transition-transform duration-75 select-text"
+          className="relative transition-transform duration-75 select-text shadow-2xl"
         >
           {/* Paper Canvas (A4 Standard: 794px @ 96 DPI) */}
           <div
             id="resume"
-            className="relative bg-white text-black shadow-2xl rounded-sm overflow-hidden"
+            className="relative bg-white text-black rounded-sm overflow-hidden"
             style={{ width: "794px", minHeight: "1123px" }}
           >
             <WissamCleanTemplate
@@ -258,13 +270,13 @@ export function CanvasPreviewViewport({
               forceOverflowIndicator={true}
             />
 
-            {/* Rezi Page Break Demarcation Marker */}
+            {/* Rezi Page Break Marker */}
             <div
               className="design-studio-break-page absolute left-0 right-0 pointer-events-none z-30"
               style={{ top: "1027px" }}
             >
               <div className="relative border-b-2 border-dashed border-red-500/80 w-full flex items-center justify-center">
-                <span className="bg-red-600 text-white font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-md -translate-y-1/2">
+                <span className="bg-red-600 text-white font-mono text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md -translate-y-1/2">
                   1027px A4 Printable Page Boundary
                 </span>
               </div>
