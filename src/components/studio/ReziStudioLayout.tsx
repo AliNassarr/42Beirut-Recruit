@@ -302,9 +302,9 @@ export function ReziStudioLayout() {
   return (
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
       {/* 1. Global Left Navigation Rail (70px Fixed Width) */}
-      <aside className="w-[70px] bg-[#09090B] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
+      <aside className="w-[70px] bg-[#0C0C0E] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
         {/* Crisp Monochrome 42 Stencil Container */}
-        <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-sm">
+        <div className="w-10 h-10 rounded-lg bg-[#141417] border border-zinc-800 flex items-center justify-center shadow-sm">
           <FortyTwoLogo className="w-7 h-5 text-white" />
         </div>
 
@@ -316,8 +316,8 @@ export function ReziStudioLayout() {
             onClick={() => setViewMode("builder")}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition cursor-pointer ${
               viewMode === "builder"
-                ? "bg-zinc-800 text-white border border-zinc-700"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                ? "bg-[#1C1C21] text-white border border-zinc-700"
+                : "text-zinc-400 hover:text-white hover:bg-[#141417]"
             }`}
             title="Studio Editor"
           >
@@ -328,7 +328,7 @@ export function ReziStudioLayout() {
           <button
             type="button"
             onClick={handleIntraSync}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900 transition cursor-pointer"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
             title="Sync / Hydrate 42 Intra Profile"
           >
             <RefreshCw className="w-5 h-5" />
@@ -340,8 +340,8 @@ export function ReziStudioLayout() {
             onClick={() => setIsBYOKOpen(true)}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition cursor-pointer ${
               userGeminiKey || userGroqKey
-                ? "text-white bg-zinc-800 border border-zinc-700"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                ? "text-white bg-[#1C1C21] border border-zinc-700"
+                : "text-zinc-400 hover:text-white hover:bg-[#141417]"
             }`}
             title="AI Keys (BYOK Gemini/Groq)"
           >
@@ -354,7 +354,7 @@ export function ReziStudioLayout() {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900 transition cursor-pointer"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
             title="Dr. Wissam Template Rules & Spacing"
           >
             <Sliders className="w-5 h-5" />
@@ -365,11 +365,11 @@ export function ReziStudioLayout() {
       {/* Main Workspace Frame (Offset Left by 70px) */}
       <div className="flex-1 ml-[70px] flex flex-col min-h-screen">
         {/* 2. Top Sub-Navigation Header (81px Height) */}
-        <header className="h-[81px] bg-[#09090B]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
+        <header className="h-[81px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
           <div className="max-w-[1440px] h-full mx-auto px-4 md:px-8 flex items-center justify-between">
             {/* Left Cluster: Document Identity with FortyTwoLogo */}
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 items-center justify-center shadow-sm shrink-0">
+              <div className="hidden sm:flex w-9 h-9 rounded-lg bg-[#141417] border border-zinc-800 items-center justify-center shadow-sm shrink-0">
                 <FortyTwoLogo className="w-6 h-4 text-white" />
               </div>
               <div className="flex flex-col">
@@ -388,7 +388,7 @@ export function ReziStudioLayout() {
             </div>
 
             {/* Center Cluster: Section Tabs */}
-            <nav className="hidden md:flex items-center bg-zinc-900 border border-zinc-800 rounded-full p-1 gap-1">
+            <nav className="hidden md:flex items-center bg-[#141417] border border-zinc-800 rounded-full p-1 gap-1">
               {(
                 [
                   "CONTACT",
@@ -410,7 +410,7 @@ export function ReziStudioLayout() {
                     }}
                     className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition rounded-full cursor-pointer ${
                       isActive
-                        ? "bg-white text-black shadow-sm"
+                        ? "bg-white text-black shadow-sm font-bold"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
@@ -428,8 +428,8 @@ export function ReziStudioLayout() {
                 onClick={() => setViewMode(viewMode === "preview" ? "builder" : "preview")}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
                   viewMode === "preview"
-                    ? "bg-white text-black shadow-sm"
-                    : "bg-zinc-900 text-zinc-300 border border-zinc-700 hover:border-zinc-500 hover:text-white"
+                    ? "bg-white text-black shadow-sm font-bold"
+                    : "bg-zinc-900 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white"
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -440,7 +440,7 @@ export function ReziStudioLayout() {
               <button
                 type="button"
                 onClick={handlePrintPDF}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-white hover:bg-white hover:text-black rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-zinc-200 hover:bg-white hover:text-black hover:border-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Export PDF</span>
@@ -451,7 +451,7 @@ export function ReziStudioLayout() {
                 type="button"
                 onClick={handleExportDocx}
                 disabled={isExportingDocx}
-                className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-white hover:bg-white hover:text-black rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer disabled:opacity-50"
+                className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-zinc-200 hover:bg-white hover:text-black hover:border-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer disabled:opacity-50"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>{isExportingDocx ? "..." : "Word"}</span>
@@ -461,7 +461,7 @@ export function ReziStudioLayout() {
         </header>
 
         {/* Mobile Section Tabs */}
-        <div className="md:hidden flex items-center overflow-x-auto bg-zinc-900 border-b border-zinc-800 px-4 py-2 gap-2">
+        <div className="md:hidden flex items-center overflow-x-auto bg-[#0C0C0E] border-b border-zinc-800 px-4 py-2 gap-2">
           {(
             [
               "CONTACT",
@@ -481,8 +481,8 @@ export function ReziStudioLayout() {
               }}
               className={`px-3 py-1 text-xs font-bold uppercase whitespace-nowrap rounded-full ${
                 viewMode === "builder" && activeSection === sec
-                  ? "bg-white text-black"
-                  : "text-zinc-400 bg-zinc-800"
+                  ? "bg-white text-black font-bold"
+                  : "text-zinc-400 bg-[#141417]"
               }`}
             >
               {sec}
@@ -508,7 +508,7 @@ export function ReziStudioLayout() {
             {/* Column 1 — Left In-Aside Deck (Fixed 308px) */}
             <aside className="md:w-[308px] flex-none flex flex-col gap-4">
               {/* Score Engine Card */}
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
+              <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -561,7 +561,7 @@ export function ReziStudioLayout() {
               </div>
 
               {/* Draggable Item List (Positions or Projects) */}
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
+              <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     {activeSection === "PROJECTS" ? "Selected Projects" : "Work Experiences"}
@@ -582,8 +582,8 @@ export function ReziStudioLayout() {
                           onClick={() => setActiveItemId(proj.id)}
                           className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
                             isSelected
-                              ? "bg-zinc-900 border-white text-white shadow-sm"
-                              : "bg-zinc-950/60 border-zinc-800 text-zinc-300 hover:bg-zinc-900/60 hover:text-white"
+                              ? "bg-[#1C1C21] border-white text-white shadow-sm"
+                              : "bg-[#0C0C0E] border-zinc-800 text-zinc-300 hover:bg-[#1C1C21] hover:text-white"
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
@@ -654,8 +654,8 @@ export function ReziStudioLayout() {
                           onClick={() => setActiveItemId(exp.id)}
                           className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
                             isSelected
-                              ? "bg-zinc-900 border-white text-white shadow-sm"
-                              : "bg-zinc-950/60 border-zinc-800 text-zinc-300 hover:bg-zinc-900/60 hover:text-white"
+                              ? "bg-[#1C1C21] border-white text-white shadow-sm"
+                              : "bg-[#0C0C0E] border-zinc-800 text-zinc-300 hover:bg-[#1C1C21] hover:text-white"
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
@@ -772,7 +772,7 @@ export function ReziStudioLayout() {
             </aside>
 
             {/* Column 2 — Center Form Deck (1108px max / flex-1) */}
-            <main className="flex-1 max-w-[1108px] bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 md:p-8 flex flex-col gap-6 shadow-sm">
+            <main className="flex-1 max-w-[1108px] bg-[#141417] border border-zinc-800 rounded-xl p-6 md:p-8 flex flex-col gap-6 shadow-sm">
               {/* Form Deck Sub-Header with Slide-Over Toggle */}
               <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
                 <div>
@@ -793,7 +793,7 @@ export function ReziStudioLayout() {
                 <button
                   type="button"
                   onClick={() => setShowSlideOverPreview(!showSlideOverPreview)}
-                  className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-300 text-xs font-mono rounded-md transition cursor-pointer"
+                  className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 bg-[#0C0C0E] border border-zinc-800 hover:border-white text-zinc-300 hover:text-white text-xs font-mono rounded-md transition cursor-pointer"
                   title="Toggle Slide-Over Preview on Wide Display"
                 >
                   {showSlideOverPreview ? (
@@ -821,7 +821,7 @@ export function ReziStudioLayout() {
                       type="text"
                       value={cvData.contact.fullName}
                       onChange={(e) => updateContact({ fullName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -834,7 +834,7 @@ export function ReziStudioLayout() {
                       step="0.1"
                       value={cvData.contact.level ?? 9}
                       onChange={(e) => updateContact({ level: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -846,7 +846,7 @@ export function ReziStudioLayout() {
                       type="email"
                       value={cvData.contact.email}
                       onChange={(e) => updateContact({ email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -858,7 +858,7 @@ export function ReziStudioLayout() {
                       type="tel"
                       value={cvData.contact.phoneNumber}
                       onChange={(e) => updateContact({ phoneNumber: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -871,7 +871,7 @@ export function ReziStudioLayout() {
                       value={cvData.contact.githubUrl}
                       onChange={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
                       placeholder="github.com/login"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -884,7 +884,7 @@ export function ReziStudioLayout() {
                       value={cvData.contact.linkedinUrl}
                       onChange={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
                       placeholder="linkedin.com/in/login"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
                 </div>
@@ -893,7 +893,7 @@ export function ReziStudioLayout() {
               {activeSection === "EDUCATION" && (
                 <div className="flex flex-col gap-4">
                   {cvData.education.map((edu) => (
-                    <div key={edu.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg flex flex-col gap-3">
+                    <div key={edu.id} className="p-4 bg-[#0C0C0E] border border-zinc-800 rounded-lg flex flex-col gap-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Institution</label>
@@ -901,7 +901,7 @@ export function ReziStudioLayout() {
                             type="text"
                             value={edu.institution}
                             onChange={(e) => updateEducationItem(edu.id, { institution: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                           />
                         </div>
                         <div>
@@ -910,7 +910,7 @@ export function ReziStudioLayout() {
                             type="text"
                             value={edu.degree}
                             onChange={(e) => updateEducationItem(edu.id, { degree: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                           />
                         </div>
                         <div>
@@ -919,7 +919,7 @@ export function ReziStudioLayout() {
                             type="text"
                             value={edu.program}
                             onChange={(e) => updateEducationItem(edu.id, { program: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                           />
                         </div>
                         <div>
@@ -928,7 +928,7 @@ export function ReziStudioLayout() {
                             type="text"
                             value={edu.endDate}
                             onChange={(e) => updateEducationItem(edu.id, { endDate: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                           />
                         </div>
                       </div>
@@ -954,7 +954,7 @@ export function ReziStudioLayout() {
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-bold text-white flex items-center gap-2">
                             <span>{currentProj.name}</span>
-                            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                            <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#1C1C21] border border-zinc-800 text-zinc-300">
                               {currentProj.slug}
                             </span>
                           </h4>
@@ -976,7 +976,7 @@ export function ReziStudioLayout() {
                                 setCVData({ ...cvData, projects: updated });
                               }}
                               placeholder="C, POSIX, Docker, Make"
-                              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                             />
                           </div>
                           <div>
@@ -993,7 +993,7 @@ export function ReziStudioLayout() {
                                 setCVData({ ...cvData, projects: updated });
                               }}
                               placeholder="May 2024"
-                              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                             />
                           </div>
                         </div>
@@ -1050,7 +1050,7 @@ export function ReziStudioLayout() {
 
                   {cvData.showExperience ? (
                     cvData.experience.map((exp) => (
-                      <div key={exp.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg flex flex-col gap-4">
+                      <div key={exp.id} className="p-4 bg-[#0C0C0E] border border-zinc-800 rounded-lg flex flex-col gap-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Company</label>
@@ -1058,7 +1058,7 @@ export function ReziStudioLayout() {
                               type="text"
                               value={exp.company}
                               onChange={(e) => updateExperienceItem(exp.id, { company: e.target.value })}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                             />
                           </div>
                           <div>
@@ -1067,7 +1067,7 @@ export function ReziStudioLayout() {
                               type="text"
                               value={exp.role}
                               onChange={(e) => updateExperienceItem(exp.id, { role: e.target.value })}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white"
+                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                             />
                           </div>
                         </div>
@@ -1096,7 +1096,7 @@ export function ReziStudioLayout() {
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center bg-zinc-950/60 rounded-xl border border-dashed border-zinc-800 text-zinc-500 text-sm">
+                    <div className="p-8 text-center bg-[#0C0C0E]/60 rounded-xl border border-dashed border-zinc-800 text-zinc-500 text-sm">
                       Work Experience is hidden. 100% of vertical line budget is allocated to your 42 Projects.
                     </div>
                   )}
@@ -1118,7 +1118,7 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="C, C++, TypeScript, Python, Bash, SQL"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -1135,7 +1135,7 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="Git, Docker, Valgrind, GDB, Make, Linux, Nginx"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -1152,7 +1152,7 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="Node.js, React, Next.js, PostgreSQL, WebSockets, REST APIs"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
                 </div>
@@ -1169,7 +1169,7 @@ export function ReziStudioLayout() {
                       value={cvData.targetRole || "Software Engineer"}
                       onChange={(e) => setCVData({ ...cvData, targetRole: e.target.value })}
                       placeholder="Software Engineer"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
                     />
                   </div>
 
@@ -1182,7 +1182,7 @@ export function ReziStudioLayout() {
                       value={cvData.specializationTrack || ""}
                       onChange={(e) => setCVData({ ...cvData, specializationTrack: e.target.value })}
                       placeholder="Motivated 42 Beirut student with strong foundation in low-level systems programming in C/C++..."
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none resize-none leading-relaxed"
+                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none resize-none leading-relaxed placeholder:text-zinc-500"
                     />
                   </div>
                 </div>
@@ -1206,7 +1206,7 @@ export function ReziStudioLayout() {
 
       {/* Floating 6-Second Soft Delete Toast */}
       {undoBuffer && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-zinc-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#141417] border border-zinc-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-200">
           <span className="text-xs">
             Removed <strong>&quot;{undoBuffer.label}&quot;</strong> from CV.
           </span>
@@ -1223,7 +1223,7 @@ export function ReziStudioLayout() {
 
       {/* Subtle Monochrome Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-150">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#141417] border border-zinc-700 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-150">
           <div className="text-xs">
             <div className="font-bold">{toastMessage.title}</div>
             <div className="text-zinc-400">{toastMessage.desc}</div>
@@ -1241,7 +1241,7 @@ export function ReziStudioLayout() {
       {/* ATS Score Audit Dialog Modal */}
       {isScoreModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-5 animate-in zoom-in-95 duration-150">
+          <div className="bg-[#141417] border border-zinc-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-white" />
@@ -1257,7 +1257,7 @@ export function ReziStudioLayout() {
             </div>
 
             {/* Circular Gauge Hero */}
-            <div className="flex items-center gap-5 p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+            <div className="flex items-center gap-5 p-4 bg-[#1C1C21] rounded-xl border border-zinc-800">
               <svg width="70" height="70" viewBox="0 0 46 46" className="-rotate-90">
                 <circle cx="23" cy="23" r="19.78" fill="none" stroke="#27272A" strokeWidth="4" />
                 <circle
@@ -1286,19 +1286,19 @@ export function ReziStudioLayout() {
 
             {/* Breakdown Categories */}
             <div className="flex flex-col gap-2.5 text-xs">
-              <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-[#1C1C21] rounded-lg">
                 <span className="text-zinc-300">1. Content &amp; Quantitative Metrics</span>
                 <span className="font-mono font-bold text-white">{atsAudit.contentScore} / 25</span>
               </div>
-              <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-[#1C1C21] rounded-lg">
                 <span className="text-zinc-300">2. Format &amp; 1-Page Line Budget (≤ 1027px)</span>
                 <span className="font-mono font-bold text-white">{atsAudit.formatScore} / 25</span>
               </div>
-              <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-[#1C1C21] rounded-lg">
                 <span className="text-zinc-300">3. Best Practices (Verbs &amp; No Pronouns)</span>
                 <span className="font-mono font-bold text-white">{atsAudit.bestPracticesScore} / 25</span>
               </div>
-              <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-[#1C1C21] rounded-lg">
                 <span className="text-zinc-300">4. Application Readiness (Contact &amp; Links)</span>
                 <span className="font-mono font-bold text-white">{atsAudit.applicationReadyScore} / 25</span>
               </div>
@@ -1318,7 +1318,7 @@ export function ReziStudioLayout() {
       {/* BYOK Modal */}
       {isBYOKOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+          <div className="bg-[#141417] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Key className="w-4 h-4 text-white" />
@@ -1345,7 +1345,7 @@ export function ReziStudioLayout() {
                   value={userGeminiKey}
                   onChange={(e) => setUserGeminiKey(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white"
+                  className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                 />
               </div>
 
@@ -1356,7 +1356,7 @@ export function ReziStudioLayout() {
                   value={userGroqKey}
                   onChange={(e) => setUserGroqKey(e.target.value)}
                   placeholder="gsk_..."
-                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white"
+                  className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
                 />
               </div>
             </div>
@@ -1375,7 +1375,7 @@ export function ReziStudioLayout() {
       {/* Style & Spacing Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+          <div className="bg-[#141417] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-white" />
@@ -1396,12 +1396,12 @@ export function ReziStudioLayout() {
                   <div className="font-bold text-white">Vertical Density</div>
                   <div className="text-zinc-400 text-[11px]">Calibrate line spacing to fit 1 page</div>
                 </div>
-                <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+                <div className="flex items-center gap-1 bg-[#1C1C21] p-1 rounded-lg border border-zinc-800">
                   <button
                     type="button"
                     onClick={() => setStyleDensity("standard")}
                     className={`px-3 py-1 rounded text-xs font-semibold ${
-                      styleDensity === "standard" ? "bg-white text-black" : "text-zinc-400"
+                      styleDensity === "standard" ? "bg-white text-black font-bold" : "text-zinc-400"
                     }`}
                   >
                     Standard
@@ -1410,7 +1410,7 @@ export function ReziStudioLayout() {
                     type="button"
                     onClick={() => setStyleDensity("compact")}
                     className={`px-3 py-1 rounded text-xs font-semibold ${
-                      styleDensity === "compact" ? "bg-white text-black" : "text-zinc-400"
+                      styleDensity === "compact" ? "bg-white text-black font-bold" : "text-zinc-400"
                     }`}
                   >
                     Compact

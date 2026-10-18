@@ -98,21 +98,21 @@ export function CanvasPreviewViewport({
   return (
     <div
       ref={containerRef}
-      className={`relative flex flex-col bg-[#18181B] text-zinc-100 ${
+      className={`relative flex flex-col bg-[#141417] text-zinc-100 ${
         isFullScreen
           ? "fixed inset-0 z-50 overflow-hidden"
           : "w-full h-full min-h-[780px] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden"
       }`}
     >
       {/* Top Single Horizontal Control Deck — Zero Vertical Wrapping */}
-      <div className="flex items-center justify-between px-6 py-3.5 bg-[#09090B] border-b border-zinc-800 z-30 shrink-0 gap-4 flex-nowrap">
+      <div className="flex items-center justify-between px-6 py-3.5 bg-[#0C0C0E] border-b border-zinc-800 z-30 shrink-0 gap-4 flex-nowrap">
         {/* Left: Height Budget Telemetry */}
         <div className="flex items-center gap-3 shrink-0">
           <div
             className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
               budget.isOverflow
                 ? "bg-red-950/60 text-red-400 border-red-800"
-                : "bg-zinc-900 text-white border-zinc-700"
+                : "bg-[#141417] text-white border-zinc-700"
             }`}
           >
             {budget.isOverflow ? (
@@ -135,7 +135,7 @@ export function CanvasPreviewViewport({
         {/* Right: Zoom & Export Controls */}
         <div className="flex items-center gap-2 shrink-0">
           {/* Zoom Buttons */}
-          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs text-zinc-300">
+          <div className="flex items-center bg-[#1C1C21] border border-zinc-800 rounded-lg p-0.5 text-xs text-zinc-300">
             <button
               type="button"
               onClick={() => handleZoom(-0.1)}
@@ -169,21 +169,21 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={() => handleSetZoom(0.75)}
-              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
+              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               75%
             </button>
             <button
               type="button"
               onClick={() => handleSetZoom(0.9)}
-              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
+              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               90%
             </button>
             <button
               type="button"
               onClick={() => handleSetZoom(1.0)}
-              className="px-2 py-1 bg-zinc-900 hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
+              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
             >
               100%
             </button>
@@ -194,7 +194,7 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={onAutoFit}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
               <span>Auto-Fit 1-Page</span>
@@ -218,7 +218,7 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={onExportDocx}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Word</span>
@@ -230,7 +230,7 @@ export function CanvasPreviewViewport({
             <button
               type="button"
               onClick={onToggleFullScreen}
-              className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-md transition cursor-pointer"
+              className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 hover:border-white rounded-md transition cursor-pointer"
               title={isFullScreen ? "Exit Fullscreen" : "Fullscreen Preview"}
             >
               {isFullScreen ? (

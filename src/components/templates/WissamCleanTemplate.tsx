@@ -107,10 +107,10 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
         {/* Dashed 1-Page A4 Cutoff Boundary Indicator (Screen Only, Hidden in Print) */}
         {isOverflow && (
           <div
-            className="absolute left-0 right-0 border-b-2 border-dashed border-amber-500 pointer-events-none z-30 print:hidden flex items-center justify-end px-3"
+            className="absolute left-0 right-0 border-b-2 border-dashed border-zinc-800 pointer-events-none z-30 print:hidden flex items-center justify-end px-3"
             style={{ top: "1123px" }}
           >
-            <span className="text-[10px] font-bold tracking-wider text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded shadow-sm -mt-6">
+            <span className="text-[10px] font-mono font-bold tracking-wider text-zinc-900 bg-zinc-100 border border-zinc-300 px-2 py-0.5 rounded shadow-sm -mt-6">
               1-Page A4 Cutoff Boundary (1123px)
             </span>
           </div>
@@ -125,12 +125,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
           onClick={() => onSectionClick?.("contact")}
           className={`group relative ${isCompact ? "text-center mb-2.5 pb-0.5" : "text-center mb-4 pb-1"} ${
             onSectionClick
-              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
               : ""
           }`}
         >
           {onSectionClick && (
-            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
               Click to edit
             </span>
           )}
@@ -184,12 +184,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
           onClick={() => onSectionClick?.("education")}
           className={`group relative ${isCompact ? "mb-2" : "mb-3"} ${
             onSectionClick
-              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
               : ""
           }`}
         >
           {onSectionClick && (
-            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
               Click to edit
             </span>
           )}
@@ -267,12 +267,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             onClick={() => onSectionClick?.("experience")}
             className={`group relative ${isCompact ? "mb-2" : "mb-3"} ${
               onSectionClick
-                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
                 : ""
             }`}
           >
             {onSectionClick && (
-              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
                 Click to edit
               </span>
             )}
@@ -327,12 +327,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
           onClick={() => onSectionClick?.("projects")}
           className={`group relative ${isCompact ? "mb-2" : "mb-3"} ${
             onSectionClick
-              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
               : ""
           }`}
         >
           {onSectionClick && (
-            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
               Click to edit
             </span>
           )}
@@ -393,12 +393,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
           onClick={() => onSectionClick?.("skills")}
           className={`group relative ${isCompact ? "mb-2" : "mb-3"} ${
             onSectionClick
-              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+              ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
               : ""
           }`}
         >
           {onSectionClick && (
-            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+            <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
               Click to edit
             </span>
           )}
@@ -444,12 +444,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             onClick={() => onSectionClick?.("coursework")}
             className={`group relative ${isCompact ? "mb-2" : "mb-3"} ${
               onSectionClick
-                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
                 : ""
             }`}
           >
             {onSectionClick && (
-              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
                 Click to edit
               </span>
             )}
@@ -492,12 +492,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             onClick={() => onSectionClick?.("extracurriculars")}
             className={`group relative ${isCompact ? "mb-1.5" : "mb-2"} ${
               onSectionClick
-                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-cyan-500/70 hover:bg-cyan-50/20 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
+                ? "cursor-pointer hover:outline hover:outline-1 hover:outline-zinc-800 hover:bg-zinc-100/60 rounded transition-all print:cursor-default print:outline-none print:bg-transparent"
                 : ""
             }`}
           >
             {onSectionClick && (
-              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-cyan-600 text-white px-1.5 py-0.2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
+              <span className="absolute top-0 right-1 text-[9px] font-semibold bg-black text-white px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm print:hidden">
                 Click to edit
               </span>
             )}

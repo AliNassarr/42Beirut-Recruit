@@ -235,14 +235,14 @@ export function BulletEditorRow({
   };
 
   return (
-    <div className="relative min-h-[110px] bg-zinc-950 border border-zinc-800 focus-within:border-white rounded-md px-4 pt-3.5 pb-12 transition-colors">
+    <div className="relative min-h-[110px] bg-[#1C1C21] border border-zinc-800 focus-within:border-white rounded-md px-4 pt-3.5 pb-12 transition-colors">
       {/* Clean Foreground Textarea — Zero Ghosting */}
       <textarea
         value={bullet}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         placeholder="e.g. Engineered asynchronous HTTP/1.1 server in C++ using epoll with 0 memory leaks..."
-        className="w-full bg-transparent text-white font-sans text-sm leading-relaxed p-0 border-none outline-none resize-none placeholder:text-zinc-600 focus:ring-0"
+        className="w-full bg-transparent text-white font-sans text-sm leading-relaxed p-0 border-none outline-none resize-none placeholder:text-zinc-500 focus:ring-0"
       />
 
       {/* Bottom Left: Rezi Monochrome AI Split Button */}
@@ -266,9 +266,9 @@ export function BulletEditorRow({
           <ChevronDown className="w-3.5 h-3.5" />
         </button>
 
-        {/* Dropdown Menu Popover */}
+        {/* Dropdown Menu Popover (Surface-3: #1C1C21) */}
         {isOptionsOpen && (
-          <div className="absolute left-0 bottom-full mb-2 z-50 w-64 bg-zinc-950 border border-zinc-800 rounded-lg shadow-2xl p-1 text-xs text-zinc-200 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute left-0 bottom-full mb-2 z-50 w-64 bg-[#1C1C21] border border-zinc-800 rounded-lg shadow-2xl p-1 text-xs text-zinc-200 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
             <button
               type="button"
               onClick={handleInjectPeerMetric}
