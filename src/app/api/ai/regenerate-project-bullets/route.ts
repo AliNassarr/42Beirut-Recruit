@@ -4,7 +4,7 @@ import { executeStructuredFailover, DR_WISSAM_SYSTEM_PROMPT } from "@/lib/ai/cli
 import { sanitizeBulletPoint } from "@/lib/sanitizer";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
+export const runtime = 'edge';
 
 const RegenerateBulletsSchema = z.object({
   bullets: z.array(z.string().min(15).max(220)),

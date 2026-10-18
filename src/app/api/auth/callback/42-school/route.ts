@@ -5,6 +5,8 @@ import { createSession } from "@/lib/auth-session";
 import { generateBridgeSignature } from "@/lib/auth-hmac";
 import { exchange42TokenOnServer, fetch42ProfileOnServer } from "@/lib/intra-oauth-transport";
 
+export const runtime = 'edge';
+
 function redirectToSafeError(origin: string, rawMessage: string): NextResponse {
   // Strip HTML tags, remove newlines/tabs, and collapse whitespace
   const cleanMessage = (rawMessage || "OAuth authorization failed")

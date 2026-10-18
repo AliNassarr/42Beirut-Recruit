@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyBridgeSignature } from "@/lib/auth-hmac";
+ 
+export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
