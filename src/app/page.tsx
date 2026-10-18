@@ -247,7 +247,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#09090B] text-white flex flex-col">
+    <div className="min-h-screen bg-[#09090B] text-white flex flex-col">
       {/* OAuth Error Notification Banner */}
       {authError && (
         <div className="bg-red-500/10 border-b border-red-500/30 text-red-300 px-4 py-2.5 text-xs flex items-center justify-between shrink-0">
@@ -267,6 +267,6 @@ export default function Home() {
 
       {/* Rezi Studio Workspace */}
       <ReziStudioLayout />
-    </main>
+    </div>
   );
 }
