@@ -1,9 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useCVStore } from "@/lib/store/cv-store";
 import { getProjectKnowledge, getProjectTechnicalChips, CAMPUS_ROLES } from "@/lib/knowledge-base";
-import { Sparkles, ArrowRight, ArrowLeft, Loader2, Code2, Users, Briefcase, AlertCircle, AlertTriangle, RotateCcw, X } from "lucide-react";
+import {
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Loader2,
+  Code2,
+  Users,
+  Briefcase,
+  AlertCircle,
+  AlertTriangle,
+  RotateCcw,
+  X,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 
 export function Step3Questionnaire() {
   const {
@@ -28,6 +42,16 @@ export function Step3Questionnaire() {
   } = useCVStore();
 
   const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const [synthesisStep, setSynthesisStep] = useState<1 | 2 | 3>(1);
+  const [synthesisElapsed, setSynthesisElapsed] = useState<number>(0);
+  const synthesisTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (synthesisTimerRef.current) clearInterval(synthesisTimerRef.current);
+    };
+  }, []);
+
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorModal, setErrorModal] = useState<{
     isOpen: boolean;
@@ -94,6 +118,24 @@ export function Step3Questionnaire() {
 
     setValidationError(null);
     setIsSynthesizing(true);
+    setSynthesisStep(1);
+    setSynthesisElapsed(0);
+
+    const startTime = Date.now();
+    if (synthesisTimerRef.current) clearInterval(synthesisTimerRef.current);
+    synthesisTimerRef.current = setInterval(() => {
+      const elapsedSec = (Date.now() - startTime) / 1000;
+      setSynthesisElapsed(elapsedSec);
+
+      if (elapsedSec >= 5.0) {
+        setSynthesisStep(3);
+      } else if (elapsedSec >= 1.8) {
+        setSynthesisStep(2);
+      } else {
+        setSynthesisStep(1);
+      }
+    }, 150);
+
     try {
       const payload = {
         profile: studentProfile,
@@ -152,6 +194,7 @@ export function Step3Questionnaire() {
         },
       });
     } finally {
+      if (synthesisTimerRef.current) clearInterval(synthesisTimerRef.current);
       setIsSynthesizing(false);
     }
   };
@@ -502,20 +545,189 @@ export function Step3Questionnaire() {
               : "bg-slate-800 text-slate-500 cursor-not-allowed"
           }`}
         >
-          {isSynthesizing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Synthesizing 100% Unique CV...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              <span>Generate Dr. Wissam CV</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
+          <Sparkles className="w-4 h-4" />
+          <span>{isSynthesizing ? "Synthesizing CV..." : "Generate Dr. Wissam CV"}</span>
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* AI Synthesis Telemetry Progress Modal */}
+      {isSynthesizing && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 duration-200 overflow-hidden">
+            {/* Top scanning accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 animate-pulse" />
+
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-400 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-6 h-6 animate-spin" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      AI CV Synthesis in Progress
+                    </h3>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 animate-pulse">
+                      Live Telemetry
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Synthesizing 1-page Dr. Wissam executive CV...
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-right shrink-0">
+                <span className="text-xs font-mono font-bold text-cyan-300">
+                  {synthesisElapsed.toFixed(1)}s
+                </span>
+                <span className="block text-[10px] text-slate-500">
+                  Est. 6–10s
+                </span>
+              </div>
+            </div>
+
+            {/* 3-Step Animated Progress Checklist */}
+            <div className="space-y-3.5 mb-6 bg-slate-950/70 border border-slate-800 rounded-xl p-4">
+              {/* Step 1 */}
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  {synthesisStep > 1 ? (
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 flex items-center justify-center animate-spin">
+                      <Loader2 className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`font-semibold ${synthesisStep > 1 ? "text-emerald-300" : "text-white font-bold"}`}>
+                      Step 1: Ingesting 42 Intra marks &amp; validated Piscine dates
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider ml-2 shrink-0">
+                      {synthesisStep > 1 ? (
+                        <span className="text-emerald-400 font-bold">Complete</span>
+                      ) : (
+                        <span className="text-cyan-400 animate-pulse">In Progress</span>
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Extracting canonical marks, completion timestamps, and cursus achievements.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex items-start gap-3 pt-3 border-t border-slate-800/80">
+                <div className="mt-0.5">
+                  {synthesisStep > 2 ? (
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  ) : synthesisStep === 2 ? (
+                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 flex items-center justify-center animate-spin">
+                      <Loader2 className="w-3.5 h-3.5" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 text-slate-500 flex items-center justify-center">
+                      <Circle className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-xs">
+                    <span
+                      className={`font-semibold ${
+                        synthesisStep > 2
+                          ? "text-emerald-300"
+                          : synthesisStep === 2
+                          ? "text-white font-bold"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Step 2: Applying Dr. Wissam anti-duplication constraints
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider ml-2 shrink-0">
+                      {synthesisStep > 2 ? (
+                        <span className="text-emerald-400 font-bold">Complete</span>
+                      ) : synthesisStep === 2 ? (
+                        <span className="text-cyan-400 animate-pulse">In Progress</span>
+                      ) : (
+                        <span className="text-slate-500">Pending</span>
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Filtering redundant verbs, enforcing XYZ impact format, and deduplicating technologies.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex items-start gap-3 pt-3 border-t border-slate-800/80">
+                <div className="mt-0.5">
+                  {synthesisStep === 3 ? (
+                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 flex items-center justify-center animate-spin">
+                      <Loader2 className="w-3.5 h-3.5" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 text-slate-500 flex items-center justify-center">
+                      <Circle className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-xs">
+                    <span
+                      className={`font-semibold ${
+                        synthesisStep === 3 ? "text-white font-bold" : "text-slate-400"
+                      }`}
+                    >
+                      Step 3: Calibrating single-column Calibri line budget for 1-page fit
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider ml-2 shrink-0">
+                      {synthesisStep === 3 ? (
+                        <span className="text-cyan-400 animate-pulse">In Progress</span>
+                      ) : (
+                        <span className="text-slate-500">Pending</span>
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Calculating printable A4 vertical height budget and balancing bullet counts.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Progress Bar */}
+            <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-1.5 transition-all duration-300 rounded-full"
+                style={{
+                  width: `${
+                    synthesisStep === 1
+                      ? 30
+                      : synthesisStep === 2
+                      ? 68
+                      : Math.min(95, 75 + (synthesisElapsed - 5) * 4)
+                  }%`,
+                }}
+              />
+            </div>
+            <div className="flex justify-between items-center text-[10px] text-slate-400 mt-2">
+              <span>Generating tailored executive resume...</span>
+              <span>Please do not refresh</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* In-App Error Modal with Root Cause & Automated Retry */}
       {errorModal.isOpen && (

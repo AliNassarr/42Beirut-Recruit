@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useCVStore, normalizeGitHub, normalizeLinkedIn } from "@/lib/store/cv-store";
-import { KNOWN_PISCINES, CAMPUS_ROLES } from "@/lib/knowledge-base";
+import { KNOWN_PISCINES, CAMPUS_ROLES, getProjectKnowledge } from "@/lib/knowledge-base";
 import {
   CheckCircle2,
   Circle,
   Briefcase,
   GraduationCap,
   ArrowRight,
+  ArrowLeft,
   Info,
   Sparkles,
   UploadCloud,
@@ -26,6 +27,8 @@ import {
   Code2,
   RotateCcw,
   X,
+  Search,
+  Filter,
 } from "lucide-react";
 
 export function Step2ProjectSetup() {
@@ -144,6 +147,13 @@ export function Step2ProjectSetup() {
   const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const tooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Sub-step progressive disclosure tabs: 2A, 2B, 2C
+  const [subTab, setSubTab] = useState<"2A" | "2B" | "2C">("2A");
+
+  // Project search & circle filter
+  const [projectSearch, setProjectSearch] = useState("");
+  const [circleFilter, setCircleFilter] = useState<"ALL" | "C0_2" | "C3_4" | "C5_6" | "CUSTOM">("ALL");
+
   // Soft-delete Undo buffer for custom projects
   interface UndoCustomProj {
     item: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean };
@@ -203,28 +213,36 @@ export function Step2ProjectSetup() {
   const handleNext = () => {
     let targetElementId: string | null = null;
     let missingReason: string | null = null;
+    let targetTab: "2A" | "2B" | "2C" = "2A";
 
     if (!isNameValid) {
       targetElementId = "input-fullName";
       missingReason = "Please enter your Full Name.";
+      targetTab = "2A";
     } else if (!isEmailValid) {
       targetElementId = "input-email";
       missingReason = "Please enter a valid Email Address.";
+      targetTab = "2A";
     } else if (!isPhoneValid) {
       targetElementId = "input-phoneNumber";
       missingReason = "Please enter a valid Phone Number (at least 6 digits).";
+      targetTab = "2A";
     } else if (!isLinkedinValid) {
       targetElementId = "input-linkedinUrl";
       missingReason = "Please enter your LinkedIn profile or username.";
+      targetTab = "2A";
     } else if (!isGithubValid) {
       targetElementId = "input-githubUrl";
       missingReason = "Please enter your GitHub profile or username.";
+      targetTab = "2A";
     } else if (selectedProjects.length === 0) {
       targetElementId = "section-project-picker";
       missingReason = "Please select at least 1 project to feature on your CV.";
+      targetTab = "2B";
     }
 
     if (targetElementId && missingReason) {
+      setSubTab(targetTab);
       setActionTooltip(missingReason);
       setHighlightedField(targetElementId);
 
@@ -234,15 +252,17 @@ export function Step2ProjectSetup() {
       if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
       tooltipTimerRef.current = setTimeout(() => setActionTooltip(null), 4000);
 
-      if (typeof document !== "undefined") {
-        const el = document.getElementById(targetElementId);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          if ("focus" in el && typeof (el as any).focus === "function") {
-            (el as any).focus();
+      setTimeout(() => {
+        if (typeof document !== "undefined") {
+          const el = document.getElementById(targetElementId!);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            if ("focus" in el && typeof (el as any).focus === "function") {
+              (el as any).focus();
+            }
           }
         }
-      }
+      }, 60);
       return;
     }
 
@@ -312,12 +332,181 @@ export function Step2ProjectSetup() {
     (e) => !e.institution.toLowerCase().includes("42 beirut")
   );
 
+  const { filtered42Projects, filteredCustomProjects, circleCounts } = useMemo(() => {
+    let c0_2 = 0;
+    let c3_4 = 0;
+    let c5_6 = 0;
+
+    for (const p of validatedProjects) {
+      const k = getProjectKnowledge(p.slug, p.name);
+      const c = k?.circle ?? 0;
+      if (c >= 0 && c <= 2) c0_2++;
+      else if (c >= 3 && c <= 4) c3_4++;
+      else if (c >= 5 && c <= 6) c5_6++;
+    }
+
+    const query = projectSearch.toLowerCase().trim();
+
+    const f42 = validatedProjects.filter((p) => {
+      if (circleFilter === "CUSTOM") return false;
+      const k = getProjectKnowledge(p.slug, p.name);
+      const c = k?.circle ?? 0;
+
+      if (circleFilter === "C0_2" && (c < 0 || c > 2)) return false;
+      if (circleFilter === "C3_4" && (c < 3 || c > 4)) return false;
+      if (circleFilter === "C5_6" && (c < 5 || c > 6)) return false;
+
+      if (!query) return true;
+      const nameMatch = p.name.toLowerCase().includes(query);
+      const slugMatch = p.slug.toLowerCase().includes(query);
+      const catMatch = (k?.category || "").toLowerCase().includes(query);
+      const techMatch = k?.defaultTechStack?.some((t) => t.toLowerCase().includes(query)) || false;
+      return nameMatch || slugMatch || catMatch || techMatch;
+    });
+
+    const fCust = customProjects.filter((p) => {
+      if (circleFilter !== "ALL" && circleFilter !== "CUSTOM") return false;
+      if (!query) return true;
+      const nameMatch = p.name.toLowerCase().includes(query);
+      const slugMatch = p.slug.toLowerCase().includes(query);
+      const techMatch = (p.techStack || "").toLowerCase().includes(query);
+      return nameMatch || slugMatch || techMatch;
+    });
+
+    return {
+      filtered42Projects: f42,
+      filteredCustomProjects: fCust,
+      circleCounts: {
+        all: validatedProjects.length + customProjects.length,
+        c0_2,
+        c3_4,
+        c5_6,
+        custom: customProjects.length,
+      },
+    };
+  }, [validatedProjects, customProjects, projectSearch, circleFilter]);
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
+      {/* 3-Tab Segmented Sub-Stepper Bar */}
+      <div className="grid grid-cols-3 gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl mb-8 shadow-xl backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => {
+            setSubTab("2A");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
+            subTab === "2A"
+              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
+          }`}
+        >
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+              isContactValid
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                : subTab === "2A"
+                ? "bg-cyan-500 text-slate-950"
+                : "bg-slate-800 text-slate-400"
+            }`}
+          >
+            {isContactValid ? <Check className="w-4 h-4" /> : "2A"}
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold truncate flex items-center gap-1.5">
+              <span>Contact &amp; 42 Standing</span>
+              {isContactValid && (
+                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              )}
+            </div>
+            <div className="text-[10px] text-slate-400 truncate hidden sm:block">
+              Cadet Status, Milestones, Prior Degree
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSubTab("2B");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
+            subTab === "2B"
+              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
+          }`}
+        >
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+              selectedProjects.length > 0
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                : subTab === "2B"
+                ? "bg-cyan-500 text-slate-950"
+                : "bg-slate-800 text-slate-400"
+            }`}
+          >
+            {selectedProjects.length > 0 ? (
+              <span>{selectedProjects.length}</span>
+            ) : (
+              "2B"
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold truncate flex items-center gap-1.5">
+              <span>Experience &amp; Projects</span>
+              {selectedProjects.length > 0 && (
+                <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 font-semibold">
+                  {selectedProjects.length}
+                </span>
+              )}
+            </div>
+            <div className="text-[10px] text-slate-400 truncate hidden sm:block">
+              Work history &amp; 42/Custom projects
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSubTab("2C");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
+            subTab === "2C"
+              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
+          }`}
+        >
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+              subTab === "2C" ? "bg-cyan-500 text-slate-950" : "bg-slate-800 text-slate-400"
+            }`}
+          >
+            2C
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold truncate flex items-center gap-1.5">
+              <span>Skills &amp; Campus Roles</span>
+            </div>
+            <div className="text-[10px] text-slate-400 truncate hidden sm:block">
+              4 categories, Piscines &amp; Leadership
+            </div>
+          </div>
+        </button>
+      </div>
+
       {/* ============================================================== */}
-      {/* OLD CV FAST-FILL DROPZONE BANNER                               */}
+      {/* SUB-STEP TAB 2A: CONTACT & 42 STANDING                         */}
       {/* ============================================================== */}
-      <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 rounded-2xl p-5 mb-8 shadow-xl">
+      {subTab === "2A" && (
+        <div className="space-y-8 animate-in fade-in duration-150">
+          {/* ============================================================== */}
+          {/* OLD CV FAST-FILL DROPZONE BANNER                               */}
+          {/* ============================================================== */}
+          <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 rounded-2xl p-5 mb-8 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shrink-0">
@@ -743,11 +932,18 @@ export function Step2ProjectSetup() {
           className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
         />
       </section>
+        </div>
+      )}
 
       {/* ============================================================== */}
-      {/* 4. WORK EXPERIENCE TOGGLE & BUILDER                            */}
+      {/* SUB-STEP TAB 2B: EXPERIENCE & PROJECTS                         */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+      {subTab === "2B" && (
+        <div className="space-y-8 animate-in fade-in duration-150">
+          {/* ============================================================== */}
+          {/* 4. WORK EXPERIENCE TOGGLE & BUILDER                            */}
+          {/* ============================================================== */}
+          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <label className="text-sm font-bold text-white flex items-center gap-2 mb-1">
@@ -920,209 +1116,316 @@ export function Step2ProjectSetup() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {validatedProjects.map((p) => {
-            const isSelected = selectedProjects.some((sp) => sp.slug === p.slug);
-            const projectDate = p.date || "2024";
-
-            return (
-              <div
-                key={p.slug}
-                onClick={() =>
-                  toggleProjectSelection({
-                    name: p.name,
-                    slug: p.slug,
-                    date: projectDate,
-                    is42Project: true,
-                  })
-                }
-                className={`p-3.5 rounded-xl border transition cursor-pointer flex items-center justify-between ${
-                  isSelected
-                    ? "bg-cyan-500/10 border-cyan-500/60 text-white"
-                    : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
-                }`}
-              >
-                <div>
-                  <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
-                    {p.name}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono">
-                      Mark: {p.finalMark}
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                    <span>42cursus project</span>
-                    <span>&bull;</span>
-                    <span className="text-cyan-300 font-medium">{projectDate}</span>
-                  </div>
-                </div>
-                {isSelected ? (
-                  <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
-                ) : (
-                  <Circle className="w-5 h-5 text-slate-600 shrink-0" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Custom / External Personal Projects */}
-        <div className="mt-6 pt-5 border-t border-slate-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-            <div>
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Code2 className="w-4 h-4 text-cyan-400" />
-                <span>Personal &amp; Commercial Projects (e.g. BC Capture, Mobile Apps, Freelance)</span>
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Feature non-42 software, hackathon builds, or mobile apps on your CV.
-              </p>
-            </div>
-            {!isAddingCustomProject && (
+        {/* Instant Search Bar & Circle Filter Chips */}
+        <div className="space-y-3 mb-5">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={projectSearch}
+              onChange={(e) => setProjectSearch(e.target.value)}
+              placeholder="Search projects by name, slug, or tech stack (e.g. C, C++, Docker, WebSockets)..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition"
+            />
+            {projectSearch && (
               <button
                 type="button"
-                onClick={() => setIsAddingCustomProject(true)}
-                className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer shrink-0 self-start sm:self-auto"
+                onClick={() => setProjectSearch("")}
+                className="absolute right-3 top-2.5 text-slate-500 hover:text-white p-0.5 rounded transition cursor-pointer"
+                title="Clear search"
               >
-                <Plus className="w-3.5 h-3.5" /> Add Personal Project
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Form to add a new custom project */}
-          {isAddingCustomProject && (
-            <div className="bg-slate-950/90 border border-cyan-500/40 rounded-xl p-4 mb-4 space-y-3">
-              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                <span className="text-xs font-bold text-cyan-300">Add Personal / Commercial Project</span>
-                <button
-                  type="button"
-                  onClick={() => setIsAddingCustomProject(false)}
-                  className="text-xs text-slate-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-              </div>
+          {/* Quick Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold text-slate-400 mr-1 flex items-center gap-1">
+              <Filter className="w-3 h-3 text-cyan-400" /> Filter:
+            </span>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="md:col-span-2">
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Project Name *</label>
-                  <input
-                    type="text"
-                    value={customProjName}
-                    onChange={(e) => setCustomProjName(e.target.value)}
-                    placeholder="e.g. BC Capture – Mobile Inventory Scanner"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Completion Date</label>
-                  <input
-                    type="text"
-                    value={customProjDate}
-                    onChange={(e) => setCustomProjDate(e.target.value)}
-                    placeholder="e.g. 2026 or August 2026"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
+            <button
+              type="button"
+              onClick={() => setCircleFilter("ALL")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                circleFilter === "ALL"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+              }`}
+            >
+              <span>All</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "ALL" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+                {circleCounts.all}
+              </span>
+            </button>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 block mb-1">Tech Stack (comma-separated)</label>
-                <input
-                  type="text"
-                  value={customProjTech}
-                  onChange={(e) => setCustomProjTech(e.target.value)}
-                  placeholder="e.g. Next.js, Supabase, Cloudflare R2, Vision AI, Tailwind CSS"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
+            <button
+              type="button"
+              onClick={() => setCircleFilter("C0_2")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                circleFilter === "C0_2"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+              }`}
+            >
+              <span>Circle 0–2</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C0_2" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+                {circleCounts.c0_2}
+              </span>
+            </button>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 block mb-1">
-                  What did you build or code? (Personal notes for AI synthesis)
-                </label>
-                <textarea
-                  rows={2}
-                  value={customProjNotes}
-                  onChange={(e) => setCustomProjNotes(e.target.value)}
-                  placeholder="e.g. Built a mobile progressive web app to photograph physical retail stock. Designed non-blocking background uploads to Cloudflare R2 and integrated Vision AI to extract product ingredients."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
+            <button
+              type="button"
+              onClick={() => setCircleFilter("C3_4")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                circleFilter === "C3_4"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+              }`}
+            >
+              <span>Circle 3–4</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C3_4" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+                {circleCounts.c3_4}
+              </span>
+            </button>
 
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setIsAddingCustomProject(false)}
-                  className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveCustomProject}
-                  disabled={!customProjName.trim()}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
-                    customProjName.trim()
-                      ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 cursor-pointer"
-                      : "bg-slate-800 text-slate-500 cursor-not-allowed"
+            <button
+              type="button"
+              onClick={() => setCircleFilter("C5_6")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                circleFilter === "C5_6"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+              }`}
+            >
+              <span>Circle 5–6</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C5_6" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+                {circleCounts.c5_6}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCircleFilter("CUSTOM")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                circleFilter === "CUSTOM"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+              }`}
+            >
+              <span>Custom</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "CUSTOM" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+                {circleCounts.custom}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 42 Projects Grid */}
+        {filtered42Projects.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {filtered42Projects.map((p) => {
+              const isSelected = selectedProjects.some((sp) => sp.slug === p.slug);
+              const projectDate = p.date || "2024";
+              const knowledge = getProjectKnowledge(p.slug, p.name);
+              const circle = knowledge?.circle ?? 0;
+
+              return (
+                <div
+                  key={p.slug}
+                  onClick={() =>
+                    toggleProjectSelection({
+                      name: p.name,
+                      slug: p.slug,
+                      date: projectDate,
+                      is42Project: true,
+                    })
+                  }
+                  className={`p-3.5 rounded-xl border transition cursor-pointer flex items-center justify-between ${
+                    isSelected
+                      ? "bg-cyan-500/10 border-cyan-500/60 text-white"
+                      : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
                   }`}
                 >
-                  Save &amp; Include Project
-                </button>
-              </div>
-            </div>
-          )}
+                  <div>
+                    <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                      {p.name}
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono">
+                        Mark: {p.finalMark}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 font-medium">
+                        Circle {circle}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                      <span>{knowledge?.category || "42cursus project"}</span>
+                      <span>&bull;</span>
+                      <span className="text-cyan-300 font-medium">{projectDate}</span>
+                    </div>
+                  </div>
+                  {isSelected ? (
+                    <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-slate-600 shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-          {/* List of Added Custom Projects */}
-          {customProjects.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-              {customProjects.map((p, pIndex) => {
-                const isSelected = selectedProjects.some((sp) => sp.slug === p.slug);
-                return (
-                  <div
-                    key={p.slug}
-                    className={`p-3.5 rounded-xl border transition flex items-center justify-between ${
-                      isSelected
-                        ? "bg-cyan-500/10 border-cyan-500/60 text-white"
-                        : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
+        {/* Empty State Card when 0 projects match */}
+        {filtered42Projects.length === 0 && filteredCustomProjects.length === 0 && (
+          <div className="text-center py-10 px-4 border border-dashed border-slate-800 rounded-2xl bg-slate-950/60 my-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <Code2 className="w-6 h-6 text-slate-500" />
+            </div>
+            <p className="text-sm font-semibold text-slate-300 mb-1">No matching projects found.</p>
+            <p className="text-xs text-slate-500 mb-4 max-w-sm mx-auto">
+              Click &quot;+ Add Custom Project&quot; to add your own software.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAddingCustomProject(true);
+                setCircleFilter("ALL");
+                setProjectSearch("");
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Custom Project</span>
+            </button>
+          </div>
+        )}
+
+        {/* Custom / External Personal Projects */}
+        {(circleFilter === "ALL" || circleFilter === "CUSTOM") && (
+          <div className="mt-6 pt-5 border-t border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div>
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Code2 className="w-4 h-4 text-cyan-400" />
+                  <span>Personal &amp; Commercial Projects (e.g. BC Capture, Mobile Apps, Freelance)</span>
+                </span>
+                <p className="text-[11px] text-slate-400">
+                  Feature non-42 software, hackathon builds, or mobile apps on your CV.
+                </p>
+              </div>
+              {!isAddingCustomProject && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingCustomProject(true)}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer shrink-0 self-start sm:self-auto"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Personal Project
+                </button>
+              )}
+            </div>
+
+            {/* Form to add a new custom project */}
+            {isAddingCustomProject && (
+              <div className="bg-slate-950/90 border border-cyan-500/40 rounded-xl p-4 mb-4 space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                  <span className="text-xs font-bold text-cyan-300">Add Personal / Commercial Project</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCustomProject(false)}
+                    className="text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="text-[11px] font-semibold text-slate-400 block mb-1">Project Name *</label>
+                    <input
+                      type="text"
+                      value={customProjName}
+                      onChange={(e) => setCustomProjName(e.target.value)}
+                      placeholder="e.g. BC Capture – Mobile Inventory Scanner"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-400 block mb-1">Completion Date</label>
+                    <input
+                      type="text"
+                      value={customProjDate}
+                      onChange={(e) => setCustomProjDate(e.target.value)}
+                      placeholder="e.g. 2026 or August 2026"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Tech Stack (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={customProjTech}
+                    onChange={(e) => setCustomProjTech(e.target.value)}
+                    placeholder="e.g. Next.js, Supabase, Cloudflare R2, Vision AI, Tailwind CSS"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">
+                    What did you build or code? (Personal notes for AI synthesis)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customProjNotes}
+                    onChange={(e) => setCustomProjNotes(e.target.value)}
+                    placeholder="e.g. Built a mobile progressive web app to photograph physical retail stock. Designed non-blocking background uploads to Cloudflare R2 and integrated Vision AI to extract product ingredients."
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCustomProject(false)}
+                    className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveCustomProject}
+                    disabled={!customProjName.trim()}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                      customProjName.trim()
+                        ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 cursor-pointer"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
                     }`}
                   >
+                    Save &amp; Include Project
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* List of Added Custom Projects */}
+            {filteredCustomProjects.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                {filteredCustomProjects.map((p, pIndex) => {
+                  const isSelected = selectedProjects.some((sp) => sp.slug === p.slug);
+                  return (
                     <div
-                      className="flex-1 cursor-pointer"
-                      onClick={() =>
-                        toggleProjectSelection({
-                          name: p.name,
-                          slug: p.slug,
-                          techStack: p.techStack,
-                          date: p.date,
-                          is42Project: false,
-                        })
-                      }
+                      key={p.slug}
+                      className={`p-3.5 rounded-xl border transition flex items-center justify-between ${
+                        isSelected
+                          ? "bg-cyan-500/10 border-cyan-500/60 text-white"
+                          : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
+                      }`}
                     >
-                      <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
-                        {p.name}
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
-                          Personal App
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
-                        <span>{p.techStack || "Custom Project"}</span>
-                        <span>&bull;</span>
-                        <span className="text-cyan-300">{p.date || "2026"}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSoftDeleteCustomProject(p, pIndex)}
-                        className="p-1 text-slate-500 hover:text-red-400 transition cursor-pointer"
-                        title="Remove project"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-
                       <div
+                        className="flex-1 cursor-pointer"
                         onClick={() =>
                           toggleProjectSelection({
                             name: p.name,
@@ -1132,31 +1435,73 @@ export function Step2ProjectSetup() {
                             is42Project: false,
                           })
                         }
-                        className="cursor-pointer"
                       >
-                        {isSelected ? (
-                          <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-slate-600 shrink-0" />
-                        )}
+                        <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                          {p.name}
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                            Personal App
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+                          <span>{p.techStack || "Custom Project"}</span>
+                          <span>&bull;</span>
+                          <span className="text-cyan-300">{p.date || "2026"}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSoftDeleteCustomProject(p, pIndex)}
+                          className="p-1 text-slate-500 hover:text-red-400 transition cursor-pointer"
+                          title="Remove project"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <div
+                          onClick={() =>
+                            toggleProjectSelection({
+                              name: p.name,
+                              slug: p.slug,
+                              techStack: p.techStack,
+                              date: p.date,
+                              is42Project: false,
+                            })
+                          }
+                          className="cursor-pointer"
+                        >
+                          {isSelected ? (
+                            <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-slate-600 shrink-0" />
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="text-xs text-slate-400 mt-3 text-right">
           Selected: <strong className="text-cyan-400">{selectedProjects.length}</strong> projects
         </div>
       </section>
+        </div>
+      )}
 
       {/* ============================================================== */}
-      {/* 6. TECHNICAL SKILLS (DR. WISSAM 4 STRICT CATEGORIES)          */}
+      {/* SUB-STEP TAB 2C: TECHNICAL SKILLS & CAMPUS ACTIVITIES          */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+      {subTab === "2C" && (
+        <div className="space-y-8 animate-in fade-in duration-150">
+          {/* ============================================================== */}
+          {/* 6. TECHNICAL SKILLS (DR. WISSAM 4 STRICT CATEGORIES)          */}
+          {/* ============================================================== */}
+          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1510,26 +1855,66 @@ export function Step2ProjectSetup() {
           </div>
         </div>
       </section>
+        </div>
+      )}
 
       {/* ============================================================== */}
-      {/* BOTTOM ACTION BAR & TOOLTIP                                    */}
+      {/* BOTTOM ACTION BAR & SUB-STEP NAVIGATION                        */}
       {/* ============================================================== */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-800 relative">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-800 relative mt-8">
         <div>
-          {!isContactValid ? (
-            <p className="text-xs text-amber-400 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Please fill all required contact fields (Name, Email, Phone, LinkedIn, GitHub) to proceed.</span>
-            </p>
-          ) : selectedProjects.length === 0 ? (
-            <p className="text-xs text-amber-400 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Please select at least 1 project to feature on your CV.</span>
-            </p>
-          ) : null}
+          {subTab === "2A" && (
+            <div>
+              {isContactValid ? (
+                <p className="text-xs text-emerald-400 flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Contact info and educational background verified.</span>
+                </p>
+              ) : (
+                <p className="text-xs text-amber-400 flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Required contact fields missing (Name, Email, Phone, LinkedIn, GitHub).</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {subTab === "2B" && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSubTab("2A");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition py-2 px-3 rounded-lg hover:bg-slate-800 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Contact Info</span>
+              </button>
+              <span className="text-xs text-slate-500">|</span>
+              <span className={`text-xs ${selectedProjects.length > 0 ? "text-cyan-300 font-semibold" : "text-amber-400"}`}>
+                {selectedProjects.length} project{selectedProjects.length !== 1 ? "s" : ""} selected
+              </span>
+            </div>
+          )}
+
+          {subTab === "2C" && (
+            <button
+              type="button"
+              onClick={() => {
+                setSubTab("2B");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition py-2 px-3 rounded-lg hover:bg-slate-800 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Projects</span>
+            </button>
+          )}
         </div>
 
-        <div className="relative">
+        <div className="flex items-center gap-3 relative w-full sm:w-auto justify-end">
           {actionTooltip && (
             <div className="absolute bottom-full right-0 mb-3 w-72 bg-red-950/95 border border-red-500/60 rounded-xl p-3 shadow-2xl text-xs text-red-200 z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="flex items-start gap-2">
@@ -1543,17 +1928,48 @@ export function Step2ProjectSetup() {
             </div>
           )}
 
-          <button
-            onClick={handleNext}
-            className={`px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-xl ${
-              isContactValid && selectedProjects.length > 0
-                ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20 cursor-pointer"
-                : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
-            }`}
-          >
-            <span>Continue to Questionnaire</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {subTab === "2A" && (
+            <button
+              type="button"
+              onClick={() => {
+                setSubTab("2B");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition cursor-pointer"
+            >
+              <span>Next: Experience &amp; Projects</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {subTab === "2B" && (
+            <button
+              type="button"
+              onClick={() => {
+                setSubTab("2C");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition cursor-pointer"
+            >
+              <span>Next: Technical Skills &amp; Campus Roles</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {subTab === "2C" && (
+            <button
+              type="button"
+              onClick={handleNext}
+              className={`px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-xl ${
+                isContactValid && selectedProjects.length > 0
+                  ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20 cursor-pointer"
+                  : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
+              }`}
+            >
+              <span>Continue to Questionnaire</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
