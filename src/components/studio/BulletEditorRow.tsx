@@ -101,6 +101,8 @@ export function BulletEditorRow({
 }: BulletEditorRowProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCustomAngleOpen, setIsCustomAngleOpen] = useState(false);
+  const [customSeed, setCustomSeed] = useState("");
 
   // Syntax and structure analysis
   const analysis = useMemo(() => {
@@ -208,6 +210,38 @@ export function BulletEditorRow({
     onChange(updated);
   };
 
+  // Custom Angle / Personal Note synthesis
+  const handleApplyCustomAngle = () => {
+    if (!customSeed.trim()) {
+      setIsCustomAngleOpen(false);
+      return;
+    }
+    setIsGenerating(true);
+    setIsCustomAngleOpen(false);
+    setIsOptionsOpen(false);
+
+    try {
+      const verb = STRONG_VERBS[Math.floor(Math.random() * STRONG_VERBS.length)];
+      const seedClean = customSeed.trim().replace(/^\w/, (c) => c.toLowerCase());
+      const synthesized = `${verb} ${seedClean}, ensuring zero memory leaks and passing peer evaluation suites.`;
+      onChange(synthesized);
+      setCustomSeed("");
+    } catch (e) {
+      console.error("Failed custom angle synthesis:", e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Mode-Aware Button Label
+  const buttonLabel = useMemo(() => {
+    if (isGenerating) return "Synthesizing...";
+    const text = bullet.trim();
+    if (text.length === 0) return "Suggest Bullet";
+    if (text.length < 35) return "Complete Bullet";
+    return "Rewrite Bullet";
+  }, [bullet, isGenerating]);
+
   // Suggest / Synthesize Bullet
   const handleSuggestBullet = async () => {
     setIsGenerating(true);
@@ -235,15 +269,44 @@ export function BulletEditorRow({
   };
 
   return (
-    <div className="relative min-h-[110px] bg-[#1C1C21] border border-zinc-800 focus-within:border-white rounded-md px-4 pt-3.5 pb-12 transition-colors">
+    <div className="relative min-h-[116px] bg-[#0C0C0E] border-2 border-zinc-800 focus-within:border-white rounded-md px-4 pt-3.5 pb-12 transition-colors text-[15px] leading-relaxed text-zinc-100">
       {/* Clean Foreground Textarea — Zero Ghosting */}
       <textarea
         value={bullet}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         placeholder="e.g. Engineered asynchronous HTTP/1.1 server in C++ using epoll with 0 memory leaks..."
-        className="w-full bg-transparent text-white font-sans text-sm leading-relaxed p-0 border-none outline-none resize-none placeholder:text-zinc-500 focus:ring-0"
+        className="w-full bg-transparent text-white font-sans text-[15px] leading-relaxed p-0 border-none outline-none resize-none placeholder:text-zinc-500 focus:ring-0"
       />
+
+      {/* Inline Custom Angle / Personal Note Seed Input Bar */}
+      {isCustomAngleOpen && (
+        <div className="absolute left-3 right-3 bottom-14 z-40 bg-zinc-950 border border-zinc-700 rounded-lg p-2 shadow-2xl flex items-center gap-2 animate-in fade-in duration-100">
+          <input
+            type="text"
+            value={customSeed}
+            onChange={(e) => setCustomSeed(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleApplyCustomAngle()}
+            placeholder="Seed note (e.g. optimized linked list traversal for 42 push_swap)..."
+            className="flex-1 bg-zinc-900 border border-zinc-800 text-xs text-white rounded px-2.5 py-1.5 outline-none focus:border-white placeholder:text-zinc-500"
+            autoFocus
+          />
+          <button
+            type="button"
+            onClick={handleApplyCustomAngle}
+            className="px-3 py-1.5 bg-white text-black font-bold uppercase text-[10px] rounded hover:bg-zinc-200 transition cursor-pointer"
+          >
+            Apply
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCustomAngleOpen(false)}
+            className="text-zinc-400 hover:text-white text-xs px-1 cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+      )}
 
       {/* Bottom Left: Rezi Monochrome AI Split Button */}
       <div className="absolute bottom-2.5 left-3 flex items-center shadow-sm">
@@ -254,31 +317,31 @@ export function BulletEditorRow({
           className="rounded-l-full bg-white hover:bg-zinc-200 text-black font-bold uppercase text-[11px] tracking-wider px-3.5 py-1.5 flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{isGenerating ? "Synthesizing..." : "Suggest Bullet"}</span>
+          <span>{buttonLabel}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-          className="rounded-r-full border-l border-zinc-300 bg-white hover:bg-zinc-200 text-black px-2 py-1.5 flex items-center justify-center transition cursor-pointer"
+          className="rounded-r-2xl border-l border-zinc-300 bg-white hover:bg-zinc-200 text-black px-2 py-1.5 flex items-center justify-center transition cursor-pointer"
           title="More generate options"
         >
           <ChevronDown className="w-3.5 h-3.5" />
         </button>
 
-        {/* Dropdown Menu Popover (Surface-3: #1C1C21) */}
+        {/* Dropdown Menu Popover (Rezi Variation Modes) */}
         {isOptionsOpen && (
-          <div className="absolute left-0 bottom-full mb-2 z-50 w-64 bg-[#1C1C21] border border-zinc-800 rounded-lg shadow-2xl p-1 text-xs text-zinc-200 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute left-0 bottom-full mb-2 z-50 w-72 bg-zinc-950 border border-zinc-700 rounded-lg shadow-2xl py-1 text-xs text-zinc-200 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
             <button
               type="button"
               onClick={handleInjectPeerMetric}
-              className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
             >
               <Target className="w-4 h-4 text-zinc-300 shrink-0" />
               <div>
-                <div className="font-semibold text-white">Generate with Peer / C Metric</div>
-                <div className="text-[10px] text-zinc-500">
-                  Inject 42 test suite, memory, or throughput benchmarks
+                <div className="font-semibold text-white">Generate with Metric / Key Numbers</div>
+                <div className="text-[10px] text-zinc-400">
+                  Inject C benchmarks, Piscine test pass rates, or latency
                 </div>
               </div>
             </button>
@@ -286,13 +349,13 @@ export function BulletEditorRow({
             <button
               type="button"
               onClick={handleRotateVerb}
-              className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
             >
               <RotateCcw className="w-4 h-4 text-zinc-300 shrink-0" />
               <div>
                 <div className="font-semibold text-white">Swap Opening Action Verb</div>
-                <div className="text-[10px] text-zinc-500">
-                  Rotate first word to a strong engineering verb
+                <div className="text-[10px] text-zinc-400">
+                  Cycle strong past-tense engineering verbs
                 </div>
               </div>
             </button>
@@ -300,13 +363,30 @@ export function BulletEditorRow({
             <button
               type="button"
               onClick={handleTrimBullet}
-              className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer"
             >
               <Scissors className="w-4 h-4 text-zinc-300 shrink-0" />
               <div>
                 <div className="font-semibold text-white">Trim Bullet Length (-15%)</div>
-                <div className="text-[10px] text-zinc-500">
-                  Eliminate fluff to fit 1-page line budget
+                <div className="text-[10px] text-zinc-400">
+                  Tighten length to fit 1-page line budget
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOptionsOpen(false);
+                setIsCustomAngleOpen(true);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 hover:text-white text-left transition cursor-pointer border-t border-zinc-800"
+            >
+              <Sparkles className="w-4 h-4 text-zinc-300 shrink-0" />
+              <div>
+                <div className="font-semibold text-white">Custom Angle / Personal Note...</div>
+                <div className="text-[10px] text-zinc-400">
+                  Inline seed input for anti-duplication synthesis
                 </div>
               </div>
             </button>
@@ -314,21 +394,37 @@ export function BulletEditorRow({
         )}
       </div>
 
-      {/* Bottom Right: Micro-Telemetry & Controls */}
-      <div className="absolute bottom-3 right-3 flex items-center gap-3 text-[11px] text-zinc-400 font-mono">
-        {/* Status flags */}
+      {/* Bottom Right: Real-time Syntax Telemetry & Controls */}
+      <div className="absolute bottom-3 right-3.5 flex items-center gap-3 text-[11px] text-zinc-400 font-mono">
+        {/* Action Verb Indicator */}
+        {analysis.firstWord ? (
+          analysis.hasVerb ? (
+            <span className="text-zinc-300">✓ Verb: {analysis.firstWord}</span>
+          ) : (
+            <span className="text-white font-semibold">! Weak opening verb</span>
+          )
+        ) : null}
+
+        {/* Metric Check */}
+        {analysis.hasMetrics ? (
+          <span className="text-zinc-300">✓ Quantified</span>
+        ) : (
+          <span className="text-zinc-500">! Add metric/number</span>
+        )}
+
+        {/* Pronoun / Buzzword Check */}
         {analysis.hasPronouns && (
-          <span className="text-red-400 font-sans font-semibold">
-            Remove &quot;I/we&quot;
+          <span className="text-white font-semibold underline">
+            ! Avoid &quot;I/my&quot;
           </span>
         )}
 
-        {/* Word and character metrics */}
+        {/* Counter */}
         <span>
           {analysis.charCount} chars • {analysis.wordCount} words
         </span>
 
-        {/* Utility buttons */}
+        {/* Quick Utility Buttons */}
         <div className="flex items-center gap-1 border-l border-zinc-800 pl-2">
           {onMoveUp && (
             <button
@@ -353,7 +449,7 @@ export function BulletEditorRow({
           <button
             type="button"
             onClick={onDelete}
-            className="p-1 hover:text-red-400 transition cursor-pointer"
+            className="p-1 hover:text-white transition cursor-pointer"
             title="Delete bullet"
           >
             <Trash2 className="w-3.5 h-3.5" />
