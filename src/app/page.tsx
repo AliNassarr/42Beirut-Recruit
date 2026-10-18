@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useCVStore, useHasHydrated } from "@/lib/store/cv-store";
 import { ReziStudioLayout } from "@/components/studio/ReziStudioLayout";
+import { Logo42 } from "@/components/studio/Logo42";
 import { MOCK_42_STUDENT, createInitialCVFromIntra } from "@/lib/intra/mock-data";
 import { Loader2, AlertCircle } from "lucide-react";
 
@@ -215,8 +216,8 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-[#09090B] text-white flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white text-black font-mono font-black text-sm flex items-center justify-center shadow-sm">
-            42
+          <div className="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center shadow-sm">
+            <Logo42 size={22} className="text-black" />
           </div>
           <div className="flex items-center gap-2 text-xs text-zinc-400">
             <Loader2 className="w-4 h-4 animate-spin text-white" />

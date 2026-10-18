@@ -10,6 +10,7 @@ import { HeightBudget, TemplateSectionId } from "@/components/templates/WissamCl
 import { generateDrWissamDocx } from "@/lib/docx-generator";
 import { CanvasPreviewViewport } from "./CanvasPreviewViewport";
 import { BulletEditorRow } from "./BulletEditorRow";
+import { Logo42 } from "./Logo42";
 import {
   Home,
   RefreshCw,
@@ -302,9 +303,9 @@ export function ReziStudioLayout() {
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
       {/* 1. Global Left Navigation Rail (70px Fixed Width) */}
       <aside className="w-[70px] bg-[#09090B] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
-        {/* Crisp 42 Monochrome Emblem */}
-        <div className="w-10 h-10 rounded-lg bg-white text-black font-black font-mono text-sm flex items-center justify-center shadow-sm">
-          42
+        {/* Crisp 42 Geometric Stencil Emblem */}
+        <div className="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center shadow-sm">
+          <Logo42 size={22} className="text-black" />
         </div>
 
         {/* Navigation Action Buttons */}
