@@ -389,7 +389,7 @@ export function Step2ProjectSetup() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       {/* 3-Tab Segmented Sub-Stepper Bar */}
-      <div className="grid grid-cols-3 gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl mb-8 shadow-xl backdrop-blur-md">
+      <div className="grid grid-cols-3 gap-2 bg-brand-card/90 border border-brand-border p-1.5 rounded-2xl mb-8 shadow-xl backdrop-blur-md">
         <button
           type="button"
           onClick={() => {
@@ -398,7 +398,7 @@ export function Step2ProjectSetup() {
           }}
           className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
             subTab === "2A"
-              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              ? "bg-brand-teal/15 border border-brand-teal/50 text-white shadow-lg shadow-cyan-950/40"
               : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
           }`}
         >
@@ -407,7 +407,7 @@ export function Step2ProjectSetup() {
               isContactValid
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
                 : subTab === "2A"
-                ? "bg-cyan-500 text-slate-950"
+                ? "bg-brand-teal text-brand-dark"
                 : "bg-slate-800 text-slate-400"
             }`}
           >
@@ -434,7 +434,7 @@ export function Step2ProjectSetup() {
           }}
           className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
             subTab === "2B"
-              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              ? "bg-brand-teal/15 border border-brand-teal/50 text-white shadow-lg shadow-cyan-950/40"
               : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
           }`}
         >
@@ -443,7 +443,7 @@ export function Step2ProjectSetup() {
               selectedProjects.length > 0
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
                 : subTab === "2B"
-                ? "bg-cyan-500 text-slate-950"
+                ? "bg-brand-teal text-brand-dark"
                 : "bg-slate-800 text-slate-400"
             }`}
           >
@@ -457,7 +457,7 @@ export function Step2ProjectSetup() {
             <div className="text-xs font-bold truncate flex items-center gap-1.5">
               <span>Experience &amp; Projects</span>
               {selectedProjects.length > 0 && (
-                <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 font-semibold">
+                <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded bg-cyan-950 text-brand-teal font-semibold">
                   {selectedProjects.length}
                 </span>
               )}
@@ -476,13 +476,13 @@ export function Step2ProjectSetup() {
           }}
           className={`flex flex-col sm:flex-row items-center sm:items-start text-left gap-2.5 p-3 rounded-xl transition cursor-pointer ${
             subTab === "2C"
-              ? "bg-cyan-500/15 border border-cyan-400/50 text-white shadow-lg shadow-cyan-950/40"
+              ? "bg-brand-teal/15 border border-brand-teal/50 text-white shadow-lg shadow-cyan-950/40"
               : "hover:bg-slate-800/60 text-slate-400 border border-transparent"
           }`}
         >
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-              subTab === "2C" ? "bg-cyan-500 text-slate-950" : "bg-slate-800 text-slate-400"
+              subTab === "2C" ? "bg-brand-teal text-brand-dark" : "bg-slate-800 text-slate-400"
             }`}
           >
             2C
@@ -506,16 +506,16 @@ export function Step2ProjectSetup() {
           {/* ============================================================== */}
           {/* OLD CV FAST-FILL DROPZONE BANNER                               */}
           {/* ============================================================== */}
-          <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 rounded-2xl p-5 mb-8 shadow-xl">
+          <div className="bg-gradient-to-r from-brand-card via-brand-dark to-brand-card border border-brand-teal/30 rounded-2xl p-5 mb-8 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-brand-teal/20 border border-brand-teal/40 text-brand-teal flex items-center justify-center shrink-0">
               <UploadCloud className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 Have an old CV? Upload PDF/DOCX to Auto-Fill
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/30">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-teal/20 text-brand-teal border border-brand-teal/30">
                   Fast Fill
                 </span>
               </h3>
@@ -539,7 +539,7 @@ export function Step2ProjectSetup() {
               className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition ${
                 isUploadingOldCV
                   ? "bg-slate-800 text-slate-400 cursor-not-allowed"
-                  : "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20"
+                  : "bg-brand-teal hover:bg-brand-teal/90 text-brand-dark shadow-lg shadow-brand-teal/20"
               }`}
             >
               {isUploadingOldCV ? (
@@ -575,11 +575,11 @@ export function Step2ProjectSetup() {
       {/* ============================================================== */}
       {/* 1. MANDATORY CONTACT INFORMATION SECTION                      */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+      <section className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8 shadow-xl">
+        <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-4">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <User className="w-5 h-5 text-cyan-400" />
+              <User className="w-5 h-5 text-brand-teal" />
               <span>1. Mandatory Contact Information</span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">
                 Required for Dr. Wissam CV
@@ -614,10 +614,10 @@ export function Step2ProjectSetup() {
                 value={contact.fullName}
                 onChange={(e) => updateContact({ fullName: e.target.value })}
                 placeholder="e.g., Mohammad Hamdan"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                className={`w-full bg-brand-dark border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
                   highlightedField === "fullName"
                     ? "ring-2 ring-red-500 animate-pulse border-red-500"
-                    : "border-slate-800 focus:border-cyan-400"
+                    : "border-brand-border focus:border-brand-teal"
                 }`}
               />
             </div>
@@ -636,10 +636,10 @@ export function Step2ProjectSetup() {
                 value={contact.email}
                 onChange={(e) => updateContact({ email: e.target.value })}
                 placeholder="name@student.42beirut.com"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                className={`w-full bg-brand-dark border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
                   highlightedField === "email"
                     ? "ring-2 ring-red-500 animate-pulse border-red-500"
-                    : "border-slate-800 focus:border-cyan-400"
+                    : "border-brand-border focus:border-brand-teal"
                 }`}
               />
             </div>
@@ -658,12 +658,12 @@ export function Step2ProjectSetup() {
                 value={contact.phoneNumber}
                 onChange={(e) => updateContact({ phoneNumber: e.target.value })}
                 placeholder="e.g., +961 70 123 456 or 123-456-7890"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                className={`w-full bg-brand-dark border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
                   highlightedField === "phoneNumber"
                     ? "ring-2 ring-red-500 animate-pulse border-red-500"
                     : !isPhoneValid
                     ? "border-amber-500/50"
-                    : "border-slate-800 focus:border-cyan-400"
+                    : "border-brand-border focus:border-brand-teal"
                 }`}
               />
             </div>
@@ -674,7 +674,7 @@ export function Step2ProjectSetup() {
             <label className="text-xs font-semibold text-slate-300 block mb-1">
               42 Cursus Level (Subtitle)
             </label>
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-xs text-cyan-300 flex items-center justify-between">
+            <div className="bg-brand-dark/60 border border-brand-border rounded-xl px-3 py-2 text-xs text-brand-teal flex items-center justify-between">
               <span>Subtitle format: <strong>42 Student – Level {contact.level}</strong></span>
               <span className="text-[10px] text-slate-500">Auto from Intra</span>
             </div>
@@ -694,10 +694,10 @@ export function Step2ProjectSetup() {
                 onChange={(e) => updateContact({ linkedinUrl: e.target.value })}
                 onBlur={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
                 placeholder="linkedin.com/in/username or username"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                className={`w-full bg-brand-dark border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
                   highlightedField === "linkedinUrl"
                     ? "ring-2 ring-red-500 animate-pulse border-red-500"
-                    : "border-slate-800 focus:border-cyan-400"
+                    : "border-brand-border focus:border-brand-teal"
                 }`}
               />
             </div>
@@ -718,10 +718,10 @@ export function Step2ProjectSetup() {
                 onChange={(e) => updateContact({ githubUrl: e.target.value })}
                 onBlur={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
                 placeholder="github.com/username or username"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                className={`w-full bg-brand-dark border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
                   highlightedField === "githubUrl"
                     ? "ring-2 ring-red-500 animate-pulse border-red-500"
-                    : "border-slate-800 focus:border-cyan-400"
+                    : "border-brand-border focus:border-brand-teal"
                 }`}
               />
             </div>
@@ -733,11 +733,11 @@ export function Step2ProjectSetup() {
       {/* ============================================================== */}
       {/* 2. 42 EDUCATION MILESTONE & PREVIOUS UNIVERSITY                */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+      <section className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8 shadow-xl">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-cyan-400" />
+              <GraduationCap className="w-5 h-5 text-brand-teal" />
               <span>2. 42 Education Milestone</span>
             </h2>
             <p className="text-xs text-slate-400">
@@ -745,36 +745,36 @@ export function Step2ProjectSetup() {
             </p>
           </div>
 
-          <div className="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+          <div className="inline-flex rounded-xl bg-brand-dark p-1 border border-brand-border">
             <button
               onClick={() => setEducationState("STATE_A_CORE")}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                 educationState === "STATE_A_CORE"
-                  ? "bg-cyan-500 text-slate-950 shadow"
+                  ? "bg-brand-teal text-brand-dark shadow"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              State A: In Core
+              Common Core Cadet
             </button>
             <button
               onClick={() => setEducationState("STATE_B_SPECIALIZATION")}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                 educationState === "STATE_B_SPECIALIZATION"
-                  ? "bg-cyan-500 text-slate-950 shadow"
+                  ? "bg-brand-teal text-brand-dark shadow"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              State B: Specialization
+              Specialization Track
             </button>
             <button
               onClick={() => setEducationState("STATE_C_ALUMNUS")}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                 educationState === "STATE_C_ALUMNUS"
-                  ? "bg-cyan-500 text-slate-950 shadow"
+                  ? "bg-brand-teal text-brand-dark shadow"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              State C: Alumnus
+              Alumnus / Industry
             </button>
           </div>
         </div>
@@ -943,11 +943,11 @@ export function Step2ProjectSetup() {
           {/* ============================================================== */}
           {/* 4. WORK EXPERIENCE TOGGLE & BUILDER                            */}
           {/* ============================================================== */}
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+          <section className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8 shadow-xl">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <label className="text-sm font-bold text-white flex items-center gap-2 mb-1">
-              <Briefcase className="w-5 h-5 text-cyan-400" />
+              <Briefcase className="w-5 h-5 text-brand-teal" />
               <span>4. Prior Work Experience / Internships</span>
             </label>
             <p className="text-xs text-slate-400 leading-relaxed">
@@ -971,7 +971,7 @@ export function Step2ProjectSetup() {
               }
             }}
             className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              showExperience ? "bg-cyan-500" : "bg-slate-700"
+              showExperience ? "bg-brand-teal" : "bg-slate-700"
             }`}
           >
             <span
@@ -984,9 +984,9 @@ export function Step2ProjectSetup() {
 
         {/* WORK EXPERIENCE BUILDER (Active when showExperience is TRUE) */}
         {showExperience && (
-          <div className="pt-4 border-t border-slate-800 space-y-4">
+          <div className="pt-4 border-t border-brand-border space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-cyan-300">
+              <span className="text-xs font-bold text-brand-teal">
                 Jobs &amp; Internships to Include ({cvData.experience.length})
               </span>
               <button
@@ -1001,7 +1001,7 @@ export function Step2ProjectSetup() {
                     rawNotes: "",
                   })
                 }
-                className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer"
+                className="text-xs text-brand-teal hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Another Job / Internship
               </button>
@@ -1010,11 +1010,11 @@ export function Step2ProjectSetup() {
             {cvData.experience.map((exp, idx) => (
               <div
                 key={exp.id}
-                className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3"
+                className="bg-brand-dark/80 border border-brand-border rounded-xl p-4 space-y-3"
               >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                <div className="flex items-center justify-between pb-2 border-b border-brand-border/60">
                   <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-cyan-400" /> Job #{idx + 1}
+                    <Building2 className="w-3.5 h-3.5 text-brand-teal" /> Job #{idx + 1}
                   </span>
                   <button
                     onClick={() => removeExperienceItem(exp.id)}
@@ -1096,10 +1096,10 @@ export function Step2ProjectSetup() {
       {/* ============================================================== */}
       <section
         id="section-project-picker"
-        className={`bg-slate-900 border rounded-2xl p-6 mb-8 shadow-xl transition-all ${
+        className={`bg-brand-card border rounded-2xl p-6 mb-8 shadow-xl transition-all ${
           highlightedField === "projects"
             ? "ring-2 ring-red-500 border-red-500 animate-pulse"
-            : "border-slate-800"
+            : "border-brand-border"
         }`}
       >
         <label className="text-sm font-bold text-white block mb-2">
@@ -1107,8 +1107,8 @@ export function Step2ProjectSetup() {
         </label>
 
         {/* GUIDANCE BANNER */}
-        <div className="bg-cyan-950/40 border border-cyan-500/40 text-cyan-200 px-4 py-3 rounded-xl mb-4 text-xs flex items-center gap-2">
-          <Info className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="bg-brand-teal/10 border border-brand-teal/30 text-brand-teal px-4 py-3 rounded-xl mb-4 text-xs flex items-center gap-2">
+          <Info className="w-4 h-4 text-brand-teal shrink-0" />
           <span className="font-semibold">
             {showExperience
               ? "Please select 3 to 4 Selected Projects (since you have work experience)."
@@ -1126,7 +1126,7 @@ export function Step2ProjectSetup() {
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
               placeholder="Search projects by name, slug, or tech stack (e.g. C, C++, Docker, WebSockets)..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition"
+              className="w-full bg-brand-dark border border-brand-border rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-teal transition"
             />
             {projectSearch && (
               <button
@@ -1143,7 +1143,7 @@ export function Step2ProjectSetup() {
           {/* Quick Filter Pills */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-semibold text-slate-400 mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3 text-cyan-400" /> Filter:
+              <Filter className="w-3 h-3 text-brand-teal" /> Filter:
             </span>
 
             <button
@@ -1151,12 +1151,12 @@ export function Step2ProjectSetup() {
               onClick={() => setCircleFilter("ALL")}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 circleFilter === "ALL"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  ? "bg-brand-teal text-brand-dark shadow-md shadow-brand-teal/20"
+                  : "bg-brand-dark border border-brand-border text-slate-400 hover:text-white hover:border-slate-700"
               }`}
             >
               <span>All</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "ALL" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "ALL" ? "bg-brand-dark/20 text-brand-dark font-bold" : "bg-slate-800 text-slate-400"}`}>
                 {circleCounts.all}
               </span>
             </button>
@@ -1166,12 +1166,12 @@ export function Step2ProjectSetup() {
               onClick={() => setCircleFilter("C0_2")}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 circleFilter === "C0_2"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  ? "bg-brand-teal text-brand-dark shadow-md shadow-brand-teal/20"
+                  : "bg-brand-dark border border-brand-border text-slate-400 hover:text-white hover:border-slate-700"
               }`}
             >
               <span>Circle 0–2</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C0_2" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C0_2" ? "bg-brand-dark/20 text-brand-dark font-bold" : "bg-slate-800 text-slate-400"}`}>
                 {circleCounts.c0_2}
               </span>
             </button>
@@ -1181,12 +1181,12 @@ export function Step2ProjectSetup() {
               onClick={() => setCircleFilter("C3_4")}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 circleFilter === "C3_4"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  ? "bg-brand-teal text-brand-dark shadow-md shadow-brand-teal/20"
+                  : "bg-brand-dark border border-brand-border text-slate-400 hover:text-white hover:border-slate-700"
               }`}
             >
               <span>Circle 3–4</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C3_4" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C3_4" ? "bg-brand-dark/20 text-brand-dark font-bold" : "bg-slate-800 text-slate-400"}`}>
                 {circleCounts.c3_4}
               </span>
             </button>
@@ -1196,12 +1196,12 @@ export function Step2ProjectSetup() {
               onClick={() => setCircleFilter("C5_6")}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 circleFilter === "C5_6"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  ? "bg-brand-teal text-brand-dark shadow-md shadow-brand-teal/20"
+                  : "bg-brand-dark border border-brand-border text-slate-400 hover:text-white hover:border-slate-700"
               }`}
             >
               <span>Circle 5–6</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C5_6" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "C5_6" ? "bg-brand-dark/20 text-brand-dark font-bold" : "bg-slate-800 text-slate-400"}`}>
                 {circleCounts.c5_6}
               </span>
             </button>
@@ -1211,12 +1211,12 @@ export function Step2ProjectSetup() {
               onClick={() => setCircleFilter("CUSTOM")}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 circleFilter === "CUSTOM"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  ? "bg-brand-teal text-brand-dark shadow-md shadow-brand-teal/20"
+                  : "bg-brand-dark border border-brand-border text-slate-400 hover:text-white hover:border-slate-700"
               }`}
             >
               <span>Custom</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "CUSTOM" ? "bg-slate-950/20 text-slate-900 font-bold" : "bg-slate-800 text-slate-400"}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${circleFilter === "CUSTOM" ? "bg-brand-dark/20 text-brand-dark font-bold" : "bg-slate-800 text-slate-400"}`}>
                 {circleCounts.custom}
               </span>
             </button>
@@ -1245,28 +1245,28 @@ export function Step2ProjectSetup() {
                   }
                   className={`p-3.5 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? "bg-cyan-500/10 border-cyan-500/60 text-white"
-                      : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
+                      ? "bg-brand-teal/10 border-brand-teal/60 text-white"
+                      : "bg-brand-dark border-brand-border text-slate-400 hover:border-slate-700"
                   }`}
                 >
                   <div>
                     <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
                       {p.name}
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-brand-teal font-mono">
                         Mark: {p.finalMark}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 font-medium">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 text-brand-teal border border-brand-teal/30 font-medium">
                         Circle {circle}
                       </span>
                     </div>
                     <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
                       <span>{knowledge?.category || "42cursus project"}</span>
                       <span>&bull;</span>
-                      <span className="text-cyan-300 font-medium">{projectDate}</span>
+                      <span className="text-brand-teal font-medium">{projectDate}</span>
                     </div>
                   </div>
                   {isSelected ? (
-                    <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-brand-teal shrink-0" />
                   ) : (
                     <Circle className="w-5 h-5 text-slate-600 shrink-0" />
                   )}
@@ -1278,8 +1278,8 @@ export function Step2ProjectSetup() {
 
         {/* Empty State Card when 0 projects match */}
         {filtered42Projects.length === 0 && filteredCustomProjects.length === 0 && (
-          <div className="text-center py-10 px-4 border border-dashed border-slate-800 rounded-2xl bg-slate-950/60 my-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+          <div className="text-center py-10 px-4 border border-dashed border-brand-border rounded-2xl bg-brand-dark/60 my-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 border border-brand-border text-slate-400 flex items-center justify-center mx-auto mb-3">
               <Code2 className="w-6 h-6 text-slate-500" />
             </div>
             <p className="text-sm font-semibold text-slate-300 mb-1">No matching projects found.</p>
@@ -1293,7 +1293,7 @@ export function Step2ProjectSetup() {
                 setCircleFilter("ALL");
                 setProjectSearch("");
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-teal/20 hover:bg-brand-teal/30 text-brand-teal border border-brand-teal/40 text-xs font-semibold transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>+ Add Custom Project</span>
@@ -1303,11 +1303,11 @@ export function Step2ProjectSetup() {
 
         {/* Custom / External Personal Projects */}
         {(circleFilter === "ALL" || circleFilter === "CUSTOM") && (
-          <div className="mt-6 pt-5 border-t border-slate-800">
+          <div className="mt-6 pt-5 border-t border-brand-border">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
               <div>
                 <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Code2 className="w-4 h-4 text-cyan-400" />
+                  <Code2 className="w-4 h-4 text-brand-teal" />
                   <span>Personal &amp; Commercial Projects (e.g. BC Capture, Mobile Apps, Freelance)</span>
                 </span>
                 <p className="text-[11px] text-slate-400">
@@ -1318,7 +1318,7 @@ export function Step2ProjectSetup() {
                 <button
                   type="button"
                   onClick={() => setIsAddingCustomProject(true)}
-                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer shrink-0 self-start sm:self-auto"
+                  className="text-xs text-brand-teal hover:text-cyan-300 flex items-center gap-1 font-semibold cursor-pointer shrink-0 self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Personal Project
                 </button>
@@ -1327,9 +1327,9 @@ export function Step2ProjectSetup() {
 
             {/* Form to add a new custom project */}
             {isAddingCustomProject && (
-              <div className="bg-slate-950/90 border border-cyan-500/40 rounded-xl p-4 mb-4 space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                  <span className="text-xs font-bold text-cyan-300">Add Personal / Commercial Project</span>
+              <div className="bg-brand-dark/90 border border-brand-teal/40 rounded-xl p-4 mb-4 space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-brand-border">
+                  <span className="text-xs font-bold text-brand-teal">Add Personal / Commercial Project</span>
                   <button
                     type="button"
                     onClick={() => setIsAddingCustomProject(false)}
@@ -1347,7 +1347,7 @@ export function Step2ProjectSetup() {
                       value={customProjName}
                       onChange={(e) => setCustomProjName(e.target.value)}
                       placeholder="e.g. BC Capture – Mobile Inventory Scanner"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
                     />
                   </div>
                   <div>
@@ -1357,7 +1357,7 @@ export function Step2ProjectSetup() {
                       value={customProjDate}
                       onChange={(e) => setCustomProjDate(e.target.value)}
                       placeholder="e.g. 2026 or August 2026"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
                     />
                   </div>
                 </div>
@@ -1369,7 +1369,7 @@ export function Step2ProjectSetup() {
                     value={customProjTech}
                     onChange={(e) => setCustomProjTech(e.target.value)}
                     placeholder="e.g. Next.js, Supabase, Cloudflare R2, Vision AI, Tailwind CSS"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
                   />
                 </div>
 
@@ -1382,7 +1382,7 @@ export function Step2ProjectSetup() {
                     value={customProjNotes}
                     onChange={(e) => setCustomProjNotes(e.target.value)}
                     placeholder="e.g. Built a mobile progressive web app to photograph physical retail stock. Designed non-blocking background uploads to Cloudflare R2 and integrated Vision AI to extract product ingredients."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-brand-teal"
                   />
                 </div>
 
@@ -1400,7 +1400,7 @@ export function Step2ProjectSetup() {
                     disabled={!customProjName.trim()}
                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
                       customProjName.trim()
-                        ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 cursor-pointer"
+                        ? "bg-brand-teal hover:bg-brand-teal/90 text-brand-dark cursor-pointer"
                         : "bg-slate-800 text-slate-500 cursor-not-allowed"
                     }`}
                   >
@@ -1420,8 +1420,8 @@ export function Step2ProjectSetup() {
                       key={p.slug}
                       className={`p-3.5 rounded-xl border transition flex items-center justify-between ${
                         isSelected
-                          ? "bg-cyan-500/10 border-cyan-500/60 text-white"
-                          : "bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700"
+                          ? "bg-brand-teal/10 border-brand-teal/60 text-white"
+                          : "bg-brand-dark border-brand-border text-slate-400 hover:border-slate-700"
                       }`}
                     >
                       <div
@@ -1438,14 +1438,14 @@ export function Step2ProjectSetup() {
                       >
                         <div className="font-semibold text-sm text-slate-200 flex items-center gap-2">
                           {p.name}
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-brand-teal border border-brand-teal/30">
                             Personal App
                           </span>
                         </div>
                         <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
                           <span>{p.techStack || "Custom Project"}</span>
                           <span>&bull;</span>
-                          <span className="text-cyan-300">{p.date || "2026"}</span>
+                          <span className="text-brand-teal">{p.date || "2026"}</span>
                         </div>
                       </div>
 
@@ -1501,13 +1501,13 @@ export function Step2ProjectSetup() {
           {/* ============================================================== */}
           {/* 6. TECHNICAL SKILLS (DR. WISSAM 4 STRICT CATEGORIES)          */}
           {/* ============================================================== */}
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+          <section className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8 shadow-xl">
+        <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-4">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Code2 className="w-5 h-5 text-cyan-400" />
+              <Code2 className="w-5 h-5 text-brand-teal" />
               <span>6. Technical Skills</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-brand-teal/20 text-brand-teal border border-brand-teal/30">
                 Dr. Wissam 4 Categories
               </span>
             </h2>
@@ -1519,9 +1519,9 @@ export function Step2ProjectSetup() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Languages */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div className="bg-brand-dark/70 border border-brand-border rounded-xl p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-cyan-300">
+              <label className="text-xs font-bold text-brand-teal">
                 Languages ({cvData.skills.languages.length})
               </label>
               <span className="text-[10px] text-slate-500">e.g. C, C++, Python, SQL</span>
@@ -1533,7 +1533,7 @@ export function Step2ProjectSetup() {
                 cvData.skills.languages.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 text-xs border border-cyan-500/30 font-medium"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-brand-teal text-xs border border-brand-teal/30 font-medium"
                   >
                     {skill}
                     <button
@@ -1564,7 +1564,7 @@ export function Step2ProjectSetup() {
                   }
                 }}
                 placeholder="Add language (press Enter)..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
               />
               <button
                 type="button"
@@ -1572,7 +1572,7 @@ export function Step2ProjectSetup() {
                   handleAddSkill("languages", newLangInput);
                   setNewLangInput("");
                 }}
-                className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-bold cursor-pointer transition"
+                className="px-3 py-1.5 bg-brand-teal hover:bg-brand-teal/90 text-brand-dark rounded-lg text-xs font-bold cursor-pointer transition"
               >
                 Add
               </button>
@@ -1580,9 +1580,9 @@ export function Step2ProjectSetup() {
           </div>
 
           {/* Developer Tools */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div className="bg-brand-dark/70 border border-brand-border rounded-xl p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-cyan-300">
+              <label className="text-xs font-bold text-brand-teal">
                 Developer Tools ({cvData.skills.developerTools.length})
               </label>
               <span className="text-[10px] text-slate-500">e.g. Git, Docker, Make, Linux</span>
@@ -1594,7 +1594,7 @@ export function Step2ProjectSetup() {
                 cvData.skills.developerTools.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 text-xs border border-cyan-500/30 font-medium"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-brand-teal text-xs border border-brand-teal/30 font-medium"
                   >
                     {skill}
                     <button
@@ -1625,7 +1625,7 @@ export function Step2ProjectSetup() {
                   }
                 }}
                 placeholder="Add tool (press Enter)..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
               />
               <button
                 type="button"
@@ -1633,7 +1633,7 @@ export function Step2ProjectSetup() {
                   handleAddSkill("developerTools", newDevToolInput);
                   setNewDevToolInput("");
                 }}
-                className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-bold cursor-pointer transition"
+                className="px-3 py-1.5 bg-brand-teal hover:bg-brand-teal/90 text-brand-dark rounded-lg text-xs font-bold cursor-pointer transition"
               >
                 Add
               </button>
@@ -1641,9 +1641,9 @@ export function Step2ProjectSetup() {
           </div>
 
           {/* Technologies / Frameworks */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div className="bg-brand-dark/70 border border-brand-border rounded-xl p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-cyan-300">
+              <label className="text-xs font-bold text-brand-teal">
                 Technologies / Frameworks ({cvData.skills.technologiesFrameworks.length})
               </label>
               <span className="text-[10px] text-slate-500">e.g. React, Next.js, NGINX, Supabase</span>
@@ -1655,7 +1655,7 @@ export function Step2ProjectSetup() {
                 cvData.skills.technologiesFrameworks.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 text-xs border border-cyan-500/30 font-medium"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-brand-teal text-xs border border-brand-teal/30 font-medium"
                   >
                     {skill}
                     <button
@@ -1686,7 +1686,7 @@ export function Step2ProjectSetup() {
                   }
                 }}
                 placeholder="Add framework (press Enter)..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
               />
               <button
                 type="button"
@@ -1694,7 +1694,7 @@ export function Step2ProjectSetup() {
                   handleAddSkill("technologiesFrameworks", newTechInput);
                   setNewTechInput("");
                 }}
-                className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-bold cursor-pointer transition"
+                className="px-3 py-1.5 bg-brand-teal hover:bg-brand-teal/90 text-brand-dark rounded-lg text-xs font-bold cursor-pointer transition"
               >
                 Add
               </button>
@@ -1702,9 +1702,9 @@ export function Step2ProjectSetup() {
           </div>
 
           {/* Project Management Tools */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div className="bg-brand-dark/70 border border-brand-border rounded-xl p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-cyan-300">
+              <label className="text-xs font-bold text-brand-teal">
                 Project Management Tools ({cvData.skills.projectManagementTools.length})
               </label>
               <span className="text-[10px] text-slate-500">e.g. JIRA, Trello, Notion, GitHub Projects</span>
@@ -1716,7 +1716,7 @@ export function Step2ProjectSetup() {
                 cvData.skills.projectManagementTools.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 text-xs border border-cyan-500/30 font-medium"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-brand-teal text-xs border border-brand-teal/30 font-medium"
                   >
                     {skill}
                     <button
@@ -1747,7 +1747,7 @@ export function Step2ProjectSetup() {
                   }
                 }}
                 placeholder="Add PM tool (press Enter)..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-teal"
               />
               <button
                 type="button"
@@ -1755,7 +1755,7 @@ export function Step2ProjectSetup() {
                   handleAddSkill("projectManagementTools", newPMInput);
                   setNewPMInput("");
                 }}
-                className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-bold cursor-pointer transition"
+                className="px-3 py-1.5 bg-brand-teal hover:bg-brand-teal/90 text-brand-dark rounded-lg text-xs font-bold cursor-pointer transition"
               >
                 Add
               </button>
@@ -1767,7 +1767,7 @@ export function Step2ProjectSetup() {
       {/* ============================================================== */}
       {/* 7. OPTIONAL CAMPUS ACTIVITIES & EXTENSION PISCINES             */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+      <section className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8 shadow-xl">
         <label className="text-sm font-bold text-white block mb-1">
           7. Campus Leadership &amp; Specialized Piscines (Optional)
         </label>
@@ -1791,15 +1791,15 @@ export function Step2ProjectSetup() {
                   onClick={() => toggleCampusRole(roleName)}
                   className={`text-left text-xs p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? "bg-cyan-500/10 border-cyan-400 text-cyan-200 font-medium"
-                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-brand-teal/10 border-brand-teal text-brand-teal font-medium"
+                      : "bg-brand-dark border-brand-border text-slate-400 hover:border-slate-700"
                   }`}
                 >
                   <div>
                     <div className="font-semibold text-white">{roleName}</div>
                     <div className="text-[10px] text-slate-400">{role.professionalTitle}</div>
                   </div>
-                  {isSelected && <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />}
+                  {isSelected && <CheckCircle2 className="w-4 h-4 text-brand-teal shrink-0" />}
                 </button>
               );
             })}
@@ -1821,12 +1821,12 @@ export function Step2ProjectSetup() {
                   onClick={() => toggleCoursework(piscine)}
                   className={`w-full text-left text-xs p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? "bg-cyan-500/10 border-cyan-400 text-cyan-200 font-medium"
-                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-brand-teal/10 border-brand-teal text-brand-teal font-medium"
+                      : "bg-brand-dark border-brand-border text-slate-400 hover:border-slate-700"
                   }`}
                 >
                   <span>{piscine}</span>
-                  {isSelected && <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />}
+                  {isSelected && <CheckCircle2 className="w-4 h-4 text-brand-teal shrink-0" />}
                 </button>
               );
             })}
@@ -1838,7 +1838,7 @@ export function Step2ProjectSetup() {
               value={customCourseworkInput}
               onChange={(e) => setCustomCourseworkInput(e.target.value)}
               placeholder="Add another workshop, Coursera certificate, or specialized course..."
-              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+              className="flex-1 bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-teal"
             />
             <button
               type="button"
@@ -1935,7 +1935,7 @@ export function Step2ProjectSetup() {
                 setSubTab("2B");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition cursor-pointer"
+              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-teal hover:bg-brand-teal/90 text-brand-dark shadow-lg shadow-brand-teal/20 flex items-center gap-2 transition cursor-pointer"
             >
               <span>Next: Experience &amp; Projects</span>
               <ArrowRight className="w-4 h-4" />
@@ -1949,7 +1949,7 @@ export function Step2ProjectSetup() {
                 setSubTab("2C");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition cursor-pointer"
+              className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-teal hover:bg-brand-teal/90 text-brand-dark shadow-lg shadow-brand-teal/20 flex items-center gap-2 transition cursor-pointer"
             >
               <span>Next: Technical Skills &amp; Campus Roles</span>
               <ArrowRight className="w-4 h-4" />
@@ -1962,7 +1962,7 @@ export function Step2ProjectSetup() {
               onClick={handleNext}
               className={`px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-xl ${
                 isContactValid && selectedProjects.length > 0
-                  ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20 cursor-pointer"
+                  ? "bg-brand-teal hover:bg-brand-teal/90 text-brand-dark shadow-brand-teal/20 cursor-pointer"
                   : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
               }`}
             >
@@ -1975,9 +1975,9 @@ export function Step2ProjectSetup() {
 
       {/* Floating Undo Notification Toast */}
       {undoProjBuffer && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900/95 border border-cyan-500/50 shadow-2xl rounded-2xl px-5 py-3 text-sm text-slate-200 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-brand-card/95 border border-brand-teal/50 shadow-2xl rounded-2xl px-5 py-3 text-sm text-slate-200 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse" />
             <span>
               Removed <strong className="text-white font-semibold">&quot;{undoProjBuffer.item.name}&quot;</strong> from CV.
             </span>
@@ -1985,7 +1985,7 @@ export function Step2ProjectSetup() {
           <div className="flex items-center gap-2 pl-2 border-l border-slate-700">
             <button
               onClick={handleUndoCustomProject}
-              className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 py-1 bg-brand-teal/20 hover:bg-brand-teal/30 text-brand-teal border border-brand-teal/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Undo ({undoProjBuffer.countdown}s)</span>

@@ -13,10 +13,11 @@ const config: Config = {
         foreground: "var(--foreground)",
         brand: {
           42: "#00BABC",
+          teal: "#00BABC",
           dark: "#0B0F19",
-          muted: "#4B5563",
           card: "#121826",
           border: "#1F2937",
+          muted: "#4B5563",
         },
       },
       fontFamily: {

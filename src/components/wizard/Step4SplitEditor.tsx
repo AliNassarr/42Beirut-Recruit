@@ -400,9 +400,9 @@ export function Step4SplitEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col text-white">
+    <div className="min-h-screen bg-brand-dark flex flex-col text-white">
       {/* Top Bar */}
-      <header className="h-14 border-b border-slate-800 bg-slate-900/90 px-4 flex items-center justify-between shrink-0 print:hidden">
+      <header className="h-14 border-b border-brand-border bg-brand-card/90 px-4 flex items-center justify-between shrink-0 print:hidden">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setCurrentStep("SETUP")}
@@ -412,14 +412,14 @@ export function Step4SplitEditor() {
           </button>
           <span className="text-slate-600">|</span>
           <span className="text-sm font-bold text-slate-200">
-            {cvData.contact.fullName} &bull; <span className="text-cyan-400">Dr. Wissam CV</span>
+            {cvData.contact.fullName} &bull; <span className="text-brand-teal">Dr. Wissam CV</span>
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+          <span className="text-xs px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal border border-brand-teal/20">
             {cvData.educationState === "STATE_A_CORE"
-              ? "State A: In Core"
+              ? "Common Core Cadet"
               : cvData.educationState === "STATE_B_SPECIALIZATION"
-              ? "State B: Specialization"
-              : "State C: Alumnus"}
+              ? "Specialization Track"
+              : "Alumnus / Industry"}
           </span>
         </div>
 
@@ -525,7 +525,7 @@ export function Step4SplitEditor() {
           {/* Export to PDF Button */}
           <button
             onClick={handlePrintPDF}
-            className="px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-xs font-bold text-slate-950 flex items-center gap-1.5 transition shadow-lg shadow-cyan-500/20 cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal/90 text-xs font-bold text-brand-dark flex items-center gap-1.5 transition shadow-lg shadow-brand-teal/20 cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Export PDF (Vector)</span>
@@ -538,14 +538,14 @@ export function Step4SplitEditor() {
         {/* ============================================================== */}
         {/* LEFT PANE: Form Editor with Tabs                               */}
         {/* ============================================================== */}
-        <aside className="w-full lg:w-[480px] border-r border-slate-800 bg-slate-900/40 flex flex-col shrink-0 print:hidden">
+        <aside className="w-full lg:w-[480px] border-r border-brand-border bg-brand-dark/40 flex flex-col shrink-0 print:hidden">
           {/* Section Tab Bar */}
-          <div className="flex border-b border-slate-800 text-xs font-semibold overflow-x-auto scrollbar-none">
+          <div className="flex border-b border-brand-border text-xs font-semibold overflow-x-auto scrollbar-none">
             <button
               onClick={() => setActiveTab("projects")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "projects"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -555,7 +555,7 @@ export function Step4SplitEditor() {
               onClick={() => setActiveTab("experience")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "experience"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -565,7 +565,7 @@ export function Step4SplitEditor() {
               onClick={() => setActiveTab("education")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "education"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -575,7 +575,7 @@ export function Step4SplitEditor() {
               onClick={() => setActiveTab("skills")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "skills"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -585,7 +585,7 @@ export function Step4SplitEditor() {
               onClick={() => setActiveTab("contact")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "contact"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -595,7 +595,7 @@ export function Step4SplitEditor() {
               onClick={() => setActiveTab("settings")}
               className={`px-3 py-3 text-center border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === "settings"
-                  ? "border-cyan-400 text-cyan-300 bg-cyan-500/5"
+                  ? "border-brand-teal text-brand-teal bg-brand-teal/5"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -727,18 +727,23 @@ export function Step4SplitEditor() {
                             className="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
                           />
                           <div className="flex flex-col gap-1 shrink-0 pt-0.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const shortened = shortenBullet(bullet);
-                                updateProjectBullet(proj.id, idx, shortened);
-                              }}
-                              className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-slate-800"
-                              title="Shorten bullet: trim wordy clauses to fit cleanly on 1-2 lines"
-                            >
-                              <Scissors className="w-2.5 h-2.5 text-cyan-400" />
-                              <span>Shorten</span>
-                            </button>
+                            {(() => {
+                              const shortened = shortenBullet(bullet);
+                              const charDelta = bullet.length - shortened.length;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    updateProjectBullet(proj.id, idx, shortened);
+                                  }}
+                                  className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-slate-800"
+                                  title={`Trim wordy clauses${charDelta > 0 ? ` (-${charDelta} chars)` : ""} to fit cleanly on 1-2 lines`}
+                                >
+                                  <Scissors className="w-2.5 h-2.5 text-cyan-400" />
+                                  <span>Trim Bullet{charDelta > 0 ? ` (-${charDelta})` : ""}</span>
+                                </button>
+                              );
+                            })()}
                             <button
                               type="button"
                               onClick={() => {
@@ -746,10 +751,10 @@ export function Step4SplitEditor() {
                                 updateProjectBullet(proj.id, idx, rotated);
                               }}
                               className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-purple-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-slate-800"
-                              title="Rotate opening verb with strong past-tense engineering verb"
+                              title="Replaces opening verb with strong action synonym"
                             >
                               <RefreshCw className="w-2.5 h-2.5 text-purple-400" />
-                              <span>Rotate</span>
+                              <span>Swap Verb</span>
                             </button>
                             <button
                               type="button"
@@ -941,20 +946,25 @@ export function Step4SplitEditor() {
                                 className="flex-1 bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
                               />
                               <div className="flex flex-col gap-1 shrink-0 pt-0.5">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const shortened = shortenBullet(bullet);
-                                    const nextBullets = [...exp.bulletPoints];
-                                    nextBullets[bIdx] = shortened;
-                                    updateExperienceItem(exp.id, { bulletPoints: nextBullets });
-                                  }}
-                                  className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-slate-800"
-                                  title="Shorten bullet: trim wordy clauses to fit cleanly on 1-2 lines"
-                                >
-                                  <Scissors className="w-2.5 h-2.5 text-cyan-400" />
-                                  <span>Shorten</span>
-                                </button>
+                                {(() => {
+                                  const shortened = shortenBullet(bullet);
+                                  const charDelta = bullet.length - shortened.length;
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const nextBullets = [...exp.bulletPoints];
+                                        nextBullets[bIdx] = shortened;
+                                        updateExperienceItem(exp.id, { bulletPoints: nextBullets });
+                                      }}
+                                      className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-brand-teal hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-brand-border"
+                                      title={`Trim wordy clauses${charDelta > 0 ? ` (-${charDelta} chars)` : ""} to fit cleanly on 1-2 lines`}
+                                    >
+                                      <Scissors className="w-2.5 h-2.5 text-brand-teal" />
+                                      <span>Trim Bullet{charDelta > 0 ? ` (-${charDelta})` : ""}</span>
+                                    </button>
+                                  );
+                                })()}
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -963,11 +973,11 @@ export function Step4SplitEditor() {
                                     nextBullets[bIdx] = rotated;
                                     updateExperienceItem(exp.id, { bulletPoints: nextBullets });
                                   }}
-                                  className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-purple-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-slate-800"
-                                  title="Rotate opening verb with strong past-tense engineering verb"
+                                  className="px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-purple-300 hover:bg-slate-800 rounded transition cursor-pointer flex items-center gap-1 border border-brand-border"
+                                  title="Replaces opening verb with strong action synonym"
                                 >
                                   <RefreshCw className="w-2.5 h-2.5 text-purple-400" />
-                                  <span>Rotate</span>
+                                  <span>Swap Verb</span>
                                 </button>
                                 <button
                                   type="button"
@@ -1039,30 +1049,30 @@ export function Step4SplitEditor() {
                     <span>42 Beirut Education Milestone</span>
                   </span>
 
-                  <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+                  <div className="grid grid-cols-3 gap-1 bg-brand-dark p-1 rounded-lg border border-brand-border text-[11px]">
                     <button
                       onClick={() => setEducationState("STATE_A_CORE")}
                       className={`py-1.5 text-center font-semibold rounded ${
-                        cvData.educationState === "STATE_A_CORE" ? "bg-cyan-500 text-slate-950" : "text-slate-400"
+                        cvData.educationState === "STATE_A_CORE" ? "bg-brand-teal text-brand-dark" : "text-slate-400"
                       }`}
                     >
-                      In Core (A)
+                      Common Core Cadet
                     </button>
                     <button
                       onClick={() => setEducationState("STATE_B_SPECIALIZATION")}
                       className={`py-1.5 text-center font-semibold rounded ${
-                        cvData.educationState === "STATE_B_SPECIALIZATION" ? "bg-cyan-500 text-slate-950" : "text-slate-400"
+                        cvData.educationState === "STATE_B_SPECIALIZATION" ? "bg-brand-teal text-brand-dark" : "text-slate-400"
                       }`}
                     >
-                      Specialization (B)
+                      Specialization Track
                     </button>
                     <button
                       onClick={() => setEducationState("STATE_C_ALUMNUS")}
                       className={`py-1.5 text-center font-semibold rounded ${
-                        cvData.educationState === "STATE_C_ALUMNUS" ? "bg-cyan-500 text-slate-950" : "text-slate-400"
+                        cvData.educationState === "STATE_C_ALUMNUS" ? "bg-brand-teal text-brand-dark" : "text-slate-400"
                       }`}
                     >
-                      Alumnus (C)
+                      Alumnus / Industry
                     </button>
                   </div>
 
@@ -1364,7 +1374,7 @@ export function Step4SplitEditor() {
         {/* ============================================================== */}
         {/* RIGHT PANE: Live A4 Visual Canvas Preview                      */}
         {/* ============================================================== */}
-        <main className="flex-1 overflow-auto bg-slate-950/80 p-8 flex justify-center items-start print:p-0 print:bg-white print:overflow-visible">
+        <main className="flex-1 overflow-auto bg-brand-dark/95 p-8 flex justify-center items-start print:p-0 print:bg-white print:overflow-visible">
           <div className="relative">
             <WissamCleanTemplate
               ref={printRef}
@@ -1379,8 +1389,8 @@ export function Step4SplitEditor() {
 
       {/* Export Confirmation Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md bg-slate-900 border border-cyan-500/40 text-white p-4 rounded-2xl shadow-2xl shadow-cyan-500/10 flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-200 print:hidden">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+        <div className="fixed bottom-6 right-6 z-50 max-w-md bg-brand-card border border-brand-teal/40 text-white p-4 rounded-2xl shadow-2xl shadow-cyan-500/10 flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-200 print:hidden">
+          <div className="w-8 h-8 rounded-xl bg-brand-teal/20 text-brand-teal flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div className="flex-1 pr-2">
@@ -1491,7 +1501,7 @@ export function Step4SplitEditor() {
               <button
                 type="button"
                 onClick={() => setIsBYOKOpen(false)}
-                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-brand-teal hover:bg-brand-teal/90 text-brand-dark font-bold text-xs transition cursor-pointer"
               >
                 Done
               </button>
@@ -1502,7 +1512,7 @@ export function Step4SplitEditor() {
 
       {/* Bottom-Center 6-Second Soft-Delete Floating Toast */}
       {undoBuffer && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-cyan-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl shadow-black/80 flex items-center gap-3.5 animate-in slide-in-from-bottom-5 duration-200 print:hidden">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-brand-card border border-brand-teal/50 text-white px-5 py-3 rounded-2xl shadow-2xl shadow-black/80 flex items-center gap-3.5 animate-in slide-in-from-bottom-5 duration-200 print:hidden">
           <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
             <Trash2 className="w-4 h-4" />
           </div>
@@ -1518,7 +1528,7 @@ export function Step4SplitEditor() {
             <button
               type="button"
               onClick={handleUndo}
-              className="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-teal/90 text-brand-dark font-bold text-xs transition shadow-md shadow-brand-teal/20 cursor-pointer flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Undo ({undoBuffer.countdown}s)</span>
