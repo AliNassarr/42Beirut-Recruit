@@ -132,6 +132,7 @@ interface CVStore {
   customProjects: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean }[];
   addCustomProject: (project: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean }) => void;
   removeCustomProject: (slug: string) => void;
+  restoreCustomProject: (project: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean }, index: number) => void;
 
   projectAnswers: Record<string, Record<string, any>>;
   setProjectAnswer: (projectSlug: string, questionId: string, answer: any) => void;
@@ -154,12 +155,14 @@ interface CVStore {
   removeProjectBullet: (projectId: string, bulletIndex: number) => void;
   addProjectToCV: (project?: Partial<ProjectItem>) => void;
   removeProjectFromCV: (projectId: string) => void;
+  restoreProjectAt: (project: ProjectItem, index: number) => void;
   moveProject: (index: number, direction: "up" | "down") => void;
 
   // Experience Mutations
   addExperienceItem: (item?: Partial<ExperienceItem>) => void;
   updateExperienceItem: (id: string, patch: Partial<ExperienceItem>) => void;
   removeExperienceItem: (id: string) => void;
+  restoreExperienceAt: (item: ExperienceItem, index: number) => void;
   moveExperience: (index: number, direction: "up" | "down") => void;
 
   // Education Mutations
@@ -334,6 +337,20 @@ export const useCVStore = create<CVStore>()(
           selectedProjects: state.selectedProjects.filter((p) => p.slug !== slug),
           lastSavedTimestamp: Date.now(),
         })),
+      restoreCustomProject: (project, index) =>
+        set((state) => {
+          const list = [...state.customProjects.filter((p) => p.slug !== project.slug)];
+          const clampedIndex = Math.min(Math.max(0, index), list.length);
+          list.splice(clampedIndex, 0, project);
+          const nextSelected = state.selectedProjects.some((p) => p.slug === project.slug)
+            ? state.selectedProjects
+            : [...state.selectedProjects, project];
+          return {
+            customProjects: list,
+            selectedProjects: nextSelected,
+            lastSavedTimestamp: Date.now(),
+          };
+        }),
 
       projectAnswers: {},
       setProjectAnswer: (projectSlug, questionId, answer) =>
@@ -485,6 +502,17 @@ export const useCVStore = create<CVStore>()(
           },
         })),
 
+      restoreProjectAt: (project, index) =>
+        set((state) => {
+          const projects = [...state.cvData.projects.filter((p) => p.id !== project.id)];
+          const clampedIndex = Math.min(Math.max(0, index), projects.length);
+          projects.splice(clampedIndex, 0, project);
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: { ...state.cvData, projects },
+          };
+        }),
+
       moveProject: (index, direction) =>
         set((state) => {
           const projects = [...state.cvData.projects];
@@ -548,6 +576,22 @@ export const useCVStore = create<CVStore>()(
               ...state.cvData,
               showExperience: updated.length > 0,
               experience: updated,
+            },
+          };
+        }),
+
+      restoreExperienceAt: (item, index) =>
+        set((state) => {
+          const experience = [...state.cvData.experience.filter((exp) => exp.id !== item.id)];
+          const clampedIndex = Math.min(Math.max(0, index), experience.length);
+          experience.splice(clampedIndex, 0, item);
+          return {
+            showExperience: true,
+            lastSavedTimestamp: Date.now(),
+            cvData: {
+              ...state.cvData,
+              showExperience: true,
+              experience,
             },
           };
         }),

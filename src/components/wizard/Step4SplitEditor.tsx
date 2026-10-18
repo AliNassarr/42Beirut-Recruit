@@ -30,6 +30,7 @@ import {
   Scissors,
   RefreshCw,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 
 // Strong engineering verbs for rotating bullet points
@@ -116,10 +117,12 @@ export function Step4SplitEditor() {
     removeProjectBullet,
     addProjectToCV,
     removeProjectFromCV,
+    restoreProjectAt,
     moveProject,
     addExperienceItem,
     updateExperienceItem,
     removeExperienceItem,
+    restoreExperienceAt,
     moveExperience,
     addEducationItem,
     updateEducationItem,
@@ -152,6 +155,98 @@ export function Step4SplitEditor() {
     desc: string;
     type: "success" | "info";
   } | null>(null);
+
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    rootCause: string;
+    onRetry?: () => void;
+  }>({ isOpen: false, title: "", rootCause: "" });
+
+  interface UndoBufferItem {
+    id: string;
+    type: "project" | "experience";
+    label: string;
+    item: any;
+    index: number;
+    countdown: number;
+  }
+
+  const [undoBuffer, setUndoBuffer] = useState<UndoBufferItem | null>(null);
+  const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const undoIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+    };
+  }, []);
+
+  const startUndoCountdown = (bufferItem: Omit<UndoBufferItem, "countdown">) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+
+    setUndoBuffer({ ...bufferItem, countdown: 6 });
+
+    undoIntervalRef.current = setInterval(() => {
+      setUndoBuffer((prev) => {
+        if (!prev) return null;
+        if (prev.countdown <= 1) {
+          if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+          return null;
+        }
+        return { ...prev, countdown: prev.countdown - 1 };
+      });
+    }, 1000);
+
+    undoTimerRef.current = setTimeout(() => {
+      setUndoBuffer(null);
+      if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+    }, 6000);
+  };
+
+  const handleSoftDeleteProject = (proj: any, index: number) => {
+    removeProjectFromCV(proj.id);
+    startUndoCountdown({
+      id: proj.id,
+      type: "project",
+      label: proj.name,
+      item: proj,
+      index,
+    });
+  };
+
+  const handleSoftDeleteExperience = (exp: any, index: number) => {
+    removeExperienceItem(exp.id);
+    startUndoCountdown({
+      id: exp.id,
+      type: "experience",
+      label: `${exp.role} @ ${exp.company}`,
+      item: exp,
+      index,
+    });
+  };
+
+  const handleUndo = () => {
+    if (!undoBuffer) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+
+    if (undoBuffer.type === "project") {
+      restoreProjectAt(undoBuffer.item, undoBuffer.index);
+    } else if (undoBuffer.type === "experience") {
+      restoreExperienceAt(undoBuffer.item, undoBuffer.index);
+    }
+
+    const restoredLabel = undoBuffer.label;
+    setUndoBuffer(null);
+    setToastMessage({
+      title: "Item Restored",
+      desc: `Restored "${restoredLabel}" back to your CV.`,
+      type: "success",
+    });
+  };
 
   const [pageBudget, setPageBudget] = useState<HeightBudget>({
     height: 980,
@@ -201,7 +296,15 @@ export function Step4SplitEditor() {
       });
     } catch (err: any) {
       console.error("DOCX generation error:", err);
-      alert("Failed to export Word document: " + err.message);
+      setErrorModal({
+        isOpen: true,
+        title: "Word (.docx) Export Failed",
+        rootCause: err?.message || "Failed to generate Word document.",
+        onRetry: () => {
+          setErrorModal((prev) => ({ ...prev, isOpen: false }));
+          handleExportDocx();
+        },
+      });
     } finally {
       setIsExportingDocx(false);
     }
@@ -270,10 +373,27 @@ export function Step4SplitEditor() {
         );
         setCVData({ ...cvData, projects: nextProjects });
       } else {
-        alert("Failed to regenerate bullets: " + (json.error || "Unknown error"));
+        const rootCause = json.error || "The AI server returned an empty or invalid bullet list.";
+        setErrorModal({
+          isOpen: true,
+          title: "Bullet Regeneration Failed",
+          rootCause,
+          onRetry: () => {
+            setErrorModal((prev) => ({ ...prev, isOpen: false }));
+            handleRegenerateProject(proj);
+          },
+        });
       }
     } catch (err: any) {
-      alert("Error regenerating bullets: " + err.message);
+      setErrorModal({
+        isOpen: true,
+        title: "Connection / Generation Exception",
+        rootCause: err?.message || "Failed to connect to bullet regeneration API.",
+        onRetry: () => {
+          setErrorModal((prev) => ({ ...prev, isOpen: false }));
+          handleRegenerateProject(proj);
+        },
+      });
     } finally {
       setRegeneratingProjId(null);
     }
@@ -567,7 +687,7 @@ export function Step4SplitEditor() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => removeProjectFromCV(proj.id)}
+                          onClick={() => handleSoftDeleteProject(proj, projIdx)}
                           className="p-1 text-slate-500 hover:text-red-400 transition cursor-pointer"
                           title="Remove project from CV"
                         >
@@ -749,7 +869,7 @@ export function Step4SplitEditor() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => removeExperienceItem(exp.id)}
+                              onClick={() => handleSoftDeleteExperience(exp, expIdx)}
                               className="text-xs text-slate-500 hover:text-red-400 flex items-center gap-1 transition cursor-pointer p-1"
                               title="Remove job from experience"
                             >
@@ -1375,6 +1495,96 @@ export function Step4SplitEditor() {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom-Center 6-Second Soft-Delete Floating Toast */}
+      {undoBuffer && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-cyan-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl shadow-black/80 flex items-center gap-3.5 animate-in slide-in-from-bottom-5 duration-200 print:hidden">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+            <Trash2 className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-200">
+              <strong className="text-white">&ldquo;{undoBuffer.label}&rdquo;</strong> removed from CV.
+            </span>
+            <span className="text-[10px] text-slate-400">
+              Permanent deletion in {undoBuffer.countdown}s
+            </span>
+          </div>
+          <div className="flex items-center gap-2 ml-2">
+            <button
+              type="button"
+              onClick={handleUndo}
+              className="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Undo ({undoBuffer.countdown}s)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+                if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+                setUndoBuffer(null);
+              }}
+              className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              title="Commit deletion immediately"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Error Modal with Root Cause & Automated Retry */}
+      {errorModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150 print:hidden">
+          <div className="bg-slate-900 border border-red-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-150">
+            <button
+              type="button"
+              onClick={() => setErrorModal((prev) => ({ ...prev, isOpen: false }))}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              title="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">{errorModal.title}</h3>
+                <p className="text-xs text-slate-400">Operation could not be completed</p>
+              </div>
+            </div>
+
+            <div className="mb-5 bg-red-950/40 border border-red-900/60 rounded-xl p-3.5 text-xs text-red-200">
+              <span className="font-semibold block mb-1 text-red-300">Root Cause Details:</span>
+              <p className="font-mono text-[11px] leading-relaxed break-words">{errorModal.rootCause}</p>
+            </div>
+
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setErrorModal((prev) => ({ ...prev, isOpen: false }))}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
+              >
+                Dismiss
+              </button>
+              {errorModal.onRetry && (
+                <button
+                  type="button"
+                  onClick={errorModal.onRetry}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 transition shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Retry Operation</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

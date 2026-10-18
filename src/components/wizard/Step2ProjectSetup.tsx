@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useCVStore, normalizeGitHub, normalizeLinkedIn } from "@/lib/store/cv-store";
 import { KNOWN_PISCINES, CAMPUS_ROLES } from "@/lib/knowledge-base";
 import {
@@ -24,6 +24,8 @@ import {
   Github,
   Linkedin,
   Code2,
+  RotateCcw,
+  X,
 } from "lucide-react";
 
 export function Step2ProjectSetup() {
@@ -58,6 +60,7 @@ export function Step2ProjectSetup() {
     customProjects,
     addCustomProject,
     removeCustomProject,
+    restoreCustomProject,
     setProjectAnswer,
     userGeminiKey,
     userGroqKey,
@@ -136,8 +139,113 @@ export function Step2ProjectSetup() {
 
   const isContactValid = isNameValid && isEmailValid && isPhoneValid && isLinkedinValid && isGithubValid;
 
+  const [highlightedField, setHighlightedField] = useState<string | null>(null);
+  const [actionTooltip, setActionTooltip] = useState<string | null>(null);
+  const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Soft-delete Undo buffer for custom projects
+  interface UndoCustomProj {
+    item: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean };
+    index: number;
+    countdown: number;
+  }
+  const [undoProjBuffer, setUndoProjBuffer] = useState<UndoCustomProj | null>(null);
+  const undoProjTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const undoProjIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+      if (undoProjTimerRef.current) clearTimeout(undoProjTimerRef.current);
+      if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+    };
+  }, []);
+
+  const handleSoftDeleteCustomProject = (
+    proj: { name: string; slug: string; techStack?: string; date?: string; is42Project: boolean },
+    index: number
+  ) => {
+    removeCustomProject(proj.slug);
+
+    if (undoProjTimerRef.current) clearTimeout(undoProjTimerRef.current);
+    if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+
+    setUndoProjBuffer({ item: proj, index, countdown: 6 });
+
+    undoProjIntervalRef.current = setInterval(() => {
+      setUndoProjBuffer((prev) => {
+        if (!prev) return null;
+        if (prev.countdown <= 1) {
+          if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+          return null;
+        }
+        return { ...prev, countdown: prev.countdown - 1 };
+      });
+    }, 1000);
+
+    undoProjTimerRef.current = setTimeout(() => {
+      setUndoProjBuffer(null);
+      if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+    }, 6000);
+  };
+
+  const handleUndoCustomProject = () => {
+    if (!undoProjBuffer) return;
+    if (undoProjTimerRef.current) clearTimeout(undoProjTimerRef.current);
+    if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+
+    restoreCustomProject(undoProjBuffer.item, undoProjBuffer.index);
+    setUndoProjBuffer(null);
+  };
+
   const handleNext = () => {
-    if (!isContactValid) return;
+    let targetElementId: string | null = null;
+    let missingReason: string | null = null;
+
+    if (!isNameValid) {
+      targetElementId = "input-fullName";
+      missingReason = "Please enter your Full Name.";
+    } else if (!isEmailValid) {
+      targetElementId = "input-email";
+      missingReason = "Please enter a valid Email Address.";
+    } else if (!isPhoneValid) {
+      targetElementId = "input-phoneNumber";
+      missingReason = "Please enter a valid Phone Number (at least 6 digits).";
+    } else if (!isLinkedinValid) {
+      targetElementId = "input-linkedinUrl";
+      missingReason = "Please enter your LinkedIn profile or username.";
+    } else if (!isGithubValid) {
+      targetElementId = "input-githubUrl";
+      missingReason = "Please enter your GitHub profile or username.";
+    } else if (selectedProjects.length === 0) {
+      targetElementId = "section-project-picker";
+      missingReason = "Please select at least 1 project to feature on your CV.";
+    }
+
+    if (targetElementId && missingReason) {
+      setActionTooltip(missingReason);
+      setHighlightedField(targetElementId);
+
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      highlightTimerRef.current = setTimeout(() => setHighlightedField(null), 2500);
+
+      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+      tooltipTimerRef.current = setTimeout(() => setActionTooltip(null), 4000);
+
+      if (typeof document !== "undefined") {
+        const el = document.getElementById(targetElementId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          if ("focus" in el && typeof (el as any).focus === "function") {
+            (el as any).focus();
+          }
+        }
+      }
+      return;
+    }
+
     setCurrentStep("QUESTIONNAIRE");
   };
 
@@ -312,11 +420,16 @@ export function Step2ProjectSetup() {
             <div className="relative">
               <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
+                id="input-fullName"
                 type="text"
                 value={contact.fullName}
                 onChange={(e) => updateContact({ fullName: e.target.value })}
                 placeholder="e.g., Mohammad Hamdan"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                  highlightedField === "fullName"
+                    ? "ring-2 ring-red-500 animate-pulse border-red-500"
+                    : "border-slate-800 focus:border-cyan-400"
+                }`}
               />
             </div>
           </div>
@@ -329,11 +442,16 @@ export function Step2ProjectSetup() {
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
+                id="input-email"
                 type="email"
                 value={contact.email}
                 onChange={(e) => updateContact({ email: e.target.value })}
                 placeholder="name@student.42beirut.com"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                  highlightedField === "email"
+                    ? "ring-2 ring-red-500 animate-pulse border-red-500"
+                    : "border-slate-800 focus:border-cyan-400"
+                }`}
               />
             </div>
           </div>
@@ -346,12 +464,17 @@ export function Step2ProjectSetup() {
             <div className="relative">
               <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
+                id="input-phoneNumber"
                 type="text"
                 value={contact.phoneNumber}
                 onChange={(e) => updateContact({ phoneNumber: e.target.value })}
                 placeholder="e.g., +961 70 123 456 or 123-456-7890"
-                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none ${
-                  !isPhoneValid ? "border-amber-500/50" : "border-slate-800 focus:border-cyan-400"
+                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                  highlightedField === "phoneNumber"
+                    ? "ring-2 ring-red-500 animate-pulse border-red-500"
+                    : !isPhoneValid
+                    ? "border-amber-500/50"
+                    : "border-slate-800 focus:border-cyan-400"
                 }`}
               />
             </div>
@@ -376,12 +499,17 @@ export function Step2ProjectSetup() {
             <div className="relative">
               <Linkedin className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
+                id="input-linkedinUrl"
                 type="text"
                 value={contact.linkedinUrl}
                 onChange={(e) => updateContact({ linkedinUrl: e.target.value })}
                 onBlur={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
                 placeholder="linkedin.com/in/username or username"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                  highlightedField === "linkedinUrl"
+                    ? "ring-2 ring-red-500 animate-pulse border-red-500"
+                    : "border-slate-800 focus:border-cyan-400"
+                }`}
               />
             </div>
             <p className="text-[10px] text-slate-500 mt-1">Normalized preview: {normalizeLinkedIn(contact.linkedinUrl) || "linkedin.com/in/..."}</p>
@@ -395,12 +523,17 @@ export function Step2ProjectSetup() {
             <div className="relative">
               <Github className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
+                id="input-githubUrl"
                 type="text"
                 value={contact.githubUrl}
                 onChange={(e) => updateContact({ githubUrl: e.target.value })}
                 onBlur={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
                 placeholder="github.com/username or username"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                className={`w-full bg-slate-950 border rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none transition-all ${
+                  highlightedField === "githubUrl"
+                    ? "ring-2 ring-red-500 animate-pulse border-red-500"
+                    : "border-slate-800 focus:border-cyan-400"
+                }`}
               />
             </div>
             <p className="text-[10px] text-slate-500 mt-1">Normalized preview: {normalizeGitHub(contact.githubUrl) || "github.com/..."}</p>
@@ -765,7 +898,14 @@ export function Step2ProjectSetup() {
       {/* ============================================================== */}
       {/* 5. VALIDATED PROJECT PICKER (WITH REAL DATES & BADGES)          */}
       {/* ============================================================== */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+      <section
+        id="section-project-picker"
+        className={`bg-slate-900 border rounded-2xl p-6 mb-8 shadow-xl transition-all ${
+          highlightedField === "projects"
+            ? "ring-2 ring-red-500 border-red-500 animate-pulse"
+            : "border-slate-800"
+        }`}
+      >
         <label className="text-sm font-bold text-white block mb-2">
           5. Choose Projects to Feature on Your CV
         </label>
@@ -936,7 +1076,7 @@ export function Step2ProjectSetup() {
           {/* List of Added Custom Projects */}
           {customProjects.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-              {customProjects.map((p) => {
+              {customProjects.map((p, pIndex) => {
                 const isSelected = selectedProjects.some((sp) => sp.slug === p.slug);
                 return (
                   <div
@@ -975,7 +1115,7 @@ export function Step2ProjectSetup() {
                     <div className="flex items-center gap-2 ml-2">
                       <button
                         type="button"
-                        onClick={() => removeCustomProject(p.slug)}
+                        onClick={() => handleSoftDeleteCustomProject(p, pIndex)}
                         className="p-1 text-slate-500 hover:text-red-400 transition cursor-pointer"
                         title="Remove project"
                       >
@@ -1372,31 +1512,82 @@ export function Step2ProjectSetup() {
       </section>
 
       {/* ============================================================== */}
-      {/* BOTTOM ACTION BAR                                              */}
+      {/* BOTTOM ACTION BAR & TOOLTIP                                    */}
       {/* ============================================================== */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+      <div className="flex items-center justify-between pt-4 border-t border-slate-800 relative">
         <div>
-          {!isContactValid && (
+          {!isContactValid ? (
             <p className="text-xs text-amber-400 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>Please fill all required contact fields (Name, Email, Phone, LinkedIn, GitHub) to proceed.</span>
             </p>
-          )}
+          ) : selectedProjects.length === 0 ? (
+            <p className="text-xs text-amber-400 flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Please select at least 1 project to feature on your CV.</span>
+            </p>
+          ) : null}
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={!isContactValid || selectedProjects.length === 0}
-          className={`px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-xl ${
-            isContactValid && selectedProjects.length > 0
-              ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20 cursor-pointer"
-              : "bg-slate-800 text-slate-500 cursor-not-allowed"
-          }`}
-        >
-          <span>Continue to Questionnaire</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        <div className="relative">
+          {actionTooltip && (
+            <div className="absolute bottom-full right-0 mb-3 w-72 bg-red-950/95 border border-red-500/60 rounded-xl p-3 shadow-2xl text-xs text-red-200 z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-white">Action Required</p>
+                  <p className="text-[11px] text-red-300 mt-0.5 leading-snug">{actionTooltip}</p>
+                </div>
+              </div>
+              <div className="absolute top-full right-8 -mt-1 border-4 border-transparent border-t-red-950/95" />
+            </div>
+          )}
+
+          <button
+            onClick={handleNext}
+            className={`px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-xl ${
+              isContactValid && selectedProjects.length > 0
+                ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20 cursor-pointer"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
+            }`}
+          >
+            <span>Continue to Questionnaire</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Floating Undo Notification Toast */}
+      {undoProjBuffer && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900/95 border border-cyan-500/50 shadow-2xl rounded-2xl px-5 py-3 text-sm text-slate-200 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>
+              Removed <strong className="text-white font-semibold">&quot;{undoProjBuffer.item.name}&quot;</strong> from CV.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-700">
+            <button
+              onClick={handleUndoCustomProject}
+              className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Undo ({undoProjBuffer.countdown}s)</span>
+            </button>
+            <button
+              onClick={() => {
+                if (undoProjTimerRef.current) clearTimeout(undoProjTimerRef.current);
+                if (undoProjIntervalRef.current) clearInterval(undoProjIntervalRef.current);
+                setUndoProjBuffer(null);
+              }}
+              className="p-1 text-slate-400 hover:text-white transition cursor-pointer"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
