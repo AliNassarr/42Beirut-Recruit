@@ -10,7 +10,7 @@ import { HeightBudget, TemplateSectionId } from "@/components/templates/WissamCl
 import { generateDrWissamDocx } from "@/lib/docx-generator";
 import { CanvasPreviewViewport } from "./CanvasPreviewViewport";
 import { BulletEditorRow } from "./BulletEditorRow";
-import { Logo42 } from "./Logo42";
+import { FortyTwoLogo } from "@/components/ui/FortyTwoLogo";
 import {
   Home,
   RefreshCw,
@@ -303,9 +303,9 @@ export function ReziStudioLayout() {
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
       {/* 1. Global Left Navigation Rail (70px Fixed Width) */}
       <aside className="w-[70px] bg-[#09090B] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
-        {/* Crisp 42 Geometric Stencil Emblem */}
-        <div className="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center shadow-sm">
-          <Logo42 size={22} className="text-black" />
+        {/* Crisp Monochrome 42 Stencil Container */}
+        <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-sm">
+          <FortyTwoLogo className="w-7 h-5 text-white" />
         </div>
 
         {/* Navigation Action Buttons */}
@@ -367,18 +367,23 @@ export function ReziStudioLayout() {
         {/* 2. Top Sub-Navigation Header (81px Height) */}
         <header className="h-[81px] bg-[#09090B]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
           <div className="max-w-[1440px] h-full mx-auto px-4 md:px-8 flex items-center justify-between">
-            {/* Left Cluster: Document Identity */}
-            <div className="flex flex-col">
-              <input
-                type="text"
-                value={cvData.contact.fullName}
-                onChange={(e) => updateContact({ fullName: e.target.value })}
-                className="bg-transparent text-lg font-bold text-white focus:outline-none focus:border-b focus:border-white max-w-[240px] sm:max-w-xs truncate"
-                placeholder="Your Full Name"
-              />
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                <span>42 Beirut Studio • Autosaved</span>
+            {/* Left Cluster: Document Identity with FortyTwoLogo */}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 items-center justify-center shadow-sm shrink-0">
+                <FortyTwoLogo className="w-6 h-4 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <input
+                  type="text"
+                  value={cvData.contact.fullName}
+                  onChange={(e) => updateContact({ fullName: e.target.value })}
+                  className="bg-transparent text-lg font-bold text-white focus:outline-none focus:border-b focus:border-white max-w-[240px] sm:max-w-xs truncate"
+                  placeholder="Your Full Name"
+                />
+                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span>42 Beirut Studio • Autosaved</span>
+                </div>
               </div>
             </div>
 
