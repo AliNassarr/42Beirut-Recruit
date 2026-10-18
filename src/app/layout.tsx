@@ -5,12 +5,19 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "42Beirut-Recruit | 42 Beirut CV & Resume Engine",
-  description: "ATS-optimized CV generator tailored for 42 Beirut cadets and alumni.",
+  title: "42 Beirut | CV Builder",
+  description:
+    "An automated CV builder and resume engine built by 42 Beirut for all 42 Network cadets. Sync your Intra milestones and export industry-standard resumes.",
   icons: {
     icon: "/icon.png",
-    shortcut: "/favicon.ico",
-    apple: "/icon.png",
+  },
+  openGraph: {
+    title: "42 Beirut | CV Builder",
+    description:
+      "An automated CV builder and resume engine built by 42 Beirut for all 42 Network cadets. Sync your Intra milestones and export industry-standard resumes.",
+    url: "https://42beirutrecruit.me",
+    siteName: "42 Beirut CV Builder",
+    type: "website",
   },
 };
 
