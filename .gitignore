@@ -46,6 +46,8 @@ test/screenshots/
 *.jpeg
 *.pdf
 *.docx
+!src/app/icon.png
+!public/icon.png
 
 # Testing & Coverage
 /coverage

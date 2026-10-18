@@ -5,8 +5,13 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "42Beirut-Recruit — 42 Beirut Automated CV Engine",
-  description: "AI-Powered CV builder strictly enforcing CEO Dr. Wissam Sammouri's reference template for 42 Beirut cadets.",
+  title: "42Beirut-Recruit | 42 Beirut CV & Resume Engine",
+  description: "ATS-optimized CV generator tailored for 42 Beirut cadets and alumni.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
