@@ -1,44 +1,34 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useCVStore, useHasHydrated } from "@/lib/store/cv-store";
-import { BreadcrumbStepper } from "@/components/wizard/BreadcrumbStepper";
-import { Step1Login } from "@/components/wizard/Step1Login";
-import { Step2ProjectSetup } from "@/components/wizard/Step2ProjectSetup";
-import { Step3Questionnaire } from "@/components/wizard/Step3Questionnaire";
-import { Step4SplitEditor } from "@/components/wizard/Step4SplitEditor";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { ReziStudioLayout } from "@/components/studio/ReziStudioLayout";
+import { MOCK_42_STUDENT, createInitialCVFromIntra } from "@/lib/intra/mock-data";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function Home() {
   const hasHydrated = useHasHydrated();
 
   const {
-    currentStep,
-    setCurrentStep,
+    cvData,
+    setCVData,
+    studentProfile,
     setStudentProfile,
     setEducationState,
     setSelectedProjects,
     setSpecializationTrack,
-    studentProfile,
-    cvData,
-    lastSavedTimestamp,
-    resetToDefaults,
   } = useCVStore();
 
   const [authLoading, setAuthLoading] = useState(false);
-  const [bridgeLoadingText, setBridgeLoadingText] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
-  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
-  const [hasCheckedDraft, setHasCheckedDraft] = useState(false);
+  const [bridgeLoadingText, setBridgeLoadingText] = useState("");
   const bridgeAttemptedRef = useRef(false);
 
-  // Helper to hydrate Zustand state and advance to Step 2
+  // Helper to hydrate Zustand state with Intra user
   const hydrateWithIntraUser = useCallback(
     (user: any) => {
       setStudentProfile(user);
 
-      // Auto-detect education state per Dr. Wissam rules:
-      // Check if ft_transcendence is validated OR level >= 9.8
       const hasTranscendence = (user.validatedProjects || []).some(
         (p: any) =>
           p.slug === "ft_transcendence" ||
@@ -55,7 +45,6 @@ export default function Home() {
         setEducationState("STATE_A_CORE");
       }
 
-      // Pre-select top 4 validated projects from student profile
       if (user.validatedProjects && user.validatedProjects.length > 0) {
         const defaultSelected = user.validatedProjects.slice(0, 4).map((p: any) => ({
           name: p.name,
@@ -66,32 +55,29 @@ export default function Home() {
         setSelectedProjects(defaultSelected);
       }
 
-      setCurrentStep("SETUP");
+      const initialCV = createInitialCVFromIntra(user);
+      setCVData(initialCV);
 
-      // Clean up URL query parameters without reloading
       if (typeof window !== "undefined") {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     },
-    [setCurrentStep, setEducationState, setSelectedProjects, setSpecializationTrack, setStudentProfile]
+    [setCVData, setEducationState, setSelectedProjects, setSpecializationTrack, setStudentProfile]
   );
 
-  // Check for restored draft on client hydration
+  // 1. Initial Load Hydration: Ensure MOCK_42_STUDENT is populated if no saved draft exists
   useEffect(() => {
-    if (hasHydrated && !hasCheckedDraft) {
-      setHasCheckedDraft(true);
-      // Show recovery banner if client hydrated a saved draft that has user progress
-      const isSaved =
-        lastSavedTimestamp &&
-        (currentStep !== "LOGIN" || Boolean(studentProfile || cvData.contact.fullName));
-      if (isSaved) {
-        setShowRecoveryBanner(true);
+    if (hasHydrated) {
+      if (!cvData?.contact?.fullName || cvData.projects.length === 0) {
+        setStudentProfile(MOCK_42_STUDENT);
+        const baseline = createInitialCVFromIntra(MOCK_42_STUDENT);
+        setCVData(baseline);
       }
     }
-  }, [hasHydrated, hasCheckedDraft, lastSavedTimestamp, currentStep, studentProfile, cvData.contact.fullName]);
+  }, [hasHydrated, cvData, setCVData, setStudentProfile]);
 
+  // 2. OAuth Authentication Handlers (Preserved from backend)
   useEffect(() => {
-    // Check URL parameters for OAuth status, session ID, errors, or OAuth bridge
     let authStatus: string | null = null;
     let errorParam: string | null = null;
     let sidParam: string | null = null;
@@ -117,56 +103,33 @@ export default function Home() {
     }
 
     if (errorParam) {
-      let safeError = errorParam;
-      try {
-        safeError = decodeURIComponent(errorParam);
-      } catch {
-        safeError = errorParam;
-      }
-      setAuthError(safeError);
+      setAuthError(decodeURIComponent(errorParam));
     }
 
-    // Tier 2: Self-Healing Residential Browser Bridge (Zero-Preflight CORS Requests)
+    // Residential Bridge Handshake
     if (bridgeParam === "1" && codeParam) {
-      if (bridgeAttemptedRef.current) {
-        return;
-      }
+      if (bridgeAttemptedRef.current) return;
       bridgeAttemptedRef.current = true;
 
       setAuthLoading(true);
-      let currentStepName = "bridge-init";
-      setBridgeLoadingText("Validating bridge handshake ticket...");
+      setBridgeLoadingText("Validating 42 Intra handshake ticket...");
 
       async function executeResidentialBridge() {
         try {
-          // 1. Fetch OAuth parameters validated by backend stateless HMAC ticket
-          currentStepName = "bridge-init";
           const initRes = await fetch("/api/auth/42/bridge-init", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              code: codeParam,
-              ts: tsParam,
-              sig: sigParam,
-            }),
+            body: JSON.stringify({ code: codeParam, ts: tsParam, sig: sigParam }),
           });
 
-          if (!initRes.ok) {
-            const errJson = await initRes.json().catch(() => ({}));
-            throw new Error(errJson.error || `Bridge ticket verification failed (HTTP ${initRes.status})`);
-          }
-
+          if (!initRes.ok) throw new Error("Bridge ticket verification failed");
           const bridgeData = await initRes.json();
-          let accessToken: string | null = null;
-          let profilePayload: any = null;
 
-          // 2. Obtain token and profile using residential relays
-          currentStepName = "browser-token-exchange";
           const FORTY_TWO_API_BASE = (
             process.env.NEXT_PUBLIC_FORTY_TWO_API_BASE || "https://42beirut-worker.pages.dev"
           ).replace(/\/+$/, "");
 
-          setBridgeLoadingText("Exchanging credentials via Cloudflare proxy...");
+          setBridgeLoadingText("Exchanging credentials via proxy...");
 
           const tokenBody = new URLSearchParams({
             grant_type: "authorization_code",
@@ -176,74 +139,26 @@ export default function Home() {
             redirect_uri: bridgeData.redirectUri,
           });
 
-          // Stage 1: Cloudflare Pages Proxy (Universal CORS-enabled Cloudflare relay)
-          try {
-            const proxyRes = await fetch(`${FORTY_TWO_API_BASE}/oauth/token`, {
-              method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: tokenBody,
-            });
+          const proxyRes = await fetch(`${FORTY_TWO_API_BASE}/oauth/token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: tokenBody,
+          });
 
-            if (proxyRes.ok) {
-              const proxyJson = await proxyRes.json();
-              accessToken = proxyJson.access_token;
-            }
-          } catch (proxyErr) {
-            console.warn("Cloudflare Pages proxy exchange failed, trying secondary fallback:", proxyErr);
-          }
+          if (!proxyRes.ok) throw new Error("OAuth token exchange failed");
+          const proxyJson = await proxyRes.json();
+          const accessToken = proxyJson.access_token;
 
-          // Stage 2: Local Residential Relay fallback (if running on user's machine)
-          if (!accessToken) {
-            try {
-              const localRelayRes = await fetch("http://localhost:3000/api/auth/42/local-relay", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(bridgeData),
-              });
+          setBridgeLoadingText("Retrieving 42 student profile...");
+          const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "application/json",
+            },
+          });
 
-              if (localRelayRes.ok) {
-                const localData = await localRelayRes.json();
-                if (localData.accessToken && localData.profile) {
-                  accessToken = localData.accessToken;
-                  profilePayload = localData.profile;
-                }
-              }
-            } catch (localErr) {
-              console.warn("Local residential relay unavailable:", localErr);
-            }
-          }
-
-          if (!accessToken) {
-            throw new Error("Unable to retrieve OAuth token via proxy or relay");
-          }
-
-          // Stage 3: Fetch 42 Profile
-          if (!profilePayload) {
-            currentStepName = "browser-profile-fetch";
-            setBridgeLoadingText("Retrieving 42 student profile...");
-
-            try {
-              const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  Accept: "application/json",
-                },
-              });
-              if (meRes.ok) {
-                profilePayload = await meRes.json();
-              }
-            } catch (meErr) {
-              console.warn("Proxy profile fetch failed:", meErr);
-            }
-          }
-
-          if (!profilePayload || !profilePayload.login) {
-            throw new Error("Failed to retrieve 42 profile directly from browser or relay");
-          }
-
-          // 4. Finalize session on server with zero server-to-Intra calls
-          currentStepName = "bridge-complete";
-          setBridgeLoadingText("Finalizing profile sync & secure session...");
+          if (!meRes.ok) throw new Error("Failed to retrieve profile");
+          const profilePayload = await meRes.json();
 
           const completeRes = await fetch("/api/auth/42/bridge-complete", {
             method: "POST",
@@ -257,23 +172,15 @@ export default function Home() {
             }),
           });
 
-          if (!completeRes.ok) {
-            const completeErr = await completeRes.json().catch(() => ({}));
-            throw new Error(completeErr.error || `Failed to finalize session (HTTP ${completeRes.status})`);
-          }
-
+          if (!completeRes.ok) throw new Error("Failed to finalize session");
           const completeData = await completeRes.json();
+
           if (completeData.success && completeData.user) {
             hydrateWithIntraUser(completeData.user);
-          } else {
-            throw new Error("Bridge completed but returned no profile");
           }
         } catch (err: any) {
-          console.error(`Residential bridge failed at step [${currentStepName}]:`, err);
-          setAuthError(`[${currentStepName}] ${err?.message || "Residential bridge handshake failed."}`);
-          if (typeof window !== "undefined") {
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
+          console.error("Bridge failed:", err);
+          setAuthError(err?.message || "42 Intra sync failed.");
         } finally {
           setAuthLoading(false);
           setBridgeLoadingText("");
@@ -284,7 +191,7 @@ export default function Home() {
       return;
     }
 
-    // Normal OAuth callback flow with existing session ID
+    // Normal callback with session ID
     if (authStatus === "success" || sidParam) {
       setAuthLoading(true);
       const sessionUrl = sidParam
@@ -296,82 +203,50 @@ export default function Home() {
         .then((data) => {
           if (data.authenticated && data.user) {
             hydrateWithIntraUser(data.user);
-          } else {
-            setAuthError("Failed to retrieve your 42 Intra profile. Please sign in again or use Quick Start.");
           }
         })
-        .catch((err) => {
-          console.error("Session fetch error:", err);
-          setAuthError("Network error while connecting to 42 session service.");
-        })
-        .finally(() => {
-          setAuthLoading(false);
-        });
+        .catch(console.error)
+        .finally(() => setAuthLoading(false));
     }
   }, [hydrateWithIntraUser]);
 
-  // Prevent SSR hydration mismatch
+  // Loading indicator prior to hydration
   if (!hasHydrated) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center">
+      <main className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-black text-sm animate-pulse">
+          <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-black text-sm animate-pulse">
             42
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-            <span>Loading 42Beirut-Recruit...</span>
+            <span>Loading Rezi Studio...</span>
           </div>
         </div>
       </main>
     );
   }
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top-Level Interactive Breadcrumbs across all steps */}
-      <BreadcrumbStepper />
-
-      {/* Draft Recovery Notification Banner */}
-      {showRecoveryBanner && (
-        <div className="bg-gradient-to-r from-cyan-950/90 via-slate-900 to-slate-900 border-b border-cyan-500/40 px-4 py-2.5 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-cyan-200 shadow-lg shrink-0 print:hidden">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>
-              Restored saved CV progress for <strong>{cvData.contact.fullName || studentProfile?.displayname || "42 Student"}</strong>.
-            </span>
-          </div>
-          <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setShowRecoveryBanner(false)}
-              className="text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
-            >
-              Continue Editing
-            </button>
-            <span className="text-slate-600">|</span>
-            <button
-              type="button"
-              onClick={() => {
-                resetToDefaults();
-                setShowRecoveryBanner(false);
-              }}
-              className="text-slate-400 hover:text-red-400 cursor-pointer transition"
-            >
-              Reset to 42 Intra Defaults
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowRecoveryBanner(false)}
-              className="text-slate-500 hover:text-white font-bold ml-2 text-sm cursor-pointer"
-              title="Dismiss banner"
-            >
-              &times;
-            </button>
-          </div>
+  // OAuth Loading Screen
+  if (authLoading) {
+    return (
+      <main className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col items-center justify-center p-8 text-center">
+        <div className="relative mb-6">
+          <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-cyan-400 absolute inset-0 m-auto animate-pulse" />
         </div>
-      )}
+        <h2 className="text-2xl font-bold text-white mb-2">
+          {bridgeLoadingText || "Syncing 42 Beirut Intra Profile..."}
+        </h2>
+        <p className="text-sm text-slate-400 max-w-md">
+          Retrieving your validated cursus marks, calculating line budgets, and configuring your studio workspace.
+        </p>
+      </main>
+    );
+  }
 
+  return (
+    <main className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col">
       {/* OAuth Error Notification Banner */}
       {authError && (
         <div className="bg-red-500/10 border-b border-red-500/30 text-red-300 px-4 py-2.5 text-xs flex items-center justify-between shrink-0">
@@ -389,30 +264,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Loading Screen during OAuth profile sync */}
-      {authLoading ? (
-        <div className="flex-1 min-h-[80vh] flex flex-col items-center justify-center p-8 text-center">
-          <div className="relative mb-6">
-            <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
-            <Loader2 className="w-8 h-8 text-cyan-400 absolute inset-0 m-auto animate-pulse" />
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {bridgeLoadingText || "Syncing Your 42 Beirut Profile..."}
-          </h2>
-          <p className="text-sm text-slate-400 max-w-md leading-relaxed">
-            {bridgeLoadingText
-              ? "Bypassing cloud firewall via residential handshake bridge. This ensures zero data loss and direct Intra authentication."
-              : "Retrieving your validated Common Core projects, calculating your cursus level, and preparing your tailored Dr. Wissam questionnaire."}
-          </p>
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          {currentStep === "LOGIN" && <Step1Login />}
-          {currentStep === "SETUP" && <Step2ProjectSetup />}
-          {currentStep === "QUESTIONNAIRE" && <Step3Questionnaire />}
-          {currentStep === "EDITOR" && <Step4SplitEditor />}
-        </div>
-      )}
+      {/* Rezi Studio Workspace */}
+      <ReziStudioLayout />
     </main>
   );
 }

@@ -42,6 +42,7 @@ test/*results*.json
 
 # Screenshots & Local Test Artifacts
 test/screenshots/
+scratch/
 *.png
 *.jpg
 *.jpeg
