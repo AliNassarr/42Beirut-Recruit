@@ -1,7 +1,17 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useState, useEffect } from "react";
-import { CVData, EducationItem, EducationState, ExperienceItem, ProjectItem, SectionId, DEFAULT_SECTION_ORDER } from "@/types/resume";
+import {
+  CVData,
+  EducationItem,
+  EducationState,
+  ExperienceItem,
+  ProjectItem,
+  CourseworkItem,
+  ExtracurricularItem,
+  SectionId,
+  DEFAULT_SECTION_ORDER,
+} from "@/types/resume";
 import { MOCK_42_STUDENT, MockIntraUser, createInitialCVFromIntra } from "@/lib/intra/mock-data";
 
 export type WizardStep = "LOGIN" | "SETUP" | "QUESTIONNAIRE" | "EDITOR";
@@ -174,6 +184,19 @@ interface CVStore {
   addEducationItem: (item?: Partial<EducationItem>) => void;
   updateEducationItem: (id: string, patch: Partial<EducationItem>) => void;
   removeEducationItem: (id: string) => void;
+
+  // Coursework Mutations
+  addCourseworkItem: (item?: Partial<CourseworkItem>) => void;
+  updateCourseworkItem: (id: string, patch: Partial<CourseworkItem>) => void;
+  removeCourseworkItem: (id: string) => void;
+
+  // Extracurricular Mutations
+  addExtracurricularItem: (item?: Partial<ExtracurricularItem>) => void;
+  updateExtracurricularItem: (id: string, patch: Partial<ExtracurricularItem>) => void;
+  removeExtracurricularItem: (id: string) => void;
+  addExtracurricularBullet: (id: string, text?: string) => void;
+  updateExtracurricularBullet: (id: string, bulletIndex: number, text: string) => void;
+  removeExtracurricularBullet: (id: string, bulletIndex: number) => void;
 
   // Hydration & Fast-Fill from Uploaded Old CV
   hydrateFromParsedCV: (data: ParsedCVData) => void;
@@ -754,6 +777,129 @@ export const useCVStore = create<CVStore>()(
           cvData: {
             ...state.cvData,
             education: state.cvData.education.filter((edu) => edu.id !== id),
+          },
+        })),
+
+      // Coursework Mutations
+      addCourseworkItem: (item) =>
+        set((state) => {
+          const newItem: CourseworkItem = {
+            id: `cw-${Date.now()}`,
+            title: item?.title || "Specialized 42 Bootcamp / Workshop",
+            date: item?.date || "2025",
+            institution: item?.institution || "42 Beirut",
+          };
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: {
+              ...state.cvData,
+              coursework: [...(state.cvData.coursework || []), newItem],
+            },
+          };
+        }),
+
+      updateCourseworkItem: (id, patch) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            coursework: (state.cvData.coursework || []).map((cw) =>
+              cw.id === id ? { ...cw, ...patch } : cw
+            ),
+          },
+        })),
+
+      removeCourseworkItem: (id) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            coursework: (state.cvData.coursework || []).filter((cw) => cw.id !== id),
+          },
+        })),
+
+      // Extracurricular Mutations
+      addExtracurricularItem: (item) =>
+        set((state) => {
+          const newItem: ExtracurricularItem = {
+            id: `ec-${Date.now()}`,
+            organization: item?.organization || "42 Beirut Community Initiative",
+            role: item?.role || "Lead Peer Mentor",
+            startDate: item?.startDate || "2024",
+            endDate: item?.endDate || "Present",
+            isCurrent: item?.isCurrent ?? true,
+            bulletPoints: item?.bulletPoints || [
+              "Mentored newer cadets through Common Core C programming and peer evaluations.",
+            ],
+          };
+          return {
+            showExtracurriculars: true,
+            lastSavedTimestamp: Date.now(),
+            cvData: {
+              ...state.cvData,
+              showExtracurriculars: true,
+              extracurriculars: [...(state.cvData.extracurriculars || []), newItem],
+            },
+          };
+        }),
+
+      updateExtracurricularItem: (id, patch) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            extracurriculars: (state.cvData.extracurriculars || []).map((ec) =>
+              ec.id === id ? { ...ec, ...patch } : ec
+            ),
+          },
+        })),
+
+      removeExtracurricularItem: (id) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            extracurriculars: (state.cvData.extracurriculars || []).filter((ec) => ec.id !== id),
+          },
+        })),
+
+      addExtracurricularBullet: (id, text = "Contributed to campus technical activities and student workshops.") =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            extracurriculars: (state.cvData.extracurriculars || []).map((ec) =>
+              ec.id === id ? { ...ec, bulletPoints: [...ec.bulletPoints, text] } : ec
+            ),
+          },
+        })),
+
+      updateExtracurricularBullet: (id, bulletIndex, text) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            extracurriculars: (state.cvData.extracurriculars || []).map((ec) => {
+              if (ec.id !== id) return ec;
+              const bullets = [...ec.bulletPoints];
+              bullets[bulletIndex] = text;
+              return { ...ec, bulletPoints: bullets };
+            }),
+          },
+        })),
+
+      removeExtracurricularBullet: (id, bulletIndex) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            extracurriculars: (state.cvData.extracurriculars || []).map((ec) => {
+              if (ec.id !== id) return ec;
+              return {
+                ...ec,
+                bulletPoints: ec.bulletPoints.filter((_, i) => i !== bulletIndex),
+              };
+            }),
           },
         })),
 

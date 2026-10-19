@@ -41,7 +41,7 @@ export type StudioSection =
   | "PROJECTS"
   | "EDUCATION"
   | "SKILLS"
-  | "SUMMARY";
+  | "ACTIVITIES";
 
 
 const SECTION_METADATA: Record<
@@ -118,6 +118,15 @@ export function ReziStudioLayout() {
     addEducationItem,
     updateEducationItem,
     removeEducationItem,
+    addCourseworkItem,
+    updateCourseworkItem,
+    removeCourseworkItem,
+    addExtracurricularItem,
+    updateExtracurricularItem,
+    removeExtracurricularItem,
+    addExtracurricularBullet,
+    updateExtracurricularBullet,
+    removeExtracurricularBullet,
     setShowExperience,
     styleDensity,
     setStyleDensity,
@@ -384,18 +393,14 @@ export function ReziStudioLayout() {
         {/* Top Header Bar */}
         <header className="h-[72px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
           <div className="w-full max-w-[1800px] h-full mx-auto px-4 md:px-6 flex items-center justify-between gap-2 lg:gap-4">
-            {/* Left: 42 Mark & Cadet Name & Quick Intra Sync & CV Readiness Badge */}
+            {/* Left: 42 Mark & Static Brand Label & Quick Intra Sync & CV Readiness Badge */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
                 <FortyTwoLogo className="w-5 h-4 text-white" />
               </div>
-              <input
-                type="text"
-                value={cvData.contact.fullName}
-                onChange={(e) => updateContact({ fullName: e.target.value })}
-                className="text-sm font-bold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[130px] lg:max-w-[160px] truncate"
-                placeholder="Your Full Name"
-              />
+              <span className="text-sm font-bold text-white px-1 select-none tracking-tight">
+                42 Beirut
+              </span>
               <button
                 type="button"
                 onClick={handleIntraSync}
@@ -431,7 +436,7 @@ export function ReziStudioLayout() {
                 { id: "PROJECTS", label: "Projects" },
                 { id: "EXPERIENCE", label: "Experience" },
                 { id: "SKILLS", label: "Skills" },
-                { id: "SUMMARY", label: "Summary" },
+                { id: "ACTIVITIES", label: "Activities" },
               ].map((tab) => {
                 const isActive = activeSection === tab.id;
                 return (
@@ -451,7 +456,7 @@ export function ReziStudioLayout() {
               })}
             </nav>
 
-            {/* Right: Exactly 3 Action Buttons */}
+            {/* Right: Section Order & Primary CTA: Download PDF */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* 1. Section Order */}
               <button
@@ -464,26 +469,7 @@ export function ReziStudioLayout() {
                 <span className="hidden sm:inline">Section Order</span>
               </button>
 
-              {/* 2. Live Preview Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowSlideOverPreview(!showSlideOverPreview)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer border shadow-sm ${
-                  showSlideOverPreview
-                    ? "bg-zinc-800 border-zinc-600 text-white"
-                    : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
-                }`}
-                title="Toggle Live Resume Preview"
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    showSlideOverPreview ? "bg-emerald-400 animate-pulse" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="hidden sm:inline">Live Preview</span>
-              </button>
-
-              {/* 3. Primary CTA: Download PDF */}
+              {/* 2. Primary CTA: Download PDF */}
               <button
                 type="button"
                 onClick={handlePrintPDF}
@@ -504,7 +490,7 @@ export function ReziStudioLayout() {
             { id: "PROJECTS", label: "Projects" },
             { id: "EXPERIENCE", label: "Experience" },
             { id: "SKILLS", label: "Skills" },
-            { id: "SUMMARY", label: "Summary" },
+            { id: "ACTIVITIES", label: "Activities" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -522,11 +508,11 @@ export function ReziStudioLayout() {
         </div>
 
         {/* Main Builder Deck (Fluid 3-column / 2-column split) */}
-        <div className="flex-1 w-full max-w-[1800px] mx-auto px-3 sm:px-4 md:px-6 pt-5 pb-12 flex flex-col lg:flex-row gap-4 xl:gap-6 min-w-0">
+        <div className="flex-1 w-full max-w-[1800px] mx-auto px-3 sm:px-4 md:px-6 pt-5 pb-12 flex flex-col lg:flex-row gap-4 xl:gap-5 min-w-0">
             {/* Column 1 — Left In-Aside Deck (Only shown for multi-item sections: PROJECTS, EXPERIENCE, EDUCATION) */}
             {isMultiItemSection && (
               <aside className={`w-full shrink-0 flex flex-col gap-4 transition-all duration-200 ${
-                showSlideOverPreview ? "hidden xl:flex xl:w-[260px] 2xl:w-[280px]" : "lg:w-[308px]"
+                showSlideOverPreview ? "hidden xl:flex xl:w-[250px] 2xl:w-[280px]" : "lg:w-[308px]"
               }`}>
                 {activeSection === "EDUCATION" ? (
                   /* Education Entries Management & 42 Standing */
@@ -863,7 +849,7 @@ export function ReziStudioLayout() {
           )}
 
           {/* Column 2 — Center Form Deck (Fluid max 1108px / h-fit hugs content) */}
-          <main className="flex-1 min-w-0 max-w-[1108px] h-fit bg-[#141417] border border-zinc-800 rounded-xl p-5 md:p-8 flex flex-col gap-6 shadow-sm">
+          <main className="flex-1 min-w-0 lg:min-w-[480px] max-w-[1108px] h-fit bg-[#141417] border border-zinc-800 rounded-xl p-5 md:p-8 flex flex-col gap-6 shadow-sm">
             {/* Form Deck Sub-Header */}
             <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
               <h3 className="text-base font-bold text-white uppercase tracking-wider">
@@ -1263,32 +1249,266 @@ export function ReziStudioLayout() {
                 </div>
               )}
 
-              {activeSection === "SUMMARY" && (
-                <div className="flex flex-col gap-5">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Target Role / Job Title
-                    </label>
-                    <input
-                      type="text"
-                      value={cvData.targetRole || "Software Engineer"}
-                      onChange={(e) => setCVData({ ...cvData, targetRole: e.target.value })}
-                      placeholder="Software Engineer"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
+              {activeSection === "ACTIVITIES" && (
+                <div className="flex flex-col gap-8">
+                  {/* Part 1: Relevant Coursework and Workshops */}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                          Relevant Coursework &amp; Workshops
+                        </h4>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Piscines, specialized technical bootcamps, or accredited workshops.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          addCourseworkItem({
+                            title: "42 Beirut Piscine: C Language & Unix Foundations",
+                            date: "2024",
+                            institution: "42 Beirut",
+                          })
+                        }
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold transition cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Coursework</span>
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {(cvData.coursework || []).length === 0 ? (
+                        <div className="p-4 rounded-lg bg-[#0C0C0E] border border-dashed border-zinc-800 text-center text-xs text-zinc-500">
+                          No coursework or workshops added yet. Click &quot;Add Coursework&quot; above to add one.
+                        </div>
+                      ) : (
+                        (cvData.coursework || []).map((cw) => (
+                          <div
+                            key={cw.id}
+                            className="p-3.5 bg-[#0C0C0E] border border-zinc-800 rounded-xl flex items-center gap-3"
+                          >
+                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div className="sm:col-span-2">
+                                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                  Course / Workshop Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={cw.title}
+                                  onChange={(e) =>
+                                    updateCourseworkItem(cw.id, { title: e.target.value })
+                                  }
+                                  placeholder="e.g. 42 Beirut Piscine: C Language & Unix"
+                                  className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                  Year / Date
+                                </label>
+                                <input
+                                  type="text"
+                                  value={cw.date || ""}
+                                  onChange={(e) =>
+                                    updateCourseworkItem(cw.id, { date: e.target.value })
+                                  }
+                                  placeholder="e.g. 2024"
+                                  className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeCourseworkItem(cw.id)}
+                              className="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer shrink-0 self-end mb-0.5"
+                              title="Remove Coursework"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Professional Summary
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={cvData.specializationTrack || ""}
-                      onChange={(e) => setCVData({ ...cvData, specializationTrack: e.target.value })}
-                      placeholder="Motivated 42 Beirut student with strong foundation in low-level systems programming in C/C++..."
-                      className="w-full p-4 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none resize-none leading-relaxed"
-                    />
+                  {/* Part 2: Extracurricular Activities */}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                            Extracurricular Activities
+                          </h4>
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={showExtracurriculars !== false}
+                              onChange={(e) => setShowExtracurriculars(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-8 h-4 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                            <span className="text-[11px] font-medium text-zinc-300">
+                              {showExtracurriculars !== false ? "Visible on CV" : "Hidden"}
+                            </span>
+                          </label>
+                        </div>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Peer evaluations, 42 Black Ops, mentoring, hackathons, and community leadership.
+                        </p>
+                      </div>
+
+                      {showExtracurriculars !== false && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addExtracurricularItem({
+                              organization: "42 Beirut Community Initiative",
+                              role: "Lead Peer Mentor",
+                              startDate: "2024",
+                              endDate: "Present",
+                              bulletPoints: [
+                                "Mentored newer cadets through Common Core C programming and peer evaluations.",
+                              ],
+                            })
+                          }
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold transition cursor-pointer self-start sm:self-auto"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Activity</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {showExtracurriculars === false ? (
+                      <div className="p-4 rounded-lg bg-[#0C0C0E] border border-zinc-800 text-xs text-zinc-500 text-center">
+                        Extracurricular activities are hidden from the printed CV. Toggle &quot;Visible on CV&quot; above to include them.
+                      </div>
+                    ) : (cvData.extracurriculars || []).length === 0 ? (
+                      <div className="p-4 rounded-lg bg-[#0C0C0E] border border-dashed border-zinc-800 text-center text-xs text-zinc-500">
+                        No extracurricular activities added yet. Click &quot;Add Activity&quot; above.
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        {(cvData.extracurriculars || []).map((ec) => (
+                          <div
+                            key={ec.id}
+                            className="p-4 bg-[#0C0C0E] border border-zinc-800 rounded-xl flex flex-col gap-3"
+                          >
+                            <div className="flex items-center justify-between gap-3 border-b border-zinc-800/60 pb-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                                <div className="sm:col-span-2">
+                                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                    Organization / Initiative
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={ec.organization}
+                                    onChange={(e) =>
+                                      updateExtracurricularItem(ec.id, { organization: e.target.value })
+                                    }
+                                    placeholder="e.g. 42 Beirut Black Ops"
+                                    className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                    Role / Title
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={ec.role}
+                                    onChange={(e) =>
+                                      updateExtracurricularItem(ec.id, { role: e.target.value })
+                                    }
+                                    placeholder="e.g. Campus Peer Mentor"
+                                    className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeExtracurricularItem(ec.id)}
+                                className="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer shrink-0 self-end mb-0.5"
+                                title="Remove Activity"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 max-w-sm">
+                              <div>
+                                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                  Start Date
+                                </label>
+                                <input
+                                  type="text"
+                                  value={ec.startDate || ""}
+                                  onChange={(e) =>
+                                    updateExtracurricularItem(ec.id, { startDate: e.target.value })
+                                  }
+                                  placeholder="e.g. 2024"
+                                  className="w-full h-8 px-2.5 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-md text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                                  End Date
+                                </label>
+                                <input
+                                  type="text"
+                                  value={ec.endDate || ""}
+                                  onChange={(e) =>
+                                    updateExtracurricularItem(ec.id, { endDate: e.target.value })
+                                  }
+                                  placeholder="e.g. Present"
+                                  className="w-full h-8 px-2.5 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-md text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Bullets */}
+                            <div className="flex flex-col gap-2 pt-2">
+                              <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                                Key Contributions / Achievements
+                              </label>
+                              {(ec.bulletPoints || []).map((bullet, bIdx) => (
+                                <div key={bIdx} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={bullet}
+                                    onChange={(e) =>
+                                      updateExtracurricularBullet(ec.id, bIdx, e.target.value)
+                                    }
+                                    placeholder="Describe your initiative or responsibility..."
+                                    className="flex-1 h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+                                  />
+                                  {(ec.bulletPoints || []).length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeExtracurricularBullet(ec.id, bIdx)}
+                                      className="p-1.5 text-zinc-500 hover:text-red-400 rounded transition cursor-pointer"
+                                      title="Remove Bullet"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => addExtracurricularBullet(ec.id)}
+                                className="self-start text-[11px] font-semibold text-zinc-400 hover:text-white flex items-center gap-1 mt-1 transition cursor-pointer"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Add Bullet</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1299,8 +1519,8 @@ export function ReziStudioLayout() {
               <section
                 className={`hidden lg:flex shrink-0 sticky top-[95px] h-[calc(100vh-115px)] transition-all duration-200 ${
                   isMultiItemSection
-                    ? "w-[440px] xl:w-[480px] 2xl:w-[520px]"
-                    : "w-[540px] xl:w-[620px] 2xl:w-[680px]"
+                    ? "w-[440px] xl:w-[460px] 2xl:w-[500px]"
+                    : "w-[540px] xl:w-[600px] 2xl:w-[660px]"
                 }`}
               >
                 <CanvasPreviewViewport
@@ -1308,6 +1528,14 @@ export function ReziStudioLayout() {
                   onHeightBudgetChange={setHeightBudget}
                   onPrintPDF={handlePrintPDF}
                   onExportDocx={handleExportDocx}
+                  onSectionClick={(sec) => {
+                    if (sec === "contact") setActiveSection("CONTACT");
+                    else if (sec === "education") setActiveSection("EDUCATION");
+                    else if (sec === "projects") setActiveSection("PROJECTS");
+                    else if (sec === "experience") setActiveSection("EXPERIENCE");
+                    else if (sec === "skills") setActiveSection("SKILLS");
+                    else if (sec === "coursework" || sec === "extracurriculars") setActiveSection("ACTIVITIES");
+                  }}
                 />
               </section>
             )}

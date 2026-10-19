@@ -120,10 +120,10 @@ export function ScoreEngineModal({
       formatIssues.push("Content exceeds 1-page budget. Consider trimming bullets or removing a project.");
     }
 
-    if (cvData.specializationTrack && cvData.specializationTrack.length <= 260) {
+    if (cvData.projects && cvData.projects.length >= 2) {
       formatScore += 4;
-    } else if (cvData.specializationTrack && cvData.specializationTrack.length > 260) {
-      formatIssues.push("Professional summary exceeds 2-line maximum budget.");
+    } else {
+      formatIssues.push("Ensure at least 2 technical projects are featured on your CV.");
     }
 
     // Section spacing & title format
