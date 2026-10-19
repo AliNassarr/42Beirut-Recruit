@@ -6,7 +6,6 @@ import {
   isCloudflareBlocked,
 } from "@/lib/intra-oauth-transport";
 
-export const runtime = 'edge';
 export const dynamic = "force-dynamic";
 
 export async function GET() {

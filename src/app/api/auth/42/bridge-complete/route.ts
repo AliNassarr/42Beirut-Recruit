@@ -3,8 +3,6 @@ import { extractIntraProfile } from "@/lib/intra/extract-profile";
 import { createSession } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import { verifyBridgeSignature } from "@/lib/auth-hmac";
- 
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {

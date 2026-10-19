@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requestHttp2, requestFetch } from "@/lib/intra-oauth-transport";
- 
-export const runtime = 'edge';
 
 function corsHeaders(origin = "*"): HeadersInit {
   return {

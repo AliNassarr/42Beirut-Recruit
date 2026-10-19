@@ -4,6 +4,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import {
   Target,
   CheckCircle2,
+  Check,
+  AlertCircle,
   AlertTriangle,
   FileText,
   Search,
@@ -362,7 +364,19 @@ export function ScoreEngineModal({
               Calculated across 5 institutional benchmarks: Word count ({audit.wordCount}), 1-page line budget ({heightBudget.height}px / 1027px), and action verb diversity.
             </p>
             <div className="flex items-center gap-3 mt-1 text-xs font-mono text-zinc-400">
-              <span>{heightBudget.isOverflow ? "⚠️ 1-Page Overflow" : "✓ 100% 1-Page Fit"}</span>
+              <span className="flex items-center gap-1">
+                {heightBudget.isOverflow ? (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>1-Page Overflow</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-zinc-200" />
+                    <span>100% 1-Page Fit</span>
+                  </>
+                )}
+              </span>
               <span>•</span>
               <span>{audit.bestPractices.flaggedItems.length} Flagged Bullets</span>
             </div>
@@ -498,9 +512,10 @@ export function ScoreEngineModal({
                       audit.optimization.matchedKeywords.map((kw) => (
                         <span
                           key={kw}
-                          className="px-2.5 py-1 bg-white text-black font-mono font-bold text-[11px] rounded"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-white text-black font-mono font-bold text-[11px] rounded"
                         >
-                          ✓ {kw}
+                          <Check className="w-3 h-3 text-black stroke-[3]" />
+                          <span>{kw}</span>
                         </span>
                       ))
                     ) : (

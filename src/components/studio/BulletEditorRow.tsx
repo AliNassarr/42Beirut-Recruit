@@ -9,6 +9,8 @@ import {
   Scissors,
   Target,
   ChevronUp,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { getProjectKnowledge } from "@/lib/knowledge-base";
 
@@ -269,14 +271,14 @@ export function BulletEditorRow({
   };
 
   return (
-    <div className="relative min-h-[116px] bg-[#0C0C0E] border-2 border-zinc-800 focus-within:border-white rounded-md px-4 pt-3.5 pb-12 transition-colors text-[15px] leading-relaxed text-zinc-100">
+    <div className="group relative min-h-[116px] bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-white/[0.08] rounded-xl px-4 pt-3.5 pb-12 transition-all">
       {/* Clean Foreground Textarea — Zero Ghosting */}
       <textarea
         value={bullet}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         placeholder="e.g. Engineered asynchronous HTTP/1.1 server in C++ using epoll with 0 memory leaks..."
-        className="w-full bg-transparent text-white font-sans text-[15px] leading-relaxed p-0 border-none outline-none resize-none placeholder:text-zinc-500 focus:ring-0"
+        className="w-full bg-transparent border-0 p-0 text-zinc-100 placeholder:text-zinc-600 text-[14px] sm:text-[15px] leading-relaxed resize-none focus:outline-none focus:ring-0 font-sans"
       />
 
       {/* Inline Custom Angle / Personal Note Seed Input Bar */}
@@ -309,12 +311,12 @@ export function BulletEditorRow({
       )}
 
       {/* Bottom Left: Rezi Monochrome AI Split Button */}
-      <div className="absolute bottom-2.5 left-3 flex items-center shadow-sm">
+      <div className="absolute bottom-2.5 left-3 flex items-center rounded-lg overflow-hidden border border-zinc-700/80 shadow-sm bg-white text-black">
         <button
           type="button"
           onClick={handleSuggestBullet}
           disabled={isGenerating}
-          className="rounded-l-full bg-white hover:bg-zinc-200 text-black font-bold uppercase text-[11px] tracking-wider px-3.5 py-1.5 flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+          className="bg-white hover:bg-zinc-200 text-black font-bold uppercase text-[11px] tracking-wider px-3.5 py-1.5 flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>{buttonLabel}</span>
@@ -323,7 +325,7 @@ export function BulletEditorRow({
         <button
           type="button"
           onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-          className="rounded-r-2xl border-l border-zinc-300 bg-white hover:bg-zinc-200 text-black px-2 py-1.5 flex items-center justify-center transition cursor-pointer"
+          className="border-l border-zinc-300 bg-white hover:bg-zinc-200 text-black px-2 py-1.5 flex items-center justify-center transition cursor-pointer"
           title="More generate options"
         >
           <ChevronDown className="w-3.5 h-3.5" />
@@ -399,23 +401,35 @@ export function BulletEditorRow({
         {/* Action Verb Indicator */}
         {analysis.firstWord ? (
           analysis.hasVerb ? (
-            <span className="text-zinc-300">✓ Verb: {analysis.firstWord}</span>
+            <span className="flex items-center gap-1 text-zinc-300">
+              <Check className="w-3 h-3 text-zinc-300" />
+              <span>Verb: {analysis.firstWord}</span>
+            </span>
           ) : (
-            <span className="text-white font-semibold">! Weak opening verb</span>
+            <span className="flex items-center gap-1 text-zinc-400 font-medium">
+              <AlertCircle className="w-3 h-3 text-zinc-400" />
+              <span>Weak opening</span>
+            </span>
           )
         ) : null}
 
         {/* Metric Check */}
         {analysis.hasMetrics ? (
-          <span className="text-zinc-300">✓ Quantified</span>
+          <span className="flex items-center gap-1 text-zinc-300">
+            <Check className="w-3 h-3 text-zinc-300" />
+            <span>Quantified</span>
+          </span>
         ) : (
-          <span className="text-zinc-500">! Add metric/number</span>
+          <span className="flex items-center gap-1 text-zinc-500">
+            <span>Add metric</span>
+          </span>
         )}
 
         {/* Pronoun / Buzzword Check */}
         {analysis.hasPronouns && (
-          <span className="text-white font-semibold underline">
-            ! Avoid &quot;I/my&quot;
+          <span className="flex items-center gap-1 text-white font-medium">
+            <AlertCircle className="w-3 h-3 text-white" />
+            <span>Avoid &quot;I/my&quot;</span>
           </span>
         )}
 

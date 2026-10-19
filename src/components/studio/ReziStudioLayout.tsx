@@ -33,6 +33,11 @@ import {
   Search,
   Mail,
   FileText,
+  Check,
+  CheckCircle2,
+  AlertCircle,
+  Building2,
+  Sparkles,
 } from "lucide-react";
 import { MOCK_42_STUDENT, createInitialCVFromIntra } from "@/lib/intra/mock-data";
 
@@ -347,13 +352,109 @@ export function ReziStudioLayout() {
     });
   };
 
+  // Contact Hygiene Checklist calculations
+  const contactChecklist = useMemo(() => {
+    return [
+      { label: "Full Legal Name", isComplete: !!cvData.contact.fullName?.trim() },
+      { label: "Email Address", isComplete: !!cvData.contact.email?.includes("@") && cvData.contact.email.includes(".") },
+      { label: "Lebanese Phone (+961)", isComplete: !!cvData.contact.phoneNumber && cvData.contact.phoneNumber.length >= 8 },
+      { label: "GitHub Profile", isComplete: !!cvData.contact.githubUrl && cvData.contact.githubUrl.length > 3 },
+      { label: "LinkedIn Profile", isComplete: !!cvData.contact.linkedinUrl && cvData.contact.linkedinUrl.length > 3 },
+      { label: "42 Common Core Level", isComplete: Number(cvData.contact.level ?? 0) > 0 },
+    ];
+  }, [cvData.contact]);
+
+  const contactCompletedCount = useMemo(() => {
+    return contactChecklist.filter((c) => c.isComplete).length;
+  }, [contactChecklist]);
+
+  // Core 42 Skills Matrix Quick-Add definitions
+  const core42SkillSuggestions = [
+    { name: "C (C98)", category: "languages" as const },
+    { name: "C++ (C11)", category: "languages" as const },
+    { name: "POSIX Threads", category: "systems" as const },
+    { name: "Sockets & epoll", category: "systems" as const },
+    { name: "Docker & Alpine", category: "tools" as const },
+    { name: "Valgrind", category: "tools" as const },
+    { name: "Make & Makefile", category: "tools" as const },
+    { name: "Git & CI/CD", category: "tools" as const },
+    { name: "Algorithms & Data Structures", category: "systems" as const },
+    { name: "TypeScript", category: "languages" as const },
+    { name: "React / Next.js", category: "frameworks" as const },
+    { name: "PostgreSQL", category: "frameworks" as const },
+  ];
+
+  const allSkillsList = useMemo(() => {
+    return [
+      ...cvData.skills.languages,
+      ...cvData.skills.developerTools,
+      ...cvData.skills.technologiesFrameworks,
+    ];
+  }, [cvData.skills]);
+
+  const totalSkillsCount = allSkillsList.length;
+
+  const handleToggleSkillSuggestion = (skill: { name: string; category: "languages" | "tools" | "frameworks" | "systems" }) => {
+    const isAdded = allSkillsList.some((s) => s.toLowerCase() === skill.name.toLowerCase());
+    if (isAdded) {
+      if (skill.category === "languages") {
+        updateSkills({ languages: cvData.skills.languages.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
+      } else if (skill.category === "tools" || skill.category === "systems") {
+        updateSkills({ developerTools: cvData.skills.developerTools.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
+      } else {
+        updateSkills({ technologiesFrameworks: cvData.skills.technologiesFrameworks.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
+      }
+      setToastMessage({ title: "Skill Removed", desc: `Removed "${skill.name}" from your skills matrix.` });
+    } else {
+      if (skill.category === "languages") {
+        updateSkills({ languages: [...cvData.skills.languages, skill.name] });
+      } else if (skill.category === "tools" || skill.category === "systems") {
+        updateSkills({ developerTools: [...cvData.skills.developerTools, skill.name] });
+      } else {
+        updateSkills({ technologiesFrameworks: [...cvData.skills.technologiesFrameworks, skill.name] });
+      }
+      setToastMessage({ title: "Skill Added", desc: `Added "${skill.name}" to your skills matrix.` });
+    }
+  };
+
+  // Profile Archetypes for Executive Summary
+  const summaryArchetypes = [
+    {
+      title: "Systems & Low-Level Engineer",
+      role: "Systems Software Engineer",
+      summary: "Software engineering student at 42 Beirut specializing in Unix systems programming, POSIX-compliant multi-threading, and network protocols in C/C++. Experienced in low-level memory management with zero Valgrind leaks and rigorous peer evaluation standards.",
+    },
+    {
+      title: "Full-Stack Software Architect",
+      role: "Full-Stack Software Engineer",
+      summary: "Full-stack developer with strong foundational systems engineering from 42 Beirut. Skilled in modern TypeScript, React, and containerized microservice architectures with real-time WebSocket communications.",
+    },
+    {
+      title: "DevOps & Cloud Systems Cadet",
+      role: "DevOps & Systems Engineer",
+      summary: "Systems-oriented engineer trained at 42 Beirut with hands-on expertise in Docker container orchestration, automated CI/CD pipelines, and high-availability Linux infrastructure.",
+    },
+  ];
+
+  const handleApplySummaryArchetype = (arch: (typeof summaryArchetypes)[0]) => {
+    setCVData({
+      ...cvData,
+      targetRole: arch.role,
+      specializationTrack: arch.summary,
+    });
+    setToastMessage({
+      title: "Archetype Applied",
+      desc: `Applied "${arch.title}" profile and Dr. Wissam summary formula.`,
+    });
+  };
+
   return (
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
       {/* 1. Global Left Navigation Rail (70px Fixed Width) */}
       <aside className="w-[70px] bg-[#0C0C0E] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
         {/* Crisp Monochrome 42 Stencil Container */}
-        <div className="w-10 h-10 rounded-lg bg-[#141417] border border-zinc-800 flex items-center justify-center shadow-sm">
-          <FortyTwoLogo className="w-7 h-5 text-white" />
+        <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-inner">
+          <FortyTwoLogo className="w-6 h-5 text-white" />
         </div>
 
         {/* Navigation Action Buttons */}
@@ -456,23 +557,19 @@ export function ReziStudioLayout() {
         {/* 2. Top Sub-Navigation Header (81px Height) */}
         <header className="h-[81px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
           <div className="max-w-[1440px] h-full mx-auto px-4 md:px-8 flex items-center justify-between">
-            {/* Left Cluster: Document Identity with FortyTwoLogo */}
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex w-9 h-9 rounded-lg bg-[#141417] border border-zinc-800 items-center justify-center shadow-sm shrink-0">
-                <FortyTwoLogo className="w-6 h-4 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <input
-                  type="text"
-                  value={cvData.contact.fullName}
-                  onChange={(e) => updateContact({ fullName: e.target.value })}
-                  className="bg-transparent text-lg font-bold text-white focus:outline-none focus:border-b focus:border-white max-w-[240px] sm:max-w-xs truncate"
-                  placeholder="Your Full Name"
-                />
-                <div className="flex items-center gap-2 text-xs text-zinc-400">
-                  <FortyTwoLogo className="w-3.5 h-2.5 text-zinc-400" />
-                  <span>42 Beirut Studio • Autosaved</span>
-                </div>
+            {/* Left Cluster: Linear-style Document Breadcrumb */}
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 text-sm font-medium select-none">42 Beirut /</span>
+              <input
+                type="text"
+                value={cvData.contact.fullName}
+                onChange={(e) => updateContact({ fullName: e.target.value })}
+                className="text-base font-semibold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[200px] sm:max-w-xs truncate"
+                placeholder="Your Full Name"
+              />
+              <div className="flex items-center gap-1.5 ml-1 px-2.5 py-0.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-[11px] text-zinc-400 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-pulse" />
+                <span>Saved</span>
               </div>
             </div>
 
@@ -680,110 +777,406 @@ export function ReziStudioLayout() {
                 </button>
               </div>
 
-              {/* Draggable Item List (Positions or Projects) */}
-              <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                    {activeSection === "PROJECTS" ? "Selected Projects" : "Work Experiences"}
-                  </span>
-                  <span className="text-xs font-mono text-white font-bold">
-                    {activeSection === "PROJECTS" ? cvData.projects.length : cvData.experience.length} items
-                  </span>
-                </div>
-
-                {/* Instant Search & Circle Filter Chips for Projects */}
-                {activeSection === "PROJECTS" && (
-                  <div className="flex flex-col gap-2">
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={projectSearchQuery}
-                        onChange={(e) => setProjectSearchQuery(e.target.value)}
-                        placeholder="Search projects..."
-                        className="w-full pl-8 pr-3 py-1.5 bg-[#0C0C0E] border border-zinc-800 rounded-md text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-white"
-                      />
+              {/* Tailored Contextual Aside Tools by Section */}
+              {activeSection === "CONTACT" ? (
+                /* ATS Contact Hygiene Checklist */
+                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
+                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-zinc-300" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
+                        Contact Hygiene
+                      </span>
                     </div>
-                    {/* Circle Filter Chips */}
-                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px] font-mono">
-                      {(
-                        [
-                          { id: "all", label: "All" },
-                          { id: "circle-0-2", label: "Circle 0-2" },
-                          { id: "circle-3-5", label: "Circle 3-5" },
-                          { id: "specialization", label: "Spec" },
-                        ] as const
-                      ).map((chip) => (
+                    <span className="text-xs font-mono text-white font-bold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                      {contactCompletedCount}/6 Complete
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
+                    <div
+                      className="bg-white h-full transition-all duration-500 rounded-full"
+                      style={{ width: `${(contactCompletedCount / 6) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Checklist Items */}
+                  <div className="flex flex-col gap-2 text-xs">
+                    {contactChecklist.map((item) => (
+                      <div
+                        key={item.label}
+                        className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
+                          item.isComplete
+                            ? "bg-[#0C0C0E] border-zinc-800/90 text-zinc-200"
+                            : "bg-[#18181D]/60 border-zinc-800/60 text-zinc-400"
+                        }`}
+                      >
+                        <span className="font-medium">{item.label}</span>
+                        <div className="flex items-center gap-1.5">
+                          {item.isComplete ? (
+                            <span className="flex items-center gap-1 text-[11px] font-mono text-zinc-300">
+                              <Check className="w-3.5 h-3.5 text-zinc-200" />
+                              <span>Ready</span>
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[11px] font-mono text-zinc-400">
+                              <AlertCircle className="w-3.5 h-3.5 text-zinc-400" />
+                              <span>Missing</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* ATS Tip Callout */}
+                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1.5 font-bold text-zinc-300 uppercase tracking-wider text-[10px]">
+                      <Target className="w-3.5 h-3.5 text-white" />
+                      <span>Dr. Wissam ATS Rule</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-zinc-400">
+                      Include direct clickable URLs for GitHub and LinkedIn, and prefix phone numbers with Lebanese international code (+961).
+                    </p>
+                  </div>
+                </div>
+              ) : activeSection === "SKILLS" ? (
+                /* Core 42 Skills Quick-Add & Category Matrix */
+                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
+                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-zinc-300" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
+                        Core 42 Skills
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-white font-bold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                      {totalSkillsCount} Skills
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    1-Click add authentic 42 Beirut competencies into your ATS skills matrix:
+                  </p>
+
+                  {/* Quick-Add Chips */}
+                  <div className="flex flex-wrap gap-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {core42SkillSuggestions.map((skill) => {
+                      const isAdded = allSkillsList.some(
+                        (s) => s.toLowerCase() === skill.name.toLowerCase()
+                      );
+                      return (
                         <button
-                          key={chip.id}
+                          key={skill.name}
                           type="button"
-                          onClick={() => setProjectCircleFilter(chip.id)}
-                          className={`px-2 py-0.5 rounded uppercase tracking-wider font-bold transition cursor-pointer whitespace-nowrap ${
-                            projectCircleFilter === chip.id
-                              ? "bg-white text-black"
-                              : "bg-[#0C0C0E] text-zinc-400 hover:text-white border border-zinc-800"
+                          onClick={() => handleToggleSkillSuggestion(skill)}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium transition cursor-pointer flex items-center gap-1.5 border ${
+                            isAdded
+                              ? "bg-zinc-800/90 border-zinc-600 text-white"
+                              : "bg-[#0C0C0E] border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
                           }`}
                         >
-                          {chip.label}
+                          {isAdded ? (
+                            <Check className="w-3 h-3 text-white" />
+                          ) : (
+                            <Plus className="w-3 h-3 text-zinc-400" />
+                          )}
+                          <span>{skill.name}</span>
                         </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* ATS Target Gauge */}
+                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-zinc-400 font-bold uppercase">ATS Keyword Target</span>
+                      <span className="text-white font-bold">{totalSkillsCount} / 20</span>
+                    </div>
+                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
+                      <div
+                        className="bg-white h-full transition-all duration-500 rounded-full"
+                        style={{ width: `${Math.min(100, (totalSkillsCount / 20) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-zinc-500">
+                      Dr. Wissam recommends 15–25 specific technical keywords across Languages, Tools, and Frameworks.
+                    </p>
+                  </div>
+                </div>
+              ) : activeSection === "SUMMARY" ? (
+                /* 42 Profile Archetypes & Power Verbs Assistant */
+                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
+                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-zinc-300" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
+                        Profile Archetypes
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Select a 42 profile archetype to apply Dr. Wissam&apos;s 2-line executive summary formula:
+                  </p>
+
+                  {/* Archetype Buttons */}
+                  <div className="flex flex-col gap-2">
+                    {summaryArchetypes.map((arch) => (
+                      <button
+                        key={arch.title}
+                        type="button"
+                        onClick={() => handleApplySummaryArchetype(arch)}
+                        className="p-3 bg-[#0C0C0E] hover:bg-[#18181D] border border-zinc-800 hover:border-zinc-600 rounded-lg text-left transition cursor-pointer flex flex-col gap-1 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white group-hover:text-zinc-100">
+                            {arch.title}
+                          </span>
+                          <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400">
+                            Apply
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                          {arch.summary}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Power Action Verbs Reference */}
+                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+                      Power Opening Verbs
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {["Engineered", "Architected", "Spearheaded", "Optimized", "Benchmarked", "Automated"].map((v) => (
+                        <span
+                          key={v}
+                          className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-300"
+                        >
+                          {v}
+                        </span>
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
+              ) : activeSection === "EDUCATION" ? (
+                /* 42 Beirut Academic Standing & Curriculum Card */
+                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
+                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-zinc-300" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
+                        42 Cursus Standing
+                      </span>
+                    </div>
+                  </div>
 
-                {/* Items List */}
-                <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
-                  {activeSection === "PROJECTS" ? (
-                    filteredProjects.length === 0 ? (
-                      <div className="text-center py-6 text-zinc-500 text-xs">
-                        No projects match &quot;{projectSearchQuery}&quot;.
+                  <div className="p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">École 42 Beirut</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-700">
+                        Level {cvData.contact.level ?? 9}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      Peer-to-peer curriculum accredited by École 42 Paris with rigorous peer-evaluation standards.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-zinc-300">
+                      <Check className="w-3.5 h-3.5 text-zinc-200" />
+                      <span>Common Core Validated</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleIntraSync}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-zinc-900 border border-zinc-700 hover:border-white text-zinc-200 hover:text-white rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Re-Sync 42 Intra Profile</span>
+                  </button>
+                </div>
+              ) : (
+                /* Draggable Item List (Positions or Projects) */
+                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      {activeSection === "PROJECTS" ? "Selected Projects" : "Work Experiences"}
+                    </span>
+                    <span className="text-xs font-mono text-white font-bold">
+                      {activeSection === "PROJECTS" ? cvData.projects.length : cvData.experience.length} items
+                    </span>
+                  </div>
+
+                  {/* Instant Search & Circle Filter Chips for Projects */}
+                  {activeSection === "PROJECTS" && (
+                    <div className="flex flex-col gap-2">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={projectSearchQuery}
+                          onChange={(e) => setProjectSearchQuery(e.target.value)}
+                          placeholder="Search projects..."
+                          className="w-full pl-8 pr-3 py-1.5 bg-[#0C0C0E] border border-zinc-800 rounded-md text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-white"
+                        />
                       </div>
+                      {/* Circle Filter Chips */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px] font-mono">
+                        {(
+                          [
+                            { id: "all", label: "All" },
+                            { id: "circle-0-2", label: "Circle 0-2" },
+                            { id: "circle-3-5", label: "Circle 3-5" },
+                            { id: "specialization", label: "Spec" },
+                          ] as const
+                        ).map((chip) => (
+                          <button
+                            key={chip.id}
+                            type="button"
+                            onClick={() => setProjectCircleFilter(chip.id)}
+                            className={`px-2 py-0.5 rounded uppercase tracking-wider font-bold transition cursor-pointer whitespace-nowrap ${
+                              projectCircleFilter === chip.id
+                                ? "bg-white text-black"
+                                : "bg-[#0C0C0E] text-zinc-400 hover:text-white border border-zinc-800"
+                            }`}
+                          >
+                            {chip.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Items List */}
+                  <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
+                    {activeSection === "PROJECTS" ? (
+                      filteredProjects.length === 0 ? (
+                        <div className="text-center py-6 text-zinc-500 text-xs">
+                          No projects match &quot;{projectSearchQuery}&quot;.
+                        </div>
+                      ) : (
+                        filteredProjects.map((proj) => {
+                          const isSelected = activeItemId === proj.id;
+                          const origIdx = cvData.projects.findIndex((p) => p.id === proj.id);
+                          return (
+                            <div
+                              key={proj.id}
+                              onClick={() => setActiveItemId(proj.id)}
+                              className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
+                                isSelected
+                                  ? "bg-[#1C1C22] border-zinc-700/90 text-white shadow-md before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-[3px] before:bg-white before:rounded-r"
+                                  : "bg-[#0C0C0E] border-zinc-800/80 text-zinc-300 hover:bg-[#18181D] hover:border-zinc-700/80 hover:text-white"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <GripVertical className="w-4 h-4 text-zinc-600 shrink-0" />
+                                <div className="truncate">
+                                  <div className="font-bold truncate">{proj.name}</div>
+                                  <div className="text-[10px] text-zinc-500 truncate">
+                                    {proj.techStack || "C / C++"} · {proj.bulletPoints.length} bullets
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                {origIdx > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveProject(origIdx, "up");
+                                    }}
+                                    className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                    title="Move Up"
+                                  >
+                                    <ChevronUp className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {origIdx < cvData.projects.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveProject(origIdx, "down");
+                                    }}
+                                    className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                    title="Move Down"
+                                  >
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeProjectFromCV(proj.id);
+                                    startUndoCountdown({
+                                      id: proj.id,
+                                      type: "project",
+                                      label: proj.name,
+                                      item: proj,
+                                      index: origIdx,
+                                    });
+                                  }}
+                                  className="p-1 hover:text-red-400 text-zinc-500 cursor-pointer"
+                                  title="Remove project"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )
                     ) : (
-                      filteredProjects.map((proj) => {
-                        const isSelected = activeItemId === proj.id;
-                        const origIdx = cvData.projects.findIndex((p) => p.id === proj.id);
+                      cvData.experience.map((exp, idx) => {
+                        const isSelected = activeItemId === exp.id;
                         return (
                           <div
-                            key={proj.id}
-                            onClick={() => setActiveItemId(proj.id)}
-                            className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
+                            key={exp.id}
+                            onClick={() => setActiveItemId(exp.id)}
+                            className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
                               isSelected
-                                ? "bg-[#1C1C21] border-white text-white shadow-sm"
-                                : "bg-[#0C0C0E] border-zinc-800 text-zinc-300 hover:bg-[#1C1C21] hover:text-white"
+                                ? "bg-[#1C1C22] border-zinc-700/90 text-white shadow-md before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-[3px] before:bg-white before:rounded-r"
+                                : "bg-[#0C0C0E] border-zinc-800/80 text-zinc-300 hover:bg-[#18181D] hover:border-zinc-700/80 hover:text-white"
                             }`}
                           >
                             <div className="flex items-center gap-2 truncate">
                               <GripVertical className="w-4 h-4 text-zinc-600 shrink-0" />
                               <div className="truncate">
-                                <div className="font-bold truncate">{proj.name}</div>
+                                <div className="font-bold truncate">{exp.role}</div>
                                 <div className="text-[10px] text-zinc-500 truncate">
-                                  {proj.techStack || "C / C++"} · {proj.bulletPoints.length} bullets
+                                  {exp.company}
                                 </div>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-1 shrink-0">
-                              {origIdx > 0 && (
+                              {idx > 0 && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    moveProject(origIdx, "up");
+                                    moveExperience(idx, "up");
                                   }}
-                                  className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                  className="p-1 hover:text-white text-zinc-500"
                                   title="Move Up"
                                 >
                                   <ChevronUp className="w-3.5 h-3.5" />
                                 </button>
                               )}
-                              {origIdx < cvData.projects.length - 1 && (
+                              {idx < cvData.experience.length - 1 && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    moveProject(origIdx, "down");
+                                    moveExperience(idx, "down");
                                   }}
-                                  className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                  className="p-1 hover:text-white text-zinc-500"
                                   title="Move Down"
                                 >
                                   <ChevronDown className="w-3.5 h-3.5" />
@@ -793,17 +1186,17 @@ export function ReziStudioLayout() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  removeProjectFromCV(proj.id);
+                                  removeExperienceItem(exp.id);
                                   startUndoCountdown({
-                                    id: proj.id,
-                                    type: "project",
-                                    label: proj.name,
-                                    item: proj,
-                                    index: origIdx,
+                                    id: exp.id,
+                                    type: "experience",
+                                    label: `${exp.role} @ ${exp.company}`,
+                                    item: exp,
+                                    index: idx,
                                   });
                                 }}
-                                className="p-1 hover:text-red-400 text-zinc-500 cursor-pointer"
-                                title="Remove project"
+                                className="p-1 hover:text-red-400 text-zinc-500"
+                                title="Remove position"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -811,131 +1204,59 @@ export function ReziStudioLayout() {
                           </div>
                         );
                       })
-                    )
-                  ) : (
-                    cvData.experience.map((exp, idx) => {
-                      const isSelected = activeItemId === exp.id;
-                      return (
-                        <div
-                          key={exp.id}
-                          onClick={() => setActiveItemId(exp.id)}
-                          className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
-                            isSelected
-                              ? "bg-[#1C1C21] border-white text-white shadow-sm"
-                              : "bg-[#0C0C0E] border-zinc-800 text-zinc-300 hover:bg-[#1C1C21] hover:text-white"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <GripVertical className="w-4 h-4 text-zinc-600 shrink-0" />
-                            <div className="truncate">
-                              <div className="font-bold truncate">{exp.role}</div>
-                              <div className="text-[10px] text-zinc-500 truncate">
-                                {exp.company}
-                              </div>
-                            </div>
-                          </div>
+                    )}
+                  </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
-                            {idx > 0 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveExperience(idx, "up");
-                                }}
-                                className="p-1 hover:text-white text-zinc-500"
-                                title="Move Up"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            {idx < cvData.experience.length - 1 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveExperience(idx, "down");
-                                }}
-                                className="p-1 hover:text-white text-zinc-500"
-                                title="Move Down"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeExperienceItem(exp.id);
-                                startUndoCountdown({
-                                  id: exp.id,
-                                  type: "experience",
-                                  label: `${exp.role} @ ${exp.company}`,
-                                  item: exp,
-                                  index: idx,
-                                });
-                              }}
-                              className="p-1 hover:text-red-400 text-zinc-500"
-                              title="Remove position"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
+                  {/* Add Item Full-Width Button */}
+                  {activeSection === "PROJECTS" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newProj = {
+                          id: `proj-${Date.now()}`,
+                          name: "Custom Software Project",
+                          slug: `custom-${Date.now()}`,
+                          techStack: "C, POSIX, Make",
+                          date: "2024",
+                          bulletPoints: [
+                            "Engineered scalable systems software module conforming to 42 Norminette standards.",
+                          ],
+                          isCustom: true,
+                        };
+                        addProjectToCV(newProj);
+                        setActiveItemId(newProj.id);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/80 text-zinc-200 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer mt-auto shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Project</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newExp = {
+                          id: `exp-${Date.now()}`,
+                          company: "Engineering Co.",
+                          role: "Software Engineering Intern",
+                          location: "Beirut, Lebanon",
+                          startDate: "June 2024",
+                          endDate: "September 2024",
+                          bulletPoints: [
+                            "Implemented low-level backend service modules with zero memory leaks.",
+                          ],
+                        };
+                        addExperienceItem(newExp);
+                        setActiveItemId(newExp.id);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/80 text-zinc-200 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer mt-auto shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Position</span>
+                    </button>
                   )}
                 </div>
-
-                {/* Add Item Full-Width Button */}
-                {activeSection === "PROJECTS" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newProj = {
-                        id: `proj-${Date.now()}`,
-                        name: "Custom Software Project",
-                        slug: `custom-${Date.now()}`,
-                        techStack: "C, POSIX, Make",
-                        date: "2024",
-                        bulletPoints: [
-                          "Engineered scalable systems software module conforming to 42 Norminette standards.",
-                        ],
-                        isCustom: true,
-                      };
-                      addProjectToCV(newProj);
-                      setActiveItemId(newProj.id);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 border border-dashed border-zinc-700 hover:border-white text-zinc-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer mt-auto"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+ Add Project</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newExp = {
-                        id: `exp-${Date.now()}`,
-                        company: "Engineering Co.",
-                        role: "Software Engineering Intern",
-                        location: "Beirut, Lebanon",
-                        startDate: "June 2024",
-                        endDate: "September 2024",
-                        bulletPoints: [
-                          "Implemented low-level backend service modules with zero memory leaks.",
-                        ],
-                      };
-                      addExperienceItem(newExp);
-                      setActiveItemId(newExp.id);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 border border-dashed border-zinc-700 hover:border-white text-zinc-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer mt-auto"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+ Add Position</span>
-                  </button>
-                )}
-              </div>
+              )}
             </aside>
 
             {/* Column 2 — Center Form Deck (1108px max / flex-1) */}
@@ -979,21 +1300,22 @@ export function ReziStudioLayout() {
 
               {/* Form Views */}
               {activeSection === "CONTACT" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Full Legal Name
                     </label>
                     <input
                       type="text"
                       value={cvData.contact.fullName}
                       onChange={(e) => updateContact({ fullName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      placeholder="e.g. Ali Noureddine"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       42 Common Core Level
                     </label>
                     <input
@@ -1001,101 +1323,103 @@ export function ReziStudioLayout() {
                       step="0.1"
                       value={cvData.contact.level ?? 9}
                       onChange={(e) => updateContact({ level: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Email Address
                     </label>
                     <input
                       type="email"
                       value={cvData.contact.email}
                       onChange={(e) => updateContact({ email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      placeholder="cadet@student.42beirut.com"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                      Phone Number
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                      Phone Number (Lebanese +961)
                     </label>
                     <input
                       type="tel"
                       value={cvData.contact.phoneNumber}
                       onChange={(e) => updateContact({ phoneNumber: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      placeholder="+961 70 123456"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                      GitHub Handle / URL
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                      GitHub Profile URL
                     </label>
                     <input
                       type="text"
                       value={cvData.contact.githubUrl}
                       onChange={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
                       placeholder="github.com/login"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                      LinkedIn Handle / URL
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                      LinkedIn Profile URL
                     </label>
                     <input
                       type="text"
                       value={cvData.contact.linkedinUrl}
                       onChange={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
                       placeholder="linkedin.com/in/login"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
                 </div>
               )}
 
               {activeSection === "EDUCATION" && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   {cvData.education.map((edu) => (
-                    <div key={edu.id} className="p-4 bg-[#0C0C0E] border border-zinc-800 rounded-lg flex flex-col gap-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div key={edu.id} className="p-5 bg-[#0C0C0E] border border-zinc-800/90 rounded-xl flex flex-col gap-4 shadow-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Institution</label>
+                          <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Institution</label>
                           <input
                             type="text"
                             value={edu.institution}
                             onChange={(e) => updateEducationItem(edu.id, { institution: e.target.value })}
-                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                            className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Degree</label>
+                          <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Degree</label>
                           <input
                             type="text"
                             value={edu.degree}
                             onChange={(e) => updateEducationItem(edu.id, { degree: e.target.value })}
-                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                            className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Program / Track</label>
+                          <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Program / Track</label>
                           <input
                             type="text"
                             value={edu.program}
                             onChange={(e) => updateEducationItem(edu.id, { program: e.target.value })}
-                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                            className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Graduation / Date</label>
+                          <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Graduation / Date</label>
                           <input
                             type="text"
                             value={edu.endDate}
                             onChange={(e) => updateEducationItem(edu.id, { endDate: e.target.value })}
-                            className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                            className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                           />
                         </div>
                       </div>
@@ -1128,9 +1452,9 @@ export function ReziStudioLayout() {
                         </div>
 
                         {/* Metadata Inputs */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">
+                            <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                               Technologies Stack
                             </label>
                             <input
@@ -1143,11 +1467,11 @@ export function ReziStudioLayout() {
                                 setCVData({ ...cvData, projects: updated });
                               }}
                               placeholder="C, POSIX, Docker, Make"
-                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                              className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">
+                            <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                               Completion Date
                             </label>
                             <input
@@ -1160,7 +1484,7 @@ export function ReziStudioLayout() {
                                 setCVData({ ...cvData, projects: updated });
                               }}
                               placeholder="May 2024"
-                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                              className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                             />
                           </div>
                         </div>
@@ -1217,24 +1541,24 @@ export function ReziStudioLayout() {
 
                   {cvData.showExperience ? (
                     cvData.experience.map((exp) => (
-                      <div key={exp.id} className="p-4 bg-[#0C0C0E] border border-zinc-800 rounded-lg flex flex-col gap-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div key={exp.id} className="p-5 bg-[#0C0C0E] border border-zinc-800/90 rounded-xl flex flex-col gap-4 shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Company</label>
+                            <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Company</label>
                             <input
                               type="text"
                               value={exp.company}
                               onChange={(e) => updateExperienceItem(exp.id, { company: e.target.value })}
-                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                              className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Role / Title</label>
+                            <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">Role / Title</label>
                             <input
                               type="text"
                               value={exp.role}
                               onChange={(e) => updateExperienceItem(exp.id, { role: e.target.value })}
-                              className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-sm text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
+                              className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                             />
                           </div>
                         </div>
@@ -1271,9 +1595,9 @@ export function ReziStudioLayout() {
               )}
 
               {activeSection === "SKILLS" && (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-5">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Programming Languages
                     </label>
                     <input
@@ -1285,12 +1609,12 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="C, C++, TypeScript, Python, Bash, SQL"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Developer Tools &amp; Systems
                     </label>
                     <input
@@ -1302,12 +1626,12 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="Git, Docker, Valgrind, GDB, Make, Linux, Nginx"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Technologies &amp; Frameworks
                     </label>
                     <input
@@ -1319,16 +1643,16 @@ export function ReziStudioLayout() {
                         })
                       }
                       placeholder="Node.js, React, Next.js, PostgreSQL, WebSockets, REST APIs"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
                 </div>
               )}
 
               {activeSection === "SUMMARY" && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Target Role / Job Title
                     </label>
                     <input
@@ -1336,12 +1660,12 @@ export function ReziStudioLayout() {
                       value={cvData.targetRole || "Software Engineer"}
                       onChange={(e) => setCVData({ ...cvData, targetRole: e.target.value })}
                       placeholder="Software Engineer"
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none placeholder:text-zinc-500"
+                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                       Professional Summary (Dr. Wissam 2-Line Rule)
                     </label>
                     <textarea
@@ -1349,7 +1673,7 @@ export function ReziStudioLayout() {
                       value={cvData.specializationTrack || ""}
                       onChange={(e) => setCVData({ ...cvData, specializationTrack: e.target.value })}
                       placeholder="Motivated 42 Beirut student with strong foundation in low-level systems programming in C/C++..."
-                      className="w-full px-3.5 py-2.5 bg-[#1C1C21] border border-zinc-800 focus:border-white rounded-md text-sm text-white focus:outline-none resize-none leading-relaxed placeholder:text-zinc-500"
+                      className="w-full p-4 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none resize-none leading-relaxed"
                     />
                   </div>
                 </div>
