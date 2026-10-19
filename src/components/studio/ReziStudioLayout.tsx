@@ -115,7 +115,9 @@ export function ReziStudioLayout() {
     restoreExperienceAt,
     moveExperience,
     reorderExperience,
+    addEducationItem,
     updateEducationItem,
+    removeEducationItem,
     setShowExperience,
     styleDensity,
     setStyleDensity,
@@ -166,11 +168,20 @@ export function ReziStudioLayout() {
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
   const undoIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Monochrome Toast notifications
+  // Monochrome Toast notifications with 3s auto-dismiss
   const [toastMessage, setToastMessage] = useState<{
     title: string;
     desc: string;
   } | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (toast: { title: string; desc: string }) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(toast);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
 
   // Export state
   const [isExportingDocx, setIsExportingDocx] = useState(false);
@@ -189,6 +200,7 @@ export function ReziStudioLayout() {
     return () => {
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
       if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -229,7 +241,7 @@ export function ReziStudioLayout() {
 
     const restoredLabel = undoBuffer.label;
     setUndoBuffer(null);
-    setToastMessage({
+    showToast({
       title: "Item Restored",
       desc: `Restored "${restoredLabel}" back to your CV.`,
     });
@@ -299,7 +311,7 @@ export function ReziStudioLayout() {
 
   // Print PDF Trigger
   const handlePrintPDF = () => {
-    setToastMessage({
+    showToast({
       title: "Opening Print-to-PDF...",
       desc: "Ensure 'Headers and footers' is unchecked in browser print settings.",
     });
@@ -320,13 +332,13 @@ export function ReziStudioLayout() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setToastMessage({
+      showToast({
         title: "Word (.docx) Exported",
         desc: "Native Word document downloaded with right-aligned tab stops.",
       });
     } catch (err: any) {
       console.error("DOCX generation error:", err);
-      setToastMessage({
+      showToast({
         title: "Word Export Failed",
         desc: err?.message || "Failed to generate Word document.",
       });
@@ -341,119 +353,29 @@ export function ReziStudioLayout() {
     if (cvData.extracurriculars.length === 0) {
       setShowExtracurriculars(false);
     }
-    setToastMessage({
+    showToast({
       title: "Auto-Fit Applied",
       desc: "Switched line density to compact to ensure 100% 1-page fit.",
     });
   };
 
-  // Intra Sync Trigger
+  // Intra Sync Trigger with human copy and 3s auto-dismiss
   const handleIntraSync = () => {
     const mock = MOCK_42_STUDENT;
     setStudentProfile(mock);
     const initialCV = createInitialCVFromIntra(mock);
     setCVData(initialCV);
-    setToastMessage({
+    showToast({
       title: "42 Intra Synced",
-      desc: `Hydrated validated projects and cursors for ${mock.displayname}.`,
+      desc: `Synced 42 Intra profile for ${mock.displayname}.`,
     });
   };
 
-  // Contact Hygiene Checklist calculations
-  const contactChecklist = useMemo(() => {
-    return [
-      { label: "Full Legal Name", isComplete: !!cvData.contact.fullName?.trim() },
-      { label: "Email Address", isComplete: !!cvData.contact.email?.includes("@") && cvData.contact.email.includes(".") },
-      { label: "Lebanese Phone (+961)", isComplete: !!cvData.contact.phoneNumber && cvData.contact.phoneNumber.length >= 8 },
-      { label: "GitHub Profile", isComplete: !!cvData.contact.githubUrl && cvData.contact.githubUrl.length > 3 },
-      { label: "LinkedIn Profile", isComplete: !!cvData.contact.linkedinUrl && cvData.contact.linkedinUrl.length > 3 },
-      { label: "42 Common Core Level", isComplete: Number(cvData.contact.level ?? 0) > 0 },
-    ];
-  }, [cvData.contact]);
-
-  const contactCompletedCount = useMemo(() => {
-    return contactChecklist.filter((c) => c.isComplete).length;
-  }, [contactChecklist]);
-
-  // Core 42 Skills Matrix Quick-Add definitions
-  const core42SkillSuggestions = [
-    { name: "C (C98)", category: "languages" as const },
-    { name: "C++ (C11)", category: "languages" as const },
-    { name: "POSIX Threads", category: "systems" as const },
-    { name: "Sockets & epoll", category: "systems" as const },
-    { name: "Docker & Alpine", category: "tools" as const },
-    { name: "Valgrind", category: "tools" as const },
-    { name: "Make & Makefile", category: "tools" as const },
-    { name: "Git & CI/CD", category: "tools" as const },
-    { name: "Algorithms & Data Structures", category: "systems" as const },
-    { name: "TypeScript", category: "languages" as const },
-    { name: "React / Next.js", category: "frameworks" as const },
-    { name: "PostgreSQL", category: "frameworks" as const },
-  ];
-
-  const allSkillsList = useMemo(() => {
-    return [
-      ...cvData.skills.languages,
-      ...cvData.skills.developerTools,
-      ...cvData.skills.technologiesFrameworks,
-    ];
-  }, [cvData.skills]);
-
-  const totalSkillsCount = allSkillsList.length;
-
-  const handleToggleSkillSuggestion = (skill: { name: string; category: "languages" | "tools" | "frameworks" | "systems" }) => {
-    const isAdded = allSkillsList.some((s) => s.toLowerCase() === skill.name.toLowerCase());
-    if (isAdded) {
-      if (skill.category === "languages") {
-        updateSkills({ languages: cvData.skills.languages.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
-      } else if (skill.category === "tools" || skill.category === "systems") {
-        updateSkills({ developerTools: cvData.skills.developerTools.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
-      } else {
-        updateSkills({ technologiesFrameworks: cvData.skills.technologiesFrameworks.filter((s) => s.toLowerCase() !== skill.name.toLowerCase()) });
-      }
-      setToastMessage({ title: "Skill Removed", desc: `Removed "${skill.name}" from your skills matrix.` });
-    } else {
-      if (skill.category === "languages") {
-        updateSkills({ languages: [...cvData.skills.languages, skill.name] });
-      } else if (skill.category === "tools" || skill.category === "systems") {
-        updateSkills({ developerTools: [...cvData.skills.developerTools, skill.name] });
-      } else {
-        updateSkills({ technologiesFrameworks: [...cvData.skills.technologiesFrameworks, skill.name] });
-      }
-      setToastMessage({ title: "Skill Added", desc: `Added "${skill.name}" to your skills matrix.` });
-    }
-  };
-
-  // Profile Archetypes for Executive Summary
-  const summaryArchetypes = [
-    {
-      title: "Systems & Low-Level Engineer",
-      role: "Systems Software Engineer",
-      summary: "Software engineering student at 42 Beirut specializing in Unix systems programming, POSIX-compliant multi-threading, and network protocols in C/C++. Experienced in low-level memory management with zero Valgrind leaks and rigorous peer evaluation standards.",
-    },
-    {
-      title: "Full-Stack Software Architect",
-      role: "Full-Stack Software Engineer",
-      summary: "Full-stack developer with strong foundational systems engineering from 42 Beirut. Skilled in modern TypeScript, React, and containerized microservice architectures with real-time WebSocket communications.",
-    },
-    {
-      title: "DevOps & Cloud Systems Cadet",
-      role: "DevOps & Systems Engineer",
-      summary: "Systems-oriented engineer trained at 42 Beirut with hands-on expertise in Docker container orchestration, automated CI/CD pipelines, and high-availability Linux infrastructure.",
-    },
-  ];
-
-  const handleApplySummaryArchetype = (arch: (typeof summaryArchetypes)[0]) => {
-    setCVData({
-      ...cvData,
-      targetRole: arch.role,
-      specializationTrack: arch.summary,
-    });
-    setToastMessage({
-      title: "Archetype Applied",
-      desc: `Applied "${arch.title}" profile and Dr. Wissam summary formula.`,
-    });
-  };
+  // Only multi-item sections show the left management sidebar
+  const isMultiItemSection =
+    activeSection === "PROJECTS" ||
+    activeSection === "EXPERIENCE" ||
+    activeSection === "EDUCATION";
 
   return (
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
@@ -461,9 +383,9 @@ export function ReziStudioLayout() {
       <div className="flex-1 flex flex-col min-h-screen min-w-0 w-full overflow-x-hidden">
         {/* Top Header Bar */}
         <header className="h-[72px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
-          <div className="w-full max-w-[1800px] h-full mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
-            {/* Left: 42 Mark & Cadet Name & Quick Intra Sync */}
-            <div className="flex items-center gap-3 shrink-0">
+          <div className="w-full max-w-[1800px] h-full mx-auto px-4 md:px-6 flex items-center justify-between gap-2 lg:gap-4">
+            {/* Left: 42 Mark & Cadet Name & Quick Intra Sync & CV Readiness Badge */}
+            <div className="flex items-center gap-2 shrink-0">
               <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
                 <FortyTwoLogo className="w-5 h-4 text-white" />
               </div>
@@ -471,7 +393,7 @@ export function ReziStudioLayout() {
                 type="text"
                 value={cvData.contact.fullName}
                 onChange={(e) => updateContact({ fullName: e.target.value })}
-                className="text-sm font-bold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[180px] sm:max-w-xs truncate"
+                className="text-sm font-bold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[130px] lg:max-w-[160px] truncate"
                 placeholder="Your Full Name"
               />
               <button
@@ -482,6 +404,22 @@ export function ReziStudioLayout() {
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Sync Intra</span>
+              </button>
+
+              {/* Compact Sleek CV Readiness Badge */}
+              <button
+                type="button"
+                onClick={() => {
+                  setScoreModalTab("overview");
+                  setIsScoreModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition cursor-pointer text-xs group"
+                title="View CV Readiness Audit"
+              >
+                <span className={`w-2 h-2 rounded-full ${heightBudget.isOverflow ? "bg-amber-400" : "bg-emerald-400"}`} />
+                <span className="font-mono font-bold text-white">{atsAudit.totalScore}</span>
+                <span className="hidden md:inline text-zinc-400 font-medium">Readiness</span>
+                <span className="text-zinc-500 group-hover:text-white underline text-[11px]">Audit</span>
               </button>
             </div>
 
@@ -501,7 +439,7 @@ export function ReziStudioLayout() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveSection(tab.id as StudioSection)}
-                    className={`px-3.5 py-1.5 text-xs font-semibold tracking-wide transition rounded-full cursor-pointer whitespace-nowrap ${
+                    className={`px-3 py-1.5 text-xs font-semibold tracking-wide transition rounded-full cursor-pointer whitespace-nowrap ${
                       isActive
                         ? "bg-white text-black shadow-sm font-bold"
                         : "text-zinc-400 hover:text-white"
@@ -514,7 +452,7 @@ export function ReziStudioLayout() {
             </nav>
 
             {/* Right: Exactly 3 Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* 1. Section Order */}
               <button
                 type="button"
@@ -549,7 +487,7 @@ export function ReziStudioLayout() {
               <button
                 type="button"
                 onClick={handlePrintPDF}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-zinc-200 transition cursor-pointer shadow-md"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-zinc-200 transition cursor-pointer shadow-md"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Download PDF</span>
@@ -585,296 +523,84 @@ export function ReziStudioLayout() {
 
         {/* Main Builder Deck (Fluid 3-column / 2-column split) */}
         <div className="flex-1 w-full max-w-[1800px] mx-auto px-3 sm:px-4 md:px-6 pt-5 pb-12 flex flex-col lg:flex-row gap-4 xl:gap-6 min-w-0">
-            {/* Column 1 — Left In-Aside Deck (Responsive width: collapses to 2-column split on < 1536px when preview is ON) */}
-            <aside className={`w-full shrink-0 flex flex-col gap-4 transition-all duration-200 ${
-              showSlideOverPreview ? "hidden 2xl:flex 2xl:w-[280px]" : "lg:w-[308px]"
-            }`}>
-              {/* Score Engine Card */}
-              <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setScoreModalTab("overview");
-                      setIsScoreModalOpen(true);
-                    }}
-                    className="relative flex items-center justify-center cursor-pointer group"
-                    aria-label="View Dr. Wissam ATS Score"
-                  >
-                    <svg width="46" height="46" viewBox="0 0 46 46" className="-rotate-90">
-                      <circle
-                        cx="23"
-                        cy="23"
-                        r="19.78"
-                        fill="none"
-                        stroke="#27272A"
-                        strokeWidth="4"
-                      />
-                      <circle
-                        cx="23"
-                        cy="23"
-                        r="19.78"
-                        fill="none"
-                        stroke="#FFFFFF"
-                        strokeWidth="4"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center font-mono font-bold text-xs text-white">
-                      {atsAudit.totalScore}
-                    </span>
-                  </button>
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-                      CV Readiness
-                    </h4>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className={`w-2 h-2 rounded-full ${heightBudget.isOverflow ? "bg-amber-400" : "bg-emerald-400"}`} />
-                      <span className="text-xs text-zinc-300 font-medium">
-                        {heightBudget.isOverflow ? "Overflows Page 1" : "Fits on 1 Page"}
+            {/* Column 1 — Left In-Aside Deck (Only shown for multi-item sections: PROJECTS, EXPERIENCE, EDUCATION) */}
+            {isMultiItemSection && (
+              <aside className={`w-full shrink-0 flex flex-col gap-4 transition-all duration-200 ${
+                showSlideOverPreview ? "hidden xl:flex xl:w-[260px] 2xl:w-[280px]" : "lg:w-[308px]"
+              }`}>
+                {activeSection === "EDUCATION" ? (
+                  /* Education Entries Management & 42 Standing */
+                  <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                        Education Entries
+                      </span>
+                      <span className="text-xs font-mono text-white font-bold">
+                        {cvData.education.length} {cvData.education.length === 1 ? "entry" : "entries"}
                       </span>
                     </div>
-                  </div>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setScoreModalTab("overview");
-                    setIsScoreModalOpen(true);
-                  }}
-                  className="text-xs text-white font-bold underline hover:text-zinc-300 cursor-pointer"
-                >
-                  Audit
-                </button>
-              </div>
-
-              {/* Tailored Contextual Aside Tools by Section */}
-              {activeSection === "CONTACT" ? (
-                /* Contact Information Checklist */
-                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
-                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-zinc-300" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
-                        Contact Information
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono text-white font-bold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                      {contactCompletedCount}/6 Complete
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
-                    <div
-                      className="bg-white h-full transition-all duration-500 rounded-full"
-                      style={{ width: `${(contactCompletedCount / 6) * 100}%` }}
-                    />
-                  </div>
-
-                  {/* Checklist Items */}
-                  <div className="flex flex-col gap-2 text-xs">
-                    {contactChecklist.map((item) => (
-                      <div
-                        key={item.label}
-                        className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
-                          item.isComplete
-                            ? "bg-[#0C0C0E] border-zinc-800/90 text-zinc-200"
-                            : "bg-[#18181D]/60 border-zinc-800/60 text-zinc-400"
-                        }`}
-                      >
-                        <span className="font-medium">{item.label}</span>
-                        <div className="flex items-center gap-1.5">
-                          {item.isComplete ? (
-                            <span className="flex items-center gap-1 text-[11px] font-mono text-zinc-300">
-                              <Check className="w-3.5 h-3.5 text-zinc-200" />
-                              <span>Ready</span>
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-[11px] font-mono text-zinc-400">
-                              <AlertCircle className="w-3.5 h-3.5 text-zinc-400" />
-                              <span>Missing</span>
-                            </span>
+                    <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+                      {cvData.education.map((edu) => (
+                        <div
+                          key={edu.id}
+                          className="p-3 bg-[#0C0C0E] border border-zinc-800/80 rounded-lg text-xs flex items-center justify-between"
+                        >
+                          <div className="truncate pr-2">
+                            <div className="font-bold truncate text-white">{edu.institution}</div>
+                            <div className="text-[10px] text-zinc-400 truncate">{edu.degree}</div>
+                          </div>
+                          {cvData.education.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeEducationItem(edu.id)}
+                              className="p-1 hover:text-red-400 text-zinc-500 hover:bg-zinc-800 rounded transition cursor-pointer shrink-0"
+                              title="Remove education"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Contact Tip Callout */}
-                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-zinc-300 text-xs">
-                      <Info className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Tip</span>
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-zinc-400">
-                      Include full GitHub and LinkedIn URLs and your international dialing code (e.g., +961).
-                    </p>
-                  </div>
-                </div>
-              ) : activeSection === "SKILLS" ? (
-                /* Core 42 Skills Quick-Add & Category Matrix */
-                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
-                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-zinc-300" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
-                        Core 42 Skills
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono text-white font-bold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                      {totalSkillsCount} Skills
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    1-Click add authentic 42 Beirut competencies into your ATS skills matrix:
-                  </p>
-
-                  {/* Quick-Add Chips */}
-                  <div className="flex flex-wrap gap-1.5 max-h-[300px] overflow-y-auto pr-1">
-                    {core42SkillSuggestions.map((skill) => {
-                      const isAdded = allSkillsList.some(
-                        (s) => s.toLowerCase() === skill.name.toLowerCase()
-                      );
-                      return (
-                        <button
-                          key={skill.name}
-                          type="button"
-                          onClick={() => handleToggleSkillSuggestion(skill)}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium transition cursor-pointer flex items-center gap-1.5 border ${
-                            isAdded
-                              ? "bg-zinc-800/90 border-zinc-600 text-white"
-                              : "bg-[#0C0C0E] border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
-                          }`}
-                        >
-                          {isAdded ? (
-                            <Check className="w-3 h-3 text-white" />
-                          ) : (
-                            <Plus className="w-3 h-3 text-zinc-400" />
-                          )}
-                          <span>{skill.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* ATS Target Gauge */}
-                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                      <span className="text-zinc-400 font-bold uppercase">ATS Keyword Target</span>
-                      <span className="text-white font-bold">{totalSkillsCount} / 20</span>
-                    </div>
-                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
-                      <div
-                        className="bg-white h-full transition-all duration-500 rounded-full"
-                        style={{ width: `${Math.min(100, (totalSkillsCount / 20) * 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-zinc-500">
-                      Recommended: 15–25 specific technical keywords across Languages, Tools, and Frameworks.
-                    </p>
-                  </div>
-                </div>
-              ) : activeSection === "SUMMARY" ? (
-                /* 42 Profile Archetypes & Power Verbs Assistant */
-                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
-                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-zinc-300" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
-                        Profile Archetypes
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    Select an archetype to draft a concise 2-line professional summary:
-                  </p>
-
-                  {/* Archetype Buttons */}
-                  <div className="flex flex-col gap-2">
-                    {summaryArchetypes.map((arch) => (
-                      <button
-                        key={arch.title}
-                        type="button"
-                        onClick={() => handleApplySummaryArchetype(arch)}
-                        className="p-3 bg-[#0C0C0E] hover:bg-[#18181D] border border-zinc-800 hover:border-zinc-600 rounded-lg text-left transition cursor-pointer flex flex-col gap-1 group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-zinc-100">
-                            {arch.title}
-                          </span>
-                          <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400">
-                            Apply
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
-                          {arch.summary}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Power Action Verbs Reference */}
-                  <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-                      Power Opening Verbs
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {["Engineered", "Architected", "Spearheaded", "Optimized", "Benchmarked", "Automated"].map((v) => (
-                        <span
-                          key={v}
-                          className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-300"
-                        >
-                          {v}
-                        </span>
                       ))}
                     </div>
-                  </div>
-                </div>
-              ) : activeSection === "EDUCATION" ? (
-                /* 42 Beirut Academic Standing & Curriculum Card */
-                <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
-                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-zinc-300" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
-                        42 Cursus Standing
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">École 42 Beirut</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-700">
-                        Level {cvData.contact.level ?? 9}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
-                      Peer-to-peer curriculum accredited by École 42 Paris with rigorous peer-evaluation standards.
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-zinc-300">
-                      <Check className="w-3.5 h-3.5 text-zinc-200" />
-                      <span>Common Core Validated</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addEducationItem({
+                          institution: "University / Institute",
+                          degree: "Bachelor of Science",
+                          program: "Computer Science",
+                          endDate: "2024",
+                        })
+                      }
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-zinc-200 hover:text-white rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Education</span>
+                    </button>
+
+                    <div className="p-3 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg flex flex-col gap-2 mt-auto">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white">42 Beirut Standing</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-700">
+                          Level {cvData.contact.level ?? 9}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                        Common Core peer-evaluated curriculum accredited by École 42 Paris.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleIntraSync}
+                        className="w-full flex items-center justify-center gap-2 py-2 px-3 mt-1 bg-zinc-900 border border-zinc-700 hover:border-white text-zinc-200 hover:text-white rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Re-Sync Intra</span>
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleIntraSync}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-zinc-900 border border-zinc-700 hover:border-white text-zinc-200 hover:text-white rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Re-Sync 42 Intra Profile</span>
-                  </button>
-                </div>
-              ) : (
+                ) : (
                 /* Draggable Item List (Positions or Projects) */
                 <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
                   <div className="flex items-center justify-between">
@@ -1134,112 +860,121 @@ export function ReziStudioLayout() {
                 </div>
               )}
             </aside>
+          )}
 
-            {/* Column 2 — Center Form Deck (Fluid max 1108px / min-w-0) */}
-            <main className="flex-1 min-w-0 max-w-[1108px] bg-[#141417] border border-zinc-800 rounded-xl p-5 md:p-8 flex flex-col gap-6 shadow-sm">
-              {/* Form Deck Sub-Header */}
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+          {/* Column 2 — Center Form Deck (Fluid max 1108px / h-fit hugs content) */}
+          <main className="flex-1 min-w-0 max-w-[1108px] h-fit bg-[#141417] border border-zinc-800 rounded-xl p-5 md:p-8 flex flex-col gap-6 shadow-sm">
+            {/* Form Deck Sub-Header */}
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">
+                {activeSection}
+              </h3>
+            </div>
+
+            {/* Form Views */}
+            {activeSection === "CONTACT" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <h3 className="text-base font-bold text-white uppercase tracking-wider">
-                    {activeSection}
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    {activeSection === "CONTACT" && "Strict single-line contact header formatted for ATS parsers."}
-                    {activeSection === "EDUCATION" && "Formal 42 Cursus standing and previous university qualifications."}
-                    {activeSection === "EXPERIENCE" && "Relevant industry roles and software engineering internships."}
-                    {activeSection === "PROJECTS" && "Key engineering projects with technical achievements and impact."}
-                    {activeSection === "SKILLS" && "Categorized technical skills, systems, and tools."}
-                    {activeSection === "SUMMARY" && "Target engineering role and 2-line professional overview."}
-                  </p>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={cvData.contact.fullName}
+                    onChange={(e) => updateContact({ fullName: e.target.value })}
+                    placeholder="e.g. Ali Noureddine"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={cvData.contact.location || ""}
+                    onChange={(e) => updateContact({ location: e.target.value })}
+                    placeholder="e.g. Beirut, Lebanon"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={cvData.contact.email}
+                    onChange={(e) => updateContact({ email: e.target.value })}
+                    placeholder="cadet@student.42beirut.com"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={cvData.contact.phoneNumber}
+                    onChange={(e) => updateContact({ phoneNumber: e.target.value })}
+                    placeholder="+961 70 123456"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    GitHub Profile URL
+                  </label>
+                  <input
+                    type="text"
+                    value={cvData.contact.githubUrl}
+                    onChange={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
+                    placeholder="github.com/login"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
+                    LinkedIn Profile URL
+                  </label>
+                  <input
+                    type="text"
+                    value={cvData.contact.linkedinUrl}
+                    onChange={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
+                    placeholder="linkedin.com/in/login"
+                    className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                  />
                 </div>
               </div>
+            )}
 
-              {/* Form Views */}
-              {activeSection === "CONTACT" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {activeSection === "EDUCATION" && (
+              <div className="flex flex-col gap-5">
+                {/* 42 Common Core Standing / Level */}
+                <div className="p-4 sm:p-5 bg-[#0C0C0E] border border-zinc-800/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                   <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      value={cvData.contact.fullName}
-                      onChange={(e) => updateContact({ fullName: e.target.value })}
-                      placeholder="e.g. Ali Noureddine"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
+                    <h4 className="text-sm font-bold text-white">42 Common Core Level</h4>
+                    <p className="text-xs text-zinc-400 mt-0.5">Your official cursus level on 42 Network Intra.</p>
                   </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      42 Common Core Level
-                    </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-zinc-400">Level</span>
                     <input
                       type="number"
                       step="0.1"
                       value={cvData.contact.level ?? 9}
                       onChange={(e) => updateContact({ level: parseFloat(e.target.value) || 0 })}
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={cvData.contact.email}
-                      onChange={(e) => updateContact({ email: e.target.value })}
-                      placeholder="cadet@student.42beirut.com"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={cvData.contact.phoneNumber}
-                      onChange={(e) => updateContact({ phoneNumber: e.target.value })}
-                      placeholder="+961 70 123456"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      GitHub Profile URL
-                    </label>
-                    <input
-                      type="text"
-                      value={cvData.contact.githubUrl}
-                      onChange={(e) => updateContact({ githubUrl: normalizeGitHub(e.target.value) })}
-                      placeholder="github.com/login"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      LinkedIn Profile URL
-                    </label>
-                    <input
-                      type="text"
-                      value={cvData.contact.linkedinUrl}
-                      onChange={(e) => updateContact({ linkedinUrl: normalizeLinkedIn(e.target.value) })}
-                      placeholder="linkedin.com/in/login"
-                      className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
+                      className="w-24 h-10 px-3 py-2 bg-[#0A0A0D] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-400 rounded-lg text-sm font-mono font-bold text-white focus:outline-none text-center"
                     />
                   </div>
                 </div>
-              )}
 
-              {activeSection === "EDUCATION" && (
-                <div className="flex flex-col gap-5">
-                  {cvData.education.map((edu) => (
+                {cvData.education.map((edu) => (
                     <div key={edu.id} className="p-5 bg-[#0C0C0E] border border-zinc-800/90 rounded-xl flex flex-col gap-4 shadow-sm">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -1300,7 +1035,7 @@ export function ReziStudioLayout() {
                       <div className="flex flex-col gap-5">
                         {/* Compact Project Switcher when aside is collapsed on laptop split view */}
                         {showSlideOverPreview && cvData.projects.length > 1 && (
-                          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 2xl:hidden border-b border-zinc-800/80 pb-3">
+                          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 xl:hidden border-b border-zinc-800/80 pb-3">
                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider shrink-0">
                               Active:
                             </span>
@@ -1561,7 +1296,13 @@ export function ReziStudioLayout() {
 
             {/* Optional Slide-Over Preview (Responsive on lg+ displays, Toggled via Header) */}
             {showSlideOverPreview && (
-              <section className="hidden lg:flex w-[420px] xl:w-[460px] 2xl:w-[480px] shrink-0 sticky top-[95px] h-[calc(100vh-115px)]">
+              <section
+                className={`hidden lg:flex shrink-0 sticky top-[95px] h-[calc(100vh-115px)] transition-all duration-200 ${
+                  isMultiItemSection
+                    ? "w-[440px] xl:w-[480px] 2xl:w-[520px]"
+                    : "w-[540px] xl:w-[620px] 2xl:w-[680px]"
+                }`}
+              >
                 <CanvasPreviewViewport
                   cvData={cvData}
                   onHeightBudgetChange={setHeightBudget}

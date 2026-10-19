@@ -230,7 +230,7 @@ export function ScoreEngineModal({
     const readinessIssues: string[] = [];
 
     if (cvData.contact.fullName.trim()) applicationReadyScore += 4;
-    else readinessIssues.push("Add your full legal name.");
+    else readinessIssues.push("Add your full name.");
 
     if (cvData.contact.email.includes("@")) applicationReadyScore += 4;
     else readinessIssues.push("Add a valid email address.");
@@ -474,7 +474,7 @@ export function ScoreEngineModal({
               <div>
                 <div className="font-semibold text-white">5. Application Readiness</div>
                 <div className="text-[11px] text-zinc-400">
-                  Valid Lebanese phone format • GitHub • LinkedIn • Completion dates
+                  Phone format (+961) • GitHub • LinkedIn • Completion dates
                 </div>
               </div>
               <span className="font-mono font-bold text-white text-sm">

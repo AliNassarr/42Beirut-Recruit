@@ -105,12 +105,11 @@ export function CanvasPreviewViewport({
       }`}
     >
       {/* Top Single Horizontal Control Deck — Zero Vertical Wrapping */}
-      <div className="flex items-center justify-between px-6 py-3.5 bg-[#0C0C0E] border-b border-zinc-800 z-30 shrink-0 gap-4 flex-nowrap">
-        {/* Left: Height Budget Telemetry */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#0C0C0E] border-b border-zinc-800 z-30 shrink-0 gap-3 flex-nowrap">
         {/* Left: 1-Page Fit Status Badge */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <div
-            className={`flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
               budget.isOverflow
                 ? "bg-amber-950/40 text-amber-300 border-amber-800/80"
                 : "bg-emerald-950/40 text-emerald-300 border-emerald-800/80"
@@ -123,106 +122,46 @@ export function CanvasPreviewViewport({
             />
             <span>{budget.isOverflow ? "Overflows Page 1" : "Fits on 1 Page"}</span>
           </div>
-
-          <span className="hidden xl:inline text-xs text-zinc-400">
-            {budget.isOverflow
-              ? "Shorten bullets or reallocate content to fit 1 page"
-              : "42 Standard 1-Page Format"}
-          </span>
         </div>
 
-        {/* Right: Zoom & Export Controls */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Zoom Buttons */}
+        {/* Right: Clean Zoom Stepper & Fit Button */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Zoom Buttons: [ - ] 75% [ + ] */}
           <div className="flex items-center bg-[#1C1C21] border border-zinc-800 rounded-lg p-0.5 text-xs text-zinc-300">
             <button
               type="button"
-              onClick={() => handleZoom(-0.1)}
-              className="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
+              onClick={() => handleZoom(-0.05)}
+              className="p-1 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <button
-              type="button"
-              onClick={handleResetFit}
-              className={`px-2 py-1 text-xs font-mono font-bold hover:text-white rounded transition cursor-pointer ${
-                zoomMode === "fit" ? "text-white" : "text-zinc-400"
-              }`}
-              title="Reset to Fit"
-            >
+            <span className="px-2 py-0.5 text-xs font-mono font-bold text-zinc-200 min-w-[42px] text-center select-none">
               {Math.round(scale * 100)}%
-            </button>
+            </span>
             <button
               type="button"
-              onClick={() => handleZoom(0.1)}
-              className="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
+              onClick={() => handleZoom(0.05)}
+              className="p-1 hover:text-white hover:bg-zinc-800 rounded transition cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Preset Zoom Pills */}
-          <div className="hidden lg:flex items-center gap-1 text-[11px] font-mono text-zinc-400">
-            <button
-              type="button"
-              onClick={() => handleSetZoom(0.75)}
-              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
-            >
-              75%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSetZoom(0.9)}
-              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
-            >
-              90%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSetZoom(1.0)}
-              className="px-2 py-1 bg-[#1C1C21] hover:text-white hover:bg-zinc-800 rounded border border-zinc-800 transition cursor-pointer"
-            >
-              100%
-            </button>
-          </div>
-
-          {/* Auto-Fit 1-Page Trigger */}
-          {onAutoFit && (
-            <button
-              type="button"
-              onClick={onAutoFit}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Auto-Fit 1-Page</span>
-            </button>
-          )}
-
-          {/* Print PDF Trigger */}
-          {onPrintPDF && (
-            <button
-              type="button"
-              onClick={onPrintPDF}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-zinc-200 text-black rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print PDF</span>
-            </button>
-          )}
-
-          {/* DOCX Export Trigger */}
-          {onExportDocx && (
-            <button
-              type="button"
-              onClick={onExportDocx}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Word</span>
-            </button>
-          )}
+          {/* Fit Button */}
+          <button
+            type="button"
+            onClick={handleResetFit}
+            className={`px-2.5 py-1 text-xs font-mono font-semibold rounded-lg border transition cursor-pointer ${
+              zoomMode === "fit"
+                ? "bg-zinc-800 border-zinc-600 text-white font-bold"
+                : "bg-[#1C1C21] border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
+            }`}
+            title="Reset to Fit Width"
+          >
+            Fit
+          </button>
 
           {/* Full Screen Toggle */}
           {onToggleFullScreen && (

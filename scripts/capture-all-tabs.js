@@ -6,12 +6,16 @@ const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 const BASE_URL = "http://localhost:3000";
 const SCREENSHOT_DIR = path.resolve(__dirname, "..", "audit-screenshots");
 const DESKTOP_DIR = "C:\\Users\\Ali_n\\Desktop\\UI-Review-Screenshots";
+const ARTIFACT_DIR = "C:\\Users\\Ali_n\\.gemini\\antigravity\\brain\\708b09a0-3ba1-4734-943b-2121f57d62c1";
 
 if (!fs.existsSync(SCREENSHOT_DIR)) {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 }
 if (!fs.existsSync(DESKTOP_DIR)) {
   fs.mkdirSync(DESKTOP_DIR, { recursive: true });
+}
+if (!fs.existsSync(ARTIFACT_DIR)) {
+  fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
 }
 
 async function captureAllTabs() {
@@ -71,9 +75,11 @@ async function captureAllTabs() {
     const saveScreenshot = async (filename) => {
       const repoPath = path.join(SCREENSHOT_DIR, filename);
       const deskPath = path.join(DESKTOP_DIR, filename);
+      const artPath = path.join(ARTIFACT_DIR, filename);
       await page.screenshot({ path: repoPath, fullPage: false });
       fs.copyFileSync(repoPath, deskPath);
-      console.log(`Saved screenshot: ${filename} (${repoPath} & ${deskPath})`);
+      fs.copyFileSync(repoPath, artPath);
+      console.log(`Saved screenshot: ${filename} (${repoPath}, ${deskPath}, ${artPath})`);
     };
 
     // 1. Tab 01: Contact

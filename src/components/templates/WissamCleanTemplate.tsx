@@ -532,6 +532,12 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             className="flex items-center justify-center flex-wrap text-gray-600 gap-x-2"
             style={{ fontSize: isCompact ? "8.5pt" : "9pt" }}
           >
+            {contact.location && (
+              <>
+                <span>{contact.location}</span>
+                <span>|</span>
+              </>
+            )}
             <span>{contact.email}</span>
             <span>|</span>
             <span>{contact.phoneNumber}</span>
