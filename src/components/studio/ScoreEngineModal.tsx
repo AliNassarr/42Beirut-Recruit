@@ -117,13 +117,13 @@ export function ScoreEngineModal({
     } else {
       const overflow = heightBudget.height - 1027;
       formatScore += Math.max(2, 12 - Math.round(overflow / 25));
-      formatIssues.push(`CV height is ${heightBudget.height}px (exceeds single-page budget of 1027px).`);
+      formatIssues.push("Content exceeds 1-page budget. Consider trimming bullets or removing a project.");
     }
 
     if (cvData.specializationTrack && cvData.specializationTrack.length <= 260) {
       formatScore += 4;
     } else if (cvData.specializationTrack && cvData.specializationTrack.length > 260) {
-      formatIssues.push("Professional summary exceeds Dr. Wissam 2-line maximum budget.");
+      formatIssues.push("Professional summary exceeds 2-line maximum budget.");
     }
 
     // Section spacing & title format
@@ -290,10 +290,10 @@ export function ScoreEngineModal({
             <Target className="w-5 h-5 text-white" />
             <div>
               <h3 className="text-base font-bold text-white tracking-wide">
-                Rezi &amp; Dr. Wissam ATS Scorecard
+                CV Readiness Scorecard
               </h3>
               <p className="text-xs text-zinc-400">
-                5-Category Institutional Engineering Audit
+                42 Standard Engineering Audit
               </p>
             </div>
           </div>
@@ -361,7 +361,7 @@ export function ScoreEngineModal({
               </h4>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Calculated across 5 institutional benchmarks: Word count ({audit.wordCount}), 1-page line budget ({heightBudget.height}px / 1027px), and action verb diversity.
+              Calculated across 5 benchmarks: Word count ({audit.wordCount}), 1-page line budget, and action verb diversity.
             </p>
             <div className="flex items-center gap-3 mt-1 text-xs font-mono text-zinc-400">
               <span className="flex items-center gap-1">
@@ -435,7 +435,7 @@ export function ScoreEngineModal({
               <div>
                 <div className="font-semibold text-white">2. Format &amp; 1-Page Height Budget</div>
                 <div className="text-[11px] text-zinc-400">
-                  {heightBudget.height}px / 1027px single-page budget • Dr. Wissam Calibri margins
+                  {heightBudget.isOverflow ? "Exceeds 1-page format" : "Fits 1-page format"} • 42 Standard single-column layout
                 </div>
               </div>
               <span className="font-mono font-bold text-white text-sm">
@@ -601,7 +601,7 @@ export function ScoreEngineModal({
                 <CheckCircle2 className="w-8 h-8 text-white" />
                 <div className="font-bold text-white">Zero Critical Issues Detected!</div>
                 <p className="text-xs max-w-sm">
-                  Your CV conforms to Dr. Wissam 42 standards with zero prohibited pronouns and full single-page budget compliance.
+                  Your CV conforms to 42 standards with concise bullets and single-page format compliance.
                 </p>
               </div>
             )}

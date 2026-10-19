@@ -76,6 +76,17 @@ export interface ExtracurricularItem {
   bulletPoints: string[];
 }
 
+export type SectionId = "education" | "experience" | "projects" | "skills" | "coursework" | "extracurriculars";
+
+export const DEFAULT_SECTION_ORDER: SectionId[] = [
+  "education",
+  "experience",
+  "projects",
+  "skills",
+  "coursework",
+  "extracurriculars",
+];
+
 export interface CVData {
   id?: string;
   targetRole: string; // e.g., "Backend Developer", "Systems/C++ Engineer"
@@ -91,6 +102,7 @@ export interface CVData {
   extracurriculars: ExtracurricularItem[];
   styleDensity?: "standard" | "compact";
   showExtracurriculars?: boolean;
+  sectionOrder?: SectionId[];
 }
 
 // ==========================================
@@ -121,6 +133,7 @@ export const CVDataSchema = z.object({
   showExperience: z.boolean(),
   styleDensity: z.enum(["standard", "compact"]).optional(),
   showExtracurriculars: z.boolean().optional(),
+  sectionOrder: z.array(z.enum(["education", "experience", "projects", "skills", "coursework", "extracurriculars"])).optional(),
   education: z.array(
     z.object({
       id: z.string(),

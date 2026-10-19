@@ -18,12 +18,30 @@ export default function Home() {
     setEducationState,
     setSelectedProjects,
     setSpecializationTrack,
+    currentStep,
+    setCurrentStep,
   } = useCVStore();
 
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [bridgeLoadingText, setBridgeLoadingText] = useState("");
+  const [viewParam, setViewParam] = useState<string | null>(null);
   const bridgeAttemptedRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const search = window.location.search;
+      if (search) {
+        const params = new URLSearchParams(search);
+        const v = params.get("view") || params.get("mode");
+        if (v) setViewParam(v);
+        const step = params.get("step");
+        if (step && ["LOGIN", "SETUP", "QUESTIONNAIRE", "EDITOR"].includes(step.toUpperCase())) {
+          setCurrentStep(step.toUpperCase() as any);
+        }
+      }
+    }
+  }, [setCurrentStep]);
 
   // Helper to hydrate Zustand state with Intra user
   const hydrateWithIntraUser = useCallback(
@@ -265,7 +283,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Rezi Studio Workspace */}
+      {/* Unified 42 Beirut Rezi Studio Workspace */}
       <ReziStudioLayout />
     </div>
   );

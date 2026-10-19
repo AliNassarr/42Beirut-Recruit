@@ -11,14 +11,10 @@ import { generateDrWissamDocx } from "@/lib/docx-generator";
 import { CanvasPreviewViewport } from "./CanvasPreviewViewport";
 import { BulletEditorRow } from "./BulletEditorRow";
 import { ScoreEngineModal } from "./ScoreEngineModal";
-import { AICoverLetterStudio } from "./AICoverLetterStudio";
 import { FortyTwoLogo } from "@/components/ui/FortyTwoLogo";
 import {
-  Home,
   RefreshCw,
   Sliders,
-  Key,
-  Download,
   Printer,
   Plus,
   Trash2,
@@ -26,20 +22,18 @@ import {
   ChevronUp,
   ChevronDown,
   RotateCcw,
-  Eye,
   Target,
-  PanelRight,
-  PanelRightClose,
-  Search,
-  Mail,
   FileText,
   Check,
   CheckCircle2,
   AlertCircle,
   Building2,
   Sparkles,
+  ArrowUpDown,
+  Info,
 } from "lucide-react";
 import { MOCK_42_STUDENT, createInitialCVFromIntra } from "@/lib/intra/mock-data";
+import { SectionId, DEFAULT_SECTION_ORDER } from "@/types/resume";
 
 export type StudioSection =
   | "CONTACT"
@@ -49,15 +43,61 @@ export type StudioSection =
   | "SKILLS"
   | "SUMMARY";
 
-export type StudioViewMode = "builder" | "preview" | "cover-letter";
 
-const CIRCLE_0_2 = ["libft", "ft_printf", "get_next_line", "born2beroot", "push_swap", "pipex", "so_long", "fract_ol", "fract-ol"];
-const CIRCLE_3_5 = ["minishell", "philosophers", "netpractice", "cub3d", "minirt", "cpp", "webserv", "inception"];
+const SECTION_METADATA: Record<
+  SectionId,
+  { label: string; desc: string; getCount?: (cvData: any) => string }
+> = {
+  education: {
+    label: "Education",
+    desc: "42 Beirut cursus standing & academic degrees",
+    getCount: (cv) => `Level ${cv.contact?.level ?? 9}`,
+  },
+  experience: {
+    label: "Professional Experience",
+    desc: "Software engineering roles & internships",
+    getCount: (cv) =>
+      cv.showExperience === false ? "Hidden" : `${cv.experience?.length || 0} roles`,
+  },
+  projects: {
+    label: "Technical Projects",
+    desc: "Selected 42 C/C++ projects with metrics",
+    getCount: (cv) => `${cv.projects?.length || 0} selected`,
+  },
+  skills: {
+    label: "Technical Skills",
+    desc: "Languages, Tools, Frameworks, Project Mgmt",
+    getCount: (cv) => {
+      const s = cv.skills || {};
+      const count =
+        (s.languages?.length || 0) +
+        (s.developerTools?.length || 0) +
+        (s.technologiesFrameworks?.length || 0) +
+        (s.projectManagementTools?.length || 0);
+      return `${count} keywords`;
+    },
+  },
+  coursework: {
+    label: "Relevant Coursework",
+    desc: "42 Piscines, workshops, and certifications",
+    getCount: (cv) => `${cv.coursework?.length || 0} items`,
+  },
+  extracurriculars: {
+    label: "Extracurricular Activities",
+    desc: "Campus clubs, mentoring, and community",
+    getCount: (cv) =>
+      cv.showExtracurriculars === false
+        ? "Hidden"
+        : `${cv.extracurriculars?.length || 0} activities`,
+  },
+};
 
 export function ReziStudioLayout() {
   const {
     cvData,
     setCVData,
+    setSectionOrder,
+    moveSection,
     updateContact,
     updateSkills,
     updateProjectBullet,
@@ -67,21 +107,20 @@ export function ReziStudioLayout() {
     removeProjectFromCV,
     restoreProjectAt,
     moveProject,
+    reorderProjects,
+    swapProjects,
     addExperienceItem,
     updateExperienceItem,
     removeExperienceItem,
     restoreExperienceAt,
     moveExperience,
+    reorderExperience,
     updateEducationItem,
     setShowExperience,
     styleDensity,
     setStyleDensity,
     showExtracurriculars,
     setShowExtracurriculars,
-    userGeminiKey,
-    setUserGeminiKey,
-    userGroqKey,
-    setUserGroqKey,
     setStudentProfile,
   } = useCVStore();
 
@@ -90,53 +129,21 @@ export function ReziStudioLayout() {
   // Active selected item in projects/experience aside list
   const [activeItemId, setActiveItemId] = useState<string>("");
 
-  // View mode: 'builder' (strictly 2 columns) vs 'preview' vs 'cover-letter'
-  const [viewMode, setViewMode] = useState<StudioViewMode>("builder");
-  // Optional slide-over preview drawer for ultra-wide screens (default: false)
-  const [showSlideOverPreview, setShowSlideOverPreview] = useState(false);
+  // Slide-over preview drawer (default: true for instant feedback)
+  const [showSlideOverPreview, setShowSlideOverPreview] = useState(true);
 
   // Modals & Settings Dialogs
-  const [isBYOKOpen, setIsBYOKOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [scoreModalTab, setScoreModalTab] = useState<"overview" | "matcher" | "issues">("overview");
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isSectionOrderModalOpen, setIsSectionOrderModalOpen] = useState(false);
+  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const [draggedExpIndex, setDraggedExpIndex] = useState<number | null>(null);
+  const [draggedSectionIndex, setDraggedSectionIndex] = useState<number | null>(null);
 
-  // Target Job Description (shared between Job Matcher and AI Cover Letter)
+  // Target Job Description (shared with ScoreEngineModal)
   const [targetJobDescription, setTargetJobDescription] = useState("");
-
-  // Projects filter state in aside deck
-  const [projectSearchQuery, setProjectSearchQuery] = useState("");
-  const [projectCircleFilter, setProjectCircleFilter] = useState<
-    "all" | "circle-0-2" | "circle-3-5" | "specialization"
-  >("all");
-
-  // Filtered projects list based on search and circle filter chips
-  const filteredProjects = useMemo(() => {
-    return cvData.projects.filter((p) => {
-      const matchesQuery =
-        !projectSearchQuery ||
-        p.name.toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
-        (p.slug && p.slug.toLowerCase().includes(projectSearchQuery.toLowerCase())) ||
-        (p.techStack && p.techStack.toLowerCase().includes(projectSearchQuery.toLowerCase()));
-
-      if (!matchesQuery) return false;
-
-      const slugLower = (p.slug || p.name).toLowerCase().replace(/[^a-z0-9_-]/g, "");
-      if (projectCircleFilter === "circle-0-2") {
-        return CIRCLE_0_2.some((c) => slugLower.includes(c));
-      }
-      if (projectCircleFilter === "circle-3-5") {
-        return CIRCLE_3_5.some((c) => slugLower.includes(c));
-      }
-      if (projectCircleFilter === "specialization") {
-        const in02 = CIRCLE_0_2.some((c) => slugLower.includes(c));
-        const in35 = CIRCLE_3_5.some((c) => slugLower.includes(c));
-        return !in02 && !in35;
-      }
-      return true;
-    });
-  }, [cvData.projects, projectSearchQuery, projectCircleFilter]);
 
   // Height budget state from canvas
   const [heightBudget, setHeightBudget] = useState<HeightBudget>({
@@ -450,273 +457,138 @@ export function ReziStudioLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#09090B] text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
-      {/* 1. Global Left Navigation Rail (70px Fixed Width) */}
-      <aside className="w-[70px] bg-[#0C0C0E] border-r border-zinc-800 flex flex-col items-center py-6 gap-6 fixed top-0 bottom-0 left-0 z-40">
-        {/* Crisp Monochrome 42 Stencil Container */}
-        <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-inner">
-          <FortyTwoLogo className="w-6 h-5 text-white" />
-        </div>
-
-        {/* Navigation Action Buttons */}
-        <nav className="flex flex-col items-center gap-3 w-full px-2 mt-2">
-          {/* 1. Home / Builder Workspace */}
-          <button
-            type="button"
-            onClick={() => setViewMode("builder")}
-            className={`relative group w-11 h-11 rounded-xl flex items-center justify-center transition cursor-pointer ${
-              viewMode === "builder"
-                ? "bg-[#1C1C21] text-white border border-zinc-700"
-                : "text-zinc-400 hover:text-white hover:bg-[#141417]"
-            }`}
-            aria-label="Builder Workspace"
-          >
-            <Home className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              Builder Workspace
-            </span>
-          </button>
-
-          {/* 2. Intra 42 Sync */}
-          <button
-            type="button"
-            onClick={handleIntraSync}
-            className="relative group w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
-            aria-label="42 Intra Sync"
-          >
-            <RefreshCw className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              42 Intra Sync
-            </span>
-          </button>
-
-          {/* 3. AI Job Keyword Matcher */}
-          <button
-            type="button"
-            onClick={() => {
-              setScoreModalTab("matcher");
-              setIsScoreModalOpen(true);
-            }}
-            className="relative group w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
-            aria-label="AI Job Keyword Matcher"
-          >
-            <Target className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              AI Job Keyword Matcher
-            </span>
-          </button>
-
-          {/* 4. AI Keys (BYOK) */}
-          <button
-            type="button"
-            onClick={() => setIsBYOKOpen(true)}
-            className={`relative group w-11 h-11 rounded-xl flex items-center justify-center transition cursor-pointer ${
-              userGeminiKey || userGroqKey
-                ? "text-white bg-[#1C1C21] border border-zinc-700"
-                : "text-zinc-400 hover:text-white hover:bg-[#141417]"
-            }`}
-            aria-label="AI Keys (BYOK Gemini/Groq)"
-          >
-            <Key className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              AI Keys (BYOK)
-            </span>
-          </button>
-
-          {/* 5. Reset Draft */}
-          <button
-            type="button"
-            onClick={() => setIsResetModalOpen(true)}
-            className="relative group w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
-            aria-label="Reset Draft"
-          >
-            <RotateCcw className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              Reset Draft
-            </span>
-          </button>
-        </nav>
-
-        {/* Bottom Clean Settings Icon ONLY (No Duplicate Gauge) */}
-        <div className="mt-auto flex flex-col items-center">
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen(true)}
-            className="relative group w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#141417] transition cursor-pointer"
-            aria-label="Dr. Wissam Template Rules & Spacing"
-          >
-            <Sliders className="w-5 h-5" />
-            <span className="pointer-events-none absolute left-14 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-white text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              Dr. Wissam Template Rules
-            </span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Workspace Frame (Offset Left by 70px) */}
-      <div className="flex-1 ml-[70px] flex flex-col min-h-screen">
-        {/* 2. Top Sub-Navigation Header (81px Height) */}
-        <header className="h-[81px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
-          <div className="max-w-[1440px] h-full mx-auto px-4 md:px-8 flex items-center justify-between">
-            {/* Left Cluster: Linear-style Document Breadcrumb */}
-            <div className="flex items-center gap-2">
-              <span className="text-zinc-500 text-sm font-medium select-none">42 Beirut /</span>
+      {/* Main Workspace Frame (Full width, zero 70px offset) */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 w-full overflow-x-hidden">
+        {/* Top Header Bar */}
+        <header className="h-[72px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
+          <div className="w-full max-w-[1800px] h-full mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
+            {/* Left: 42 Mark & Cadet Name & Quick Intra Sync */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
+                <FortyTwoLogo className="w-5 h-4 text-white" />
+              </div>
               <input
                 type="text"
                 value={cvData.contact.fullName}
                 onChange={(e) => updateContact({ fullName: e.target.value })}
-                className="text-base font-semibold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[200px] sm:max-w-xs truncate"
+                className="text-sm font-bold text-white bg-transparent hover:bg-zinc-900 focus:bg-zinc-900 px-2 py-1 rounded-md transition focus:outline-none focus:ring-1 focus:ring-zinc-700 max-w-[180px] sm:max-w-xs truncate"
                 placeholder="Your Full Name"
               />
-              <div className="flex items-center gap-1.5 ml-1 px-2.5 py-0.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-[11px] text-zinc-400 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-pulse" />
-                <span>Saved</span>
-              </div>
+              <button
+                type="button"
+                onClick={handleIntraSync}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-400 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 rounded-md transition cursor-pointer"
+                title="Sync from 42 Intra profile"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Sync Intra</span>
+              </button>
             </div>
 
-            {/* Center Cluster: Section Tabs in Exact Rezi Order */}
-            <nav className="hidden md:flex items-center bg-[#141417] border border-zinc-800 rounded-full p-1 gap-1">
-              {(
-                [
-                  "CONTACT",
-                  "EXPERIENCE",
-                  "PROJECTS",
-                  "EDUCATION",
-                  "SKILLS",
-                  "SUMMARY",
-                ] as StudioSection[]
-              ).map((sec) => {
-                const isActive = viewMode === "builder" && activeSection === sec;
+            {/* Center: Clean Section Tabs in Title Case */}
+            <nav className="hidden md:flex items-center bg-[#141417] border border-zinc-800 rounded-full p-1 gap-0.5 shrink-0 overflow-x-auto no-scrollbar">
+              {[
+                { id: "CONTACT", label: "Contact" },
+                { id: "EDUCATION", label: "Education" },
+                { id: "PROJECTS", label: "Projects" },
+                { id: "EXPERIENCE", label: "Experience" },
+                { id: "SKILLS", label: "Skills" },
+                { id: "SUMMARY", label: "Summary" },
+              ].map((tab) => {
+                const isActive = activeSection === tab.id;
                 return (
                   <button
-                    key={sec}
+                    key={tab.id}
                     type="button"
-                    onClick={() => {
-                      setViewMode("builder");
-                      setActiveSection(sec);
-                    }}
-                    className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition rounded-full cursor-pointer ${
+                    onClick={() => setActiveSection(tab.id as StudioSection)}
+                    className={`px-3.5 py-1.5 text-xs font-semibold tracking-wide transition rounded-full cursor-pointer whitespace-nowrap ${
                       isActive
                         ? "bg-white text-black shadow-sm font-bold"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
-                    {sec}
+                    {tab.label}
                   </button>
                 );
               })}
             </nav>
 
-            {/* Right Cluster: View Mode & Export Actions */}
-            <div className="flex items-center gap-2">
-              {/* AI Cover Letter Mode Switcher */}
+            {/* Right: Exactly 3 Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* 1. Section Order */}
               <button
                 type="button"
-                onClick={() => setViewMode(viewMode === "cover-letter" ? "builder" : "cover-letter")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
-                  viewMode === "cover-letter"
-                    ? "bg-white text-black shadow-sm font-bold"
-                    : "bg-zinc-900 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white"
-                }`}
+                onClick={() => setIsSectionOrderModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer bg-zinc-900 text-zinc-200 border border-zinc-800 hover:border-zinc-600 hover:text-white shadow-sm"
+                title="Reorder Resume Sections"
               >
-                <FileText className="w-3.5 h-3.5" />
-                <span>AI Cover Letter</span>
+                <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="hidden sm:inline">Section Order</span>
               </button>
 
-              {/* Finish Up & Preview Mode Switcher */}
+              {/* 2. Live Preview Toggle */}
               <button
                 type="button"
-                onClick={() => setViewMode(viewMode === "preview" ? "builder" : "preview")}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
-                  viewMode === "preview"
-                    ? "bg-white text-black shadow-sm font-bold"
-                    : "bg-zinc-900 text-zinc-200 border border-zinc-700 hover:border-white hover:text-white"
+                onClick={() => setShowSlideOverPreview(!showSlideOverPreview)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer border shadow-sm ${
+                  showSlideOverPreview
+                    ? "bg-zinc-800 border-zinc-600 text-white"
+                    : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
                 }`}
+                title="Toggle Live Resume Preview"
               >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Finish Up &amp; Preview</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    showSlideOverPreview ? "bg-emerald-400 animate-pulse" : "bg-zinc-600"
+                  }`}
+                />
+                <span className="hidden sm:inline">Live Preview</span>
               </button>
 
-              {/* Export PDF */}
+              {/* 3. Primary CTA: Download PDF */}
               <button
                 type="button"
                 onClick={handlePrintPDF}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-zinc-200 hover:bg-white hover:text-black hover:border-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-zinc-200 transition cursor-pointer shadow-md"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>Export PDF</span>
-              </button>
-
-              {/* Export Word */}
-              <button
-                type="button"
-                onClick={handleExportDocx}
-                disabled={isExportingDocx}
-                className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 border border-zinc-700 text-zinc-200 hover:bg-white hover:text-black hover:border-white rounded-md text-xs font-bold uppercase tracking-wider transition cursor-pointer disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>{isExportingDocx ? "..." : "Word"}</span>
+                <span>Download PDF</span>
               </button>
             </div>
           </div>
         </header>
 
-        {/* Mobile Section Tabs */}
+        {/* Mobile Navigation Tabs */}
         <div className="md:hidden flex items-center overflow-x-auto bg-[#0C0C0E] border-b border-zinc-800 px-4 py-2 gap-2">
-          {(
-            [
-              "CONTACT",
-              "EXPERIENCE",
-              "PROJECTS",
-              "EDUCATION",
-              "SKILLS",
-              "SUMMARY",
-            ] as StudioSection[]
-          ).map((sec) => (
+          {[
+            { id: "CONTACT", label: "Contact" },
+            { id: "EDUCATION", label: "Education" },
+            { id: "PROJECTS", label: "Projects" },
+            { id: "EXPERIENCE", label: "Experience" },
+            { id: "SKILLS", label: "Skills" },
+            { id: "SUMMARY", label: "Summary" },
+          ].map((tab) => (
             <button
-              key={sec}
+              key={tab.id}
               type="button"
-              onClick={() => {
-                setViewMode("builder");
-                setActiveSection(sec);
-              }}
-              className={`px-3 py-1 text-xs font-bold uppercase whitespace-nowrap rounded-full ${
-                viewMode === "builder" && activeSection === sec
+              onClick={() => setActiveSection(tab.id as StudioSection)}
+              className={`px-3 py-1 text-xs font-medium whitespace-nowrap rounded-full ${
+                activeSection === tab.id
                   ? "bg-white text-black font-bold"
                   : "text-zinc-400 bg-[#141417]"
               }`}
             >
-              {sec}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* 3. DEDICATED PREVIEW MODE OR 2-COLUMN BUILDER DECK */}
-        {viewMode === "preview" ? (
-          /* Full A4 Document Preview & Line-Budget Studio (Section 2.5 of Spec) */
-          <div className="flex-1 max-w-[1440px] w-full mx-auto p-4 md:p-8 flex flex-col">
-            <CanvasPreviewViewport
-              cvData={cvData}
-              onHeightBudgetChange={setHeightBudget}
-              onPrintPDF={handlePrintPDF}
-              onExportDocx={handleExportDocx}
-              onAutoFit={handleAutoFit}
-            />
-          </div>
-        ) : viewMode === "cover-letter" ? (
-          /* Dedicated AI Cover Letter Studio */
-          <div className="flex-1 max-w-[1440px] w-full mx-auto p-4 md:p-8 flex flex-col">
-            <AICoverLetterStudio
-              cvData={cvData}
-              targetJobDescription={targetJobDescription}
-              onJobDescriptionChange={setTargetJobDescription}
-              onBackToCV={() => setViewMode("builder")}
-            />
-          </div>
-        ) : (
-          /* Main Builder Deck (Strictly 2 Columns when editing tabs) */
-          <div className="flex-1 max-w-[1440px] w-full mx-auto px-4 md:px-8 pt-6 pb-12 flex flex-col md:flex-row gap-x-6 gap-y-4">
-            {/* Column 1 — Left In-Aside Deck (Fixed 308px) */}
-            <aside className="md:w-[308px] flex-none flex flex-col gap-4">
+        {/* Main Builder Deck (Fluid 3-column / 2-column split) */}
+        <div className="flex-1 w-full max-w-[1800px] mx-auto px-3 sm:px-4 md:px-6 pt-5 pb-12 flex flex-col lg:flex-row gap-4 xl:gap-6 min-w-0">
+            {/* Column 1 — Left In-Aside Deck (Responsive width: collapses to 2-column split on < 1536px when preview is ON) */}
+            <aside className={`w-full shrink-0 flex flex-col gap-4 transition-all duration-200 ${
+              showSlideOverPreview ? "hidden 2xl:flex 2xl:w-[280px]" : "lg:w-[308px]"
+            }`}>
               {/* Score Engine Card */}
               <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
@@ -757,11 +629,14 @@ export function ReziStudioLayout() {
                   </button>
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-                      Dr. Wissam Score
+                      CV Readiness
                     </h4>
-                    <p className="text-[11px] text-zinc-400 font-mono">
-                      {heightBudget.height}px / 1027px • {heightBudget.isOverflow ? "Overflow" : "1-Page Fit"}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className={`w-2 h-2 rounded-full ${heightBudget.isOverflow ? "bg-amber-400" : "bg-emerald-400"}`} />
+                      <span className="text-xs text-zinc-300 font-medium">
+                        {heightBudget.isOverflow ? "Overflows Page 1" : "Fits on 1 Page"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -779,13 +654,13 @@ export function ReziStudioLayout() {
 
               {/* Tailored Contextual Aside Tools by Section */}
               {activeSection === "CONTACT" ? (
-                /* ATS Contact Hygiene Checklist */
+                /* Contact Information Checklist */
                 <div className="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col gap-4 shadow-sm flex-1">
                   <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-zinc-300" />
                       <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
-                        Contact Hygiene
+                        Contact Information
                       </span>
                     </div>
                     <span className="text-xs font-mono text-white font-bold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
@@ -830,14 +705,14 @@ export function ReziStudioLayout() {
                     ))}
                   </div>
 
-                  {/* ATS Tip Callout */}
+                  {/* Contact Tip Callout */}
                   <div className="mt-auto p-3.5 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg text-xs text-zinc-400 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-zinc-300 uppercase tracking-wider text-[10px]">
-                      <Target className="w-3.5 h-3.5 text-white" />
-                      <span>Dr. Wissam ATS Rule</span>
+                    <div className="flex items-center gap-1.5 font-bold text-zinc-300 text-xs">
+                      <Info className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Tip</span>
                     </div>
                     <p className="text-[11px] leading-relaxed text-zinc-400">
-                      Include direct clickable URLs for GitHub and LinkedIn, and prefix phone numbers with Lebanese international code (+961).
+                      Include full GitHub and LinkedIn URLs and your international dialing code (e.g., +961).
                     </p>
                   </div>
                 </div>
@@ -901,7 +776,7 @@ export function ReziStudioLayout() {
                       />
                     </div>
                     <p className="text-[10px] text-zinc-500">
-                      Dr. Wissam recommends 15–25 specific technical keywords across Languages, Tools, and Frameworks.
+                      Recommended: 15–25 specific technical keywords across Languages, Tools, and Frameworks.
                     </p>
                   </div>
                 </div>
@@ -918,7 +793,7 @@ export function ReziStudioLayout() {
                   </div>
 
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    Select a 42 profile archetype to apply Dr. Wissam&apos;s 2-line executive summary formula:
+                    Select an archetype to draft a concise 2-line professional summary:
                   </p>
 
                   {/* Archetype Buttons */}
@@ -1012,68 +887,49 @@ export function ReziStudioLayout() {
                   </div>
 
                   {/* Instant Search & Circle Filter Chips for Projects */}
-                  {activeSection === "PROJECTS" && (
-                    <div className="flex flex-col gap-2">
-                      <div className="relative">
-                        <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          value={projectSearchQuery}
-                          onChange={(e) => setProjectSearchQuery(e.target.value)}
-                          placeholder="Search projects..."
-                          className="w-full pl-8 pr-3 py-1.5 bg-[#0C0C0E] border border-zinc-800 rounded-md text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-white"
-                        />
-                      </div>
-                      {/* Circle Filter Chips */}
-                      <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px] font-mono">
-                        {(
-                          [
-                            { id: "all", label: "All" },
-                            { id: "circle-0-2", label: "Circle 0-2" },
-                            { id: "circle-3-5", label: "Circle 3-5" },
-                            { id: "specialization", label: "Spec" },
-                          ] as const
-                        ).map((chip) => (
-                          <button
-                            key={chip.id}
-                            type="button"
-                            onClick={() => setProjectCircleFilter(chip.id)}
-                            className={`px-2 py-0.5 rounded uppercase tracking-wider font-bold transition cursor-pointer whitespace-nowrap ${
-                              projectCircleFilter === chip.id
-                                ? "bg-white text-black"
-                                : "bg-[#0C0C0E] text-zinc-400 hover:text-white border border-zinc-800"
-                            }`}
-                          >
-                            {chip.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Items List */}
                   <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
                     {activeSection === "PROJECTS" ? (
-                      filteredProjects.length === 0 ? (
+                      cvData.projects.length === 0 ? (
                         <div className="text-center py-6 text-zinc-500 text-xs">
-                          No projects match &quot;{projectSearchQuery}&quot;.
+                          No projects added. Click &quot;+ Add Project&quot; below.
                         </div>
                       ) : (
-                        filteredProjects.map((proj) => {
+                        cvData.projects.map((proj, idx) => {
                           const isSelected = activeItemId === proj.id;
-                          const origIdx = cvData.projects.findIndex((p) => p.id === proj.id);
+                          const canMoveUp = idx > 0;
+                          const canMoveDown = idx < cvData.projects.length - 1;
+
                           return (
                             <div
                               key={proj.id}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData("text/plain", proj.id);
+                                setDraggedProjectId(proj.id);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const sourceId = e.dataTransfer.getData("text/plain") || draggedProjectId;
+                                if (sourceId && sourceId !== proj.id) {
+                                  swapProjects(sourceId, proj.id);
+                                }
+                                setDraggedProjectId(null);
+                              }}
                               onClick={() => setActiveItemId(proj.id)}
-                              className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
+                              className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition select-none ${
+                                draggedProjectId === proj.id ? "opacity-50 border-white/50" : ""
+                              } ${
                                 isSelected
                                   ? "bg-[#1C1C22] border-zinc-700/90 text-white shadow-md before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-[3px] before:bg-white before:rounded-r"
                                   : "bg-[#0C0C0E] border-zinc-800/80 text-zinc-300 hover:bg-[#18181D] hover:border-zinc-700/80 hover:text-white"
                               }`}
                             >
                               <div className="flex items-center gap-2 truncate">
-                                <GripVertical className="w-4 h-4 text-zinc-600 shrink-0" />
+                                <GripVertical className="w-4 h-4 text-zinc-500 hover:text-white cursor-grab active:cursor-grabbing shrink-0" />
                                 <div className="truncate">
                                   <div className="font-bold truncate">{proj.name}</div>
                                   <div className="text-[10px] text-zinc-500 truncate">
@@ -1083,27 +939,27 @@ export function ReziStudioLayout() {
                               </div>
 
                               <div className="flex items-center gap-1 shrink-0">
-                                {origIdx > 0 && (
+                                {canMoveUp && (
                                   <button
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      moveProject(origIdx, "up");
+                                      swapProjects(proj.id, cvData.projects[idx - 1].id);
                                     }}
-                                    className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                    className="p-1 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer"
                                     title="Move Up"
                                   >
                                     <ChevronUp className="w-3.5 h-3.5" />
                                   </button>
                                 )}
-                                {origIdx < cvData.projects.length - 1 && (
+                                {canMoveDown && (
                                   <button
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      moveProject(origIdx, "down");
+                                      swapProjects(proj.id, cvData.projects[idx + 1].id);
                                     }}
-                                    className="p-1 hover:text-white text-zinc-500 cursor-pointer"
+                                    className="p-1 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer"
                                     title="Move Down"
                                   >
                                     <ChevronDown className="w-3.5 h-3.5" />
@@ -1119,10 +975,10 @@ export function ReziStudioLayout() {
                                       type: "project",
                                       label: proj.name,
                                       item: proj,
-                                      index: origIdx,
+                                      index: idx,
                                     });
                                   }}
-                                  className="p-1 hover:text-red-400 text-zinc-500 cursor-pointer"
+                                  className="p-1 hover:text-red-400 text-zinc-500 hover:bg-zinc-800 rounded transition cursor-pointer"
                                   title="Remove project"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -1138,15 +994,35 @@ export function ReziStudioLayout() {
                         return (
                           <div
                             key={exp.id}
+                            draggable={true}
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData("text/plain", String(idx));
+                              setDraggedExpIndex(idx);
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const sourceIdxStr = e.dataTransfer.getData("text/plain");
+                              const sourceIdx =
+                                sourceIdxStr !== "" ? parseInt(sourceIdxStr, 10) : draggedExpIndex;
+                              if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== idx) {
+                                reorderExperience(sourceIdx, idx);
+                              }
+                              setDraggedExpIndex(null);
+                            }}
                             onClick={() => setActiveItemId(exp.id)}
-                            className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition ${
+                            className={`relative flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition select-none ${
+                              draggedExpIndex === idx ? "opacity-50 border-white/50" : ""
+                            } ${
                               isSelected
                                 ? "bg-[#1C1C22] border-zinc-700/90 text-white shadow-md before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-[3px] before:bg-white before:rounded-r"
                                 : "bg-[#0C0C0E] border-zinc-800/80 text-zinc-300 hover:bg-[#18181D] hover:border-zinc-700/80 hover:text-white"
                             }`}
                           >
                             <div className="flex items-center gap-2 truncate">
-                              <GripVertical className="w-4 h-4 text-zinc-600 shrink-0" />
+                              <GripVertical className="w-4 h-4 text-zinc-500 hover:text-white cursor-grab active:cursor-grabbing shrink-0" />
                               <div className="truncate">
                                 <div className="font-bold truncate">{exp.role}</div>
                                 <div className="text-[10px] text-zinc-500 truncate">
@@ -1163,7 +1039,7 @@ export function ReziStudioLayout() {
                                     e.stopPropagation();
                                     moveExperience(idx, "up");
                                   }}
-                                  className="p-1 hover:text-white text-zinc-500"
+                                  className="p-1 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer"
                                   title="Move Up"
                                 >
                                   <ChevronUp className="w-3.5 h-3.5" />
@@ -1176,7 +1052,7 @@ export function ReziStudioLayout() {
                                     e.stopPropagation();
                                     moveExperience(idx, "down");
                                   }}
-                                  className="p-1 hover:text-white text-zinc-500"
+                                  className="p-1 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer"
                                   title="Move Down"
                                 >
                                   <ChevronDown className="w-3.5 h-3.5" />
@@ -1195,7 +1071,7 @@ export function ReziStudioLayout() {
                                     index: idx,
                                   });
                                 }}
-                                className="p-1 hover:text-red-400 text-zinc-500"
+                                className="p-1 hover:text-red-400 text-zinc-500 hover:bg-zinc-800 rounded transition cursor-pointer"
                                 title="Remove position"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1259,43 +1135,23 @@ export function ReziStudioLayout() {
               )}
             </aside>
 
-            {/* Column 2 — Center Form Deck (1108px max / flex-1) */}
-            <main className="flex-1 max-w-[1108px] bg-[#141417] border border-zinc-800 rounded-xl p-6 md:p-8 flex flex-col gap-6 shadow-sm">
-              {/* Form Deck Sub-Header with Slide-Over Toggle */}
+            {/* Column 2 — Center Form Deck (Fluid max 1108px / min-w-0) */}
+            <main className="flex-1 min-w-0 max-w-[1108px] bg-[#141417] border border-zinc-800 rounded-xl p-5 md:p-8 flex flex-col gap-6 shadow-sm">
+              {/* Form Deck Sub-Header */}
               <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
                 <div>
                   <h3 className="text-base font-bold text-white uppercase tracking-wider">
                     {activeSection}
                   </h3>
                   <p className="text-xs text-zinc-400">
-                    {activeSection === "CONTACT" && "Strict single-line contact header following Dr. Wissam standards."}
+                    {activeSection === "CONTACT" && "Strict single-line contact header formatted for ATS parsers."}
                     {activeSection === "EDUCATION" && "Formal 42 Cursus standing and previous university qualifications."}
-                    {activeSection === "EXPERIENCE" && "Industry roles (toggle off to reallocate line budget to 42 projects)."}
-                    {activeSection === "PROJECTS" && "2 to 4 bullet points per project with quantitative C metrics."}
-                    {activeSection === "SKILLS" && "Categorized comma-separated technical keywords for ATS parsers."}
-                    {activeSection === "SUMMARY" && "Target engineering role and 2-line professional profile."}
+                    {activeSection === "EXPERIENCE" && "Relevant industry roles and software engineering internships."}
+                    {activeSection === "PROJECTS" && "Key engineering projects with technical achievements and impact."}
+                    {activeSection === "SKILLS" && "Categorized technical skills, systems, and tools."}
+                    {activeSection === "SUMMARY" && "Target engineering role and 2-line professional overview."}
                   </p>
                 </div>
-
-                {/* Subtle Slide-Over Preview Toggle */}
-                <button
-                  type="button"
-                  onClick={() => setShowSlideOverPreview(!showSlideOverPreview)}
-                  className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 bg-[#0C0C0E] border border-zinc-800 hover:border-white text-zinc-300 hover:text-white text-xs font-mono rounded-md transition cursor-pointer"
-                  title="Toggle Slide-Over Preview on Wide Display"
-                >
-                  {showSlideOverPreview ? (
-                    <>
-                      <PanelRightClose className="w-3.5 h-3.5" />
-                      <span>Live Side Preview: Drawer</span>
-                    </>
-                  ) : (
-                    <>
-                      <PanelRight className="w-3.5 h-3.5" />
-                      <span>Live Side Preview: Off</span>
-                    </>
-                  )}
-                </button>
               </div>
 
               {/* Form Views */}
@@ -1303,7 +1159,7 @@ export function ReziStudioLayout() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Full Legal Name
+                      Full Name
                     </label>
                     <input
                       type="text"
@@ -1342,7 +1198,7 @@ export function ReziStudioLayout() {
 
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Phone Number (Lebanese +961)
+                      Phone Number
                     </label>
                     <input
                       type="tel"
@@ -1442,6 +1298,29 @@ export function ReziStudioLayout() {
 
                     return (
                       <div className="flex flex-col gap-5">
+                        {/* Compact Project Switcher when aside is collapsed on laptop split view */}
+                        {showSlideOverPreview && cvData.projects.length > 1 && (
+                          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 2xl:hidden border-b border-zinc-800/80 pb-3">
+                            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider shrink-0">
+                              Active:
+                            </span>
+                            {cvData.projects.map((p) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => setActiveItemId(p.id)}
+                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition shrink-0 cursor-pointer ${
+                                  p.id === currentProj.id
+                                    ? "bg-white text-black font-bold shadow-sm"
+                                    : "bg-[#0A0A0D] border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
+                                }`}
+                              >
+                                {p.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-bold text-white flex items-center gap-2">
                             <span>{currentProj.name}</span>
@@ -1452,8 +1331,8 @@ export function ReziStudioLayout() {
                         </div>
 
                         {/* Metadata Inputs */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
                             <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                               Technologies Stack
                             </label>
@@ -1466,11 +1345,11 @@ export function ReziStudioLayout() {
                                 );
                                 setCVData({ ...cvData, projects: updated });
                               }}
-                              placeholder="C, POSIX, Docker, Make"
+                              placeholder="C, POSIX, Docker, Make, Linux"
                               className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                             />
                           </div>
-                          <div>
+                          <div className="md:col-span-1">
                             <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
                               Completion Date
                             </label>
@@ -1666,7 +1545,7 @@ export function ReziStudioLayout() {
 
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-[0.06em] mb-2">
-                      Professional Summary (Dr. Wissam 2-Line Rule)
+                      Professional Summary
                     </label>
                     <textarea
                       rows={3}
@@ -1680,9 +1559,9 @@ export function ReziStudioLayout() {
               )}
             </main>
 
-            {/* Optional Slide-Over Preview (Wide Displays Only, Toggled via Header) */}
+            {/* Optional Slide-Over Preview (Responsive on lg+ displays, Toggled via Header) */}
             {showSlideOverPreview && (
-              <section className="hidden 2xl:flex w-[480px] shrink-0 sticky top-[105px] h-[calc(100vh-130px)]">
+              <section className="hidden lg:flex w-[420px] xl:w-[460px] 2xl:w-[480px] shrink-0 sticky top-[95px] h-[calc(100vh-115px)]">
                 <CanvasPreviewViewport
                   cvData={cvData}
                   onHeightBudgetChange={setHeightBudget}
@@ -1692,7 +1571,6 @@ export function ReziStudioLayout() {
               </section>
             )}
           </div>
-        )}
       </div>
 
       {/* Floating 6-Second Soft Delete Toast */}
@@ -1741,7 +1619,6 @@ export function ReziStudioLayout() {
         onJumpToSection={(sec, itemId) => {
           setActiveSection(sec);
           if (itemId) setActiveItemId(itemId);
-          setViewMode("builder");
           setIsScoreModalOpen(false);
         }}
       />
@@ -1780,63 +1657,6 @@ export function ReziStudioLayout() {
         </div>
       )}
 
-      {/* BYOK Modal */}
-      {isBYOKOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#141417] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Key className="w-4 h-4 text-white" />
-                <span>AI Synthesis API Keys</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsBYOKOpen(false)}
-                className="text-zinc-400 hover:text-white"
-              >
-                &times;
-              </button>
-            </div>
-
-            <p className="text-xs text-zinc-400">
-              Provide your own free Google Gemini or Groq API keys for limitless AI bullet suggestions.
-            </p>
-
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="block text-xs font-bold text-zinc-400 mb-1">Google Gemini API Key</label>
-                <input
-                  type="password"
-                  value={userGeminiKey}
-                  onChange={(e) => setUserGeminiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-400 mb-1">Groq API Key (Fast Llama-3)</label>
-                <input
-                  type="password"
-                  value={userGroqKey}
-                  onChange={(e) => setUserGroqKey(e.target.value)}
-                  placeholder="gsk_..."
-                  className="w-full px-3 py-2 bg-[#1C1C21] border border-zinc-800 rounded text-xs text-white focus:outline-none focus:border-white placeholder:text-zinc-500"
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsBYOKOpen(false)}
-              className="mt-2 w-full py-2 bg-white hover:bg-zinc-200 text-black font-bold rounded text-xs uppercase tracking-wider transition cursor-pointer"
-            >
-              Save &amp; Close
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Style & Spacing Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1844,7 +1664,7 @@ export function ReziStudioLayout() {
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-white" />
-                <span>Dr. Wissam Template Rules</span>
+                <span>42 Template Rules</span>
               </h3>
               <button
                 type="button"
@@ -1904,6 +1724,126 @@ export function ReziStudioLayout() {
             >
               Done
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Section Order Manager Modal */}
+      {isSectionOrderModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#141417] border border-zinc-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-white" />
+                <span>Resume Section Order</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsSectionOrderModalOpen(false)}
+                className="text-zinc-400 hover:text-white p-1 rounded-md hover:bg-zinc-800"
+              >
+                &times;
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Drag items or click the Up / Down arrows to customize the vertical hierarchy of your resume. Contact header always remains anchored at the very top. Changes update the Live Preview instantly.
+            </p>
+
+            <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1">
+              {(cvData.sectionOrder && cvData.sectionOrder.length > 0
+                ? cvData.sectionOrder
+                : DEFAULT_SECTION_ORDER
+              ).map((secId, idx, arr) => {
+                const meta = SECTION_METADATA[secId];
+                const countBadge = meta?.getCount ? meta.getCount(cvData) : null;
+                const isFirst = idx === 0;
+                const isLast = idx === arr.length - 1;
+
+                return (
+                  <div
+                    key={secId}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", String(idx));
+                      setDraggedSectionIndex(idx);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const sourceIdxStr = e.dataTransfer.getData("text/plain");
+                      const sourceIdx =
+                        sourceIdxStr !== "" ? parseInt(sourceIdxStr, 10) : draggedSectionIndex;
+                      if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== idx) {
+                        moveSection(sourceIdx, idx);
+                      }
+                      setDraggedSectionIndex(null);
+                    }}
+                    className={`flex items-center justify-between p-3 rounded-xl border bg-[#0C0C0E] border-zinc-800 text-xs transition select-none ${
+                      draggedSectionIndex === idx ? "opacity-50 border-white/50" : "hover:border-zinc-700 hover:bg-[#18181D]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <GripVertical className="w-4 h-4 text-zinc-500 hover:text-white cursor-grab active:cursor-grabbing shrink-0" />
+                      <span className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-[10px] flex items-center justify-center font-bold">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-2">
+                          <span>{meta?.label || secId}</span>
+                          {countBadge && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                              {countBadge}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-zinc-400">{meta?.desc}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        disabled={isFirst}
+                        onClick={() => moveSection(idx, idx - 1)}
+                        className="p-1.5 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                        title="Move Section Up"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isLast}
+                        onClick={() => moveSection(idx, idx + 1)}
+                        className="p-1.5 hover:text-white text-zinc-400 hover:bg-zinc-800 rounded transition cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                        title="Move Section Down"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-800 mt-1">
+              <button
+                type="button"
+                onClick={() => setSectionOrder([...DEFAULT_SECTION_ORDER])}
+                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white hover:underline transition cursor-pointer"
+              >
+                Reset to Default Order
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSectionOrderModalOpen(false)}
+                className="px-4 py-2 bg-white text-black hover:bg-zinc-200 font-bold rounded-lg text-xs uppercase tracking-wider transition cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

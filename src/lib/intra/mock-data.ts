@@ -1,4 +1,4 @@
-import { CVData } from "@/types/resume";
+import { CVData, DEFAULT_SECTION_ORDER } from "@/types/resume";
 
 export interface MockIntraUser {
   id: number;
@@ -84,6 +84,7 @@ export function createInitialCVFromIntra(
     showExperience,
     styleDensity: "standard",
     showExtracurriculars: true,
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
     educationState,
     specializationTrack: educationState === "STATE_B_SPECIALIZATION" ? "Advanced Software Architecture" : undefined,
     contact: {

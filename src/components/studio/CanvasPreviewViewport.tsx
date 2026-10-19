@@ -107,28 +107,27 @@ export function CanvasPreviewViewport({
       {/* Top Single Horizontal Control Deck — Zero Vertical Wrapping */}
       <div className="flex items-center justify-between px-6 py-3.5 bg-[#0C0C0E] border-b border-zinc-800 z-30 shrink-0 gap-4 flex-nowrap">
         {/* Left: Height Budget Telemetry */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Left: 1-Page Fit Status Badge */}
+        <div className="flex items-center gap-2.5 shrink-0">
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border ${
               budget.isOverflow
-                ? "bg-red-950/60 text-red-400 border-red-800"
-                : "bg-[#141417] text-white border-zinc-700"
+                ? "bg-amber-950/40 text-amber-300 border-amber-800/80"
+                : "bg-emerald-950/40 text-emerald-300 border-emerald-800/80"
             }`}
           >
-            {budget.isOverflow ? (
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-            ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-            )}
-            <span>
-              {budget.height}px / 1027px · {budget.percentage}% 1-Page Line Budget
-            </span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                budget.isOverflow ? "bg-amber-400" : "bg-emerald-400"
+              }`}
+            />
+            <span>{budget.isOverflow ? "Overflows Page 1" : "Fits on 1 Page"}</span>
           </div>
 
           <span className="hidden xl:inline text-xs text-zinc-400">
             {budget.isOverflow
-              ? "Over-budget: Trimming required to fit single page"
-              : "100% Dr. Wissam 1-Page Compliant"}
+              ? "Shorten bullets or reallocate content to fit 1 page"
+              : "42 Standard 1-Page Format"}
           </span>
         </div>
 
@@ -269,18 +268,6 @@ export function CanvasPreviewViewport({
               onSectionClick={onSectionClick}
               forceOverflowIndicator={true}
             />
-
-            {/* Rezi Page Break Marker */}
-            <div
-              className="design-studio-break-page absolute left-0 right-0 pointer-events-none z-30"
-              style={{ top: "1027px" }}
-            >
-              <div className="relative border-b-2 border-dashed border-red-500/80 w-full flex items-center justify-center">
-                <span className="bg-red-600 text-white font-mono text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md -translate-y-1/2">
-                  1027px A4 Printable Page Boundary
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useState, useEffect } from "react";
-import { CVData, EducationItem, EducationState, ExperienceItem, ProjectItem } from "@/types/resume";
+import { CVData, EducationItem, EducationState, ExperienceItem, ProjectItem, SectionId, DEFAULT_SECTION_ORDER } from "@/types/resume";
 import { MOCK_42_STUDENT, MockIntraUser, createInitialCVFromIntra } from "@/lib/intra/mock-data";
 
 export type WizardStep = "LOGIN" | "SETUP" | "QUESTIONNAIRE" | "EDITOR";
@@ -148,6 +148,8 @@ interface CVStore {
   // Active CV Data (Live Split-Screen Editor & Shared Store)
   cvData: CVData;
   setCVData: (data: CVData) => void;
+  setSectionOrder: (order: SectionId[]) => void;
+  moveSection: (fromIndex: number, toIndex: number) => void;
   updateContact: (contact: Partial<CVData["contact"]>) => void;
   updateSkills: (skills: Partial<CVData["skills"]>) => void;
   updateProjectBullet: (projectId: string, bulletIndex: number, text: string) => void;
@@ -157,6 +159,8 @@ interface CVStore {
   removeProjectFromCV: (projectId: string) => void;
   restoreProjectAt: (project: ProjectItem, index: number) => void;
   moveProject: (index: number, direction: "up" | "down") => void;
+  reorderProjects: (fromIndex: number, toIndex: number) => void;
+  swapProjects: (id1: string, id2: string) => void;
 
   // Experience Mutations
   addExperienceItem: (item?: Partial<ExperienceItem>) => void;
@@ -164,6 +168,7 @@ interface CVStore {
   removeExperienceItem: (id: string) => void;
   restoreExperienceAt: (item: ExperienceItem, index: number) => void;
   moveExperience: (index: number, direction: "up" | "down") => void;
+  reorderExperience: (fromIndex: number, toIndex: number) => void;
 
   // Education Mutations
   addEducationItem: (item?: Partial<EducationItem>) => void;
@@ -403,7 +408,52 @@ export const useCVStore = create<CVStore>()(
 
       // Active CV Data
       cvData: defaultCVData,
-      setCVData: (cvData) => set({ cvData, lastSavedTimestamp: Date.now() }),
+      setCVData: (cvData) =>
+        set({
+          cvData: {
+            ...cvData,
+            sectionOrder:
+              cvData.sectionOrder && cvData.sectionOrder.length > 0
+                ? cvData.sectionOrder
+                : [...DEFAULT_SECTION_ORDER],
+          },
+          lastSavedTimestamp: Date.now(),
+        }),
+
+      setSectionOrder: (order) =>
+        set((state) => ({
+          lastSavedTimestamp: Date.now(),
+          cvData: {
+            ...state.cvData,
+            sectionOrder: order,
+          },
+        })),
+
+      moveSection: (fromIndex, toIndex) =>
+        set((state) => {
+          const currentOrder =
+            state.cvData.sectionOrder && state.cvData.sectionOrder.length > 0
+              ? [...state.cvData.sectionOrder]
+              : [...DEFAULT_SECTION_ORDER];
+          if (
+            fromIndex < 0 ||
+            fromIndex >= currentOrder.length ||
+            toIndex < 0 ||
+            toIndex >= currentOrder.length ||
+            fromIndex === toIndex
+          ) {
+            return state;
+          }
+          const [moved] = currentOrder.splice(fromIndex, 1);
+          currentOrder.splice(toIndex, 0, moved);
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: {
+              ...state.cvData,
+              sectionOrder: currentOrder,
+            },
+          };
+        }),
 
       updateContact: (contactPatch) =>
         set((state) => ({
@@ -527,6 +577,41 @@ export const useCVStore = create<CVStore>()(
           };
         }),
 
+      reorderProjects: (fromIndex, toIndex) =>
+        set((state) => {
+          const projects = [...state.cvData.projects];
+          if (
+            fromIndex < 0 ||
+            fromIndex >= projects.length ||
+            toIndex < 0 ||
+            toIndex >= projects.length ||
+            fromIndex === toIndex
+          ) {
+            return state;
+          }
+          const [moved] = projects.splice(fromIndex, 1);
+          projects.splice(toIndex, 0, moved);
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: { ...state.cvData, projects },
+          };
+        }),
+
+      swapProjects: (id1, id2) =>
+        set((state) => {
+          const idx1 = state.cvData.projects.findIndex((p) => p.id === id1);
+          const idx2 = state.cvData.projects.findIndex((p) => p.id === id2);
+          if (idx1 === -1 || idx2 === -1 || idx1 === idx2) return state;
+          const projects = [...state.cvData.projects];
+          const temp = projects[idx1];
+          projects[idx1] = projects[idx2];
+          projects[idx2] = temp;
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: { ...state.cvData, projects },
+          };
+        }),
+
       // Experience Mutations
       addExperienceItem: (item) =>
         set((state) => {
@@ -604,6 +689,26 @@ export const useCVStore = create<CVStore>()(
           const temp = experience[index];
           experience[index] = experience[targetIndex];
           experience[targetIndex] = temp;
+          return {
+            lastSavedTimestamp: Date.now(),
+            cvData: { ...state.cvData, experience },
+          };
+        }),
+
+      reorderExperience: (fromIndex, toIndex) =>
+        set((state) => {
+          const experience = [...state.cvData.experience];
+          if (
+            fromIndex < 0 ||
+            fromIndex >= experience.length ||
+            toIndex < 0 ||
+            toIndex >= experience.length ||
+            fromIndex === toIndex
+          ) {
+            return state;
+          }
+          const [moved] = experience.splice(fromIndex, 1);
+          experience.splice(toIndex, 0, moved);
           return {
             lastSavedTimestamp: Date.now(),
             cvData: { ...state.cvData, experience },
@@ -936,7 +1041,15 @@ export const useCVStore = create<CVStore>()(
         userGroqKey: state.userGroqKey,
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        if (state) {
+          if (!state.cvData?.sectionOrder || state.cvData.sectionOrder.length === 0) {
+            state.cvData = {
+              ...state.cvData,
+              sectionOrder: [...DEFAULT_SECTION_ORDER],
+            };
+          }
+          state.setHasHydrated(true);
+        }
       },
     }
   )
