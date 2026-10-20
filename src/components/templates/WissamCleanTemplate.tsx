@@ -119,13 +119,20 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
               42 Beirut - Level {contact.level}
             </span>
             <span className="text-gray-800 italic" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
-              {educationState === "STATE_C_ALUMNUS" ? "2024" : "2023 – Present"}
+              {(() => {
+                const edu42 = education?.find((e) => e.institution.toLowerCase().includes("42 beirut"));
+                if (edu42?.startDate) {
+                  return `${edu42.startDate} – ${edu42.endDate || "Present"}`;
+                }
+                return educationState === "STATE_C_ALUMNUS" ? "2024" : "2025 – Present";
+              })()}
             </span>
           </div>
 
           {educationState === "STATE_A_CORE" && (
-            <div className="text-gray-800" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
-              42 Core Curriculum - Architecture of Digital Technologies Program
+            <div className="flex justify-between items-baseline text-gray-800" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
+              <span>42 Core Curriculum - Architecture of Digital Technologies Program</span>
+              <span className="italic text-gray-600" style={{ fontSize: isCompact ? "8.5pt" : "9pt" }}>Beirut, Lebanon</span>
             </div>
           )}
 
@@ -348,11 +355,11 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
               {skills.developerTools.join(", ")}
             </div>
             <div>
-              <span className="font-bold text-gray-900">Technologies/Frameworks:</span>{" "}
+              <span className="font-bold text-gray-900">Technologies &amp; Frameworks:</span>{" "}
               {skills.technologiesFrameworks.join(", ")}
             </div>
             <div>
-              <span className="font-bold text-gray-900">Project Management tools:</span>{" "}
+              <span className="font-bold text-gray-900">Project Management Tools:</span>{" "}
               {skills.projectManagementTools.join(", ")}
             </div>
           </div>
@@ -525,7 +532,7 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             className="text-gray-700 font-semibold mb-0.5"
             style={{ fontSize: isCompact ? "10pt" : "11pt" }}
           >
-            42 Student – Level {contact.level}
+            {data.targetRole ? `${data.targetRole.includes("42") ? data.targetRole : `${data.targetRole} | 42 Student – Level ${contact.level}`}` : `42 Student – Level ${contact.level}`}
           </div>
 
           <div

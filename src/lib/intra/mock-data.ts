@@ -37,32 +37,24 @@ export function format42ProjectDate(dateStr?: string): string {
 }
 
 export const MOCK_42_STUDENT: MockIntraUser = {
-  id: 134522,
-  login: "mhamdan",
-  email: "mhamdan@student.42beirut.com",
-  displayname: "Mohammad Hamdan",
+  id: 142078,
+  login: "alinassarr",
+  email: "alnassar.dev@gmail.com",
+  displayname: "Ali Nassar",
   image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop",
   campusName: "Beirut",
   campusId: 43,
-  level: 9.85,
+  level: 7.0,
   grade: "Learner",
   poolMonth: "September",
-  poolYear: 2023,
+  poolYear: 2024,
   coalition: "Phoenicians",
-  beginAt: "2023-11-06T08:00:00.000Z",
+  beginAt: "2025-01-06T08:00:00.000Z",
   validatedProjects: [
-    { id: 12, name: "ft_transcendence", slug: "ft_transcendence", finalMark: 125, validated: true, markedAt: "2025-05-20T12:00:00.000Z", date: "May 2025" },
-    { id: 11, name: "Webserv", slug: "webserv", finalMark: 125, validated: true, markedAt: "2025-02-10T14:30:00.000Z", date: "February 2025" },
-    { id: 10, name: "Inception", slug: "inception", finalMark: 105, validated: true, markedAt: "2024-11-15T10:00:00.000Z", date: "November 2024" },
-    { id: 9, name: "CPP Modules", slug: "cpp-modules", finalMark: 100, validated: true, markedAt: "2024-10-02T16:15:00.000Z", date: "October 2024" },
-    { id: 8, name: "Cub3D", slug: "cub3d", finalMark: 115, validated: true, markedAt: "2024-08-14T09:45:00.000Z", date: "August 2024" },
-    { id: 7, name: "Minishell", slug: "minishell", finalMark: 115, validated: true, markedAt: "2024-06-25T11:20:00.000Z", date: "June 2024" },
-    { id: 6, name: "Philosophers", slug: "philosophers", finalMark: 100, validated: true, markedAt: "2024-04-18T13:00:00.000Z", date: "April 2024" },
-    { id: 5, name: "Minitalk", slug: "minitalk", finalMark: 125, validated: true, markedAt: "2024-03-05T15:10:00.000Z", date: "March 2024" },
-    { id: 4, name: "Push_swap", slug: "push_swap", finalMark: 100, validated: true, markedAt: "2024-02-20T17:00:00.000Z", date: "February 2024" },
-    { id: 3, name: "Born2beRoot", slug: "born2beroot", finalMark: 110, validated: true, markedAt: "2024-01-10T14:00:00.000Z", date: "January 2024" },
-    { id: 2, name: "ft_printf", slug: "ft_printf", finalMark: 100, validated: true, markedAt: "2023-12-15T12:00:00.000Z", date: "December 2023" },
-    { id: 1, name: "Libft", slug: "libft", finalMark: 125, validated: true, markedAt: "2023-12-01T10:00:00.000Z", date: "December 2023" },
+    { id: 10, name: "Inception", slug: "inception", finalMark: 100, validated: true, markedAt: "2026-09-15T10:00:00.000Z", date: "September 2026" },
+    { id: 8, name: "cub3D", slug: "cub3d", finalMark: 100, validated: true, markedAt: "2026-08-14T09:45:00.000Z", date: "August 2026" },
+    { id: 7, name: "Minishell", slug: "minishell", finalMark: 100, validated: true, markedAt: "2025-12-25T11:20:00.000Z", date: "December 2025" },
+    { id: 6, name: "Philosophers", slug: "philosophers", finalMark: 100, validated: true, markedAt: "2025-04-18T13:00:00.000Z", date: "April 2025" },
   ],
 };
 
@@ -70,9 +62,9 @@ export const MOCK_42_STUDENT: MockIntraUser = {
  * Pre-fills an initial baseline CV from 42 Intra profile data
  */
 export function createInitialCVFromIntra(
-  user: MockIntraUser,
+  user: MockIntraUser = MOCK_42_STUDENT,
   targetRole = "Software Engineer",
-  showExperience = false
+  showExperience = true
 ): CVData {
   const isTranscendenceDone = user.validatedProjects.some(
     (p) => p.slug === "ft_transcendence" && p.validated
@@ -81,9 +73,9 @@ export function createInitialCVFromIntra(
 
   return {
     targetRole,
-    showExperience,
+    showExperience: true,
     styleDensity: "standard",
-    showExtracurriculars: true,
+    showExtracurriculars: false,
     sectionOrder: [...DEFAULT_SECTION_ORDER],
     educationState,
     specializationTrack: educationState === "STATE_B_SPECIALIZATION" ? "Advanced Software Architecture" : undefined,
@@ -91,9 +83,9 @@ export function createInitialCVFromIntra(
       fullName: user.displayname,
       level: Math.floor(user.level),
       email: user.email,
-      phoneNumber: "+961 70 123 456",
-      githubUrl: `github.com/${user.login}`,
-      linkedinUrl: `linkedin.com/in/${user.login}`,
+      phoneNumber: "+961 78 870 225",
+      githubUrl: "github.com/alinassarr",
+      linkedinUrl: "linkedin.com/in/ali-nassar-121719185",
       location: "Beirut, Lebanon",
     },
     education: [
@@ -104,7 +96,7 @@ export function createInitialCVFromIntra(
           educationState === "STATE_A_CORE"
             ? "42 Core Curriculum - Architecture of Digital Technologies Program"
             : "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
-        startDate: "2023",
+        startDate: "2025",
         endDate: "Present",
         isCurrent: true,
         level: Math.floor(user.level),
@@ -113,86 +105,84 @@ export function createInitialCVFromIntra(
           educationState === "STATE_B_SPECIALIZATION" ? "Advanced Software Architecture" : undefined,
       },
     ],
-    experience: [],
+    experience: [
+      {
+        id: "exp-balance-center",
+        company: "Balance Center",
+        role: "Mobile & Web Developer",
+        location: "Beirut, Lebanon",
+        startDate: "February 2026",
+        endDate: "September 2026",
+        isCurrent: false,
+        bulletPoints: [
+          "Engineered and launched an e-commerce storefront on Shopify, structuring a 1,000+ product catalog into optimized, multi-tier categories.",
+          "Automated catalog management by engineering bulk CSV transformation and ingestion pipelines, eliminating manual inventory bottlenecks.",
+          "Developed an asynchronous webhook integration delivering real-time WhatsApp order dispatch notifications to customers.",
+          "Configured production DNS records, routing tables, and SSL/TLS certificates, ensuring high availability and zero operational downtime.",
+        ],
+      },
+    ],
     projects: [
       {
-        id: "proj-webserv",
-        name: "Webserv",
-        slug: "webserv",
-        is42Project: true,
-        techStack: "C++, HTTP/1.1, Socket Programming, CGI",
-        date: "February 2025",
+        id: "proj-ai-scanner",
+        name: "Mobile AI Product Ingestion Engine",
+        slug: "mobile-ai-ingestion",
+        is42Project: false,
+        techStack: "TypeScript, Vision AI, Supabase, Cloudflare R2",
+        date: "2026",
         bulletPoints: [
-          "Developed an HTTP/1.1 web server from scratch in C++ supporting GET, POST, and DELETE methods.",
-          "Implemented non-blocking I/O using poll() for concurrent client connections with custom configuration parsing.",
-          "Integrated CGI execution for dynamic scripts using fork, execve, and inter-process communication pipes.",
+          "Engineered a mobile PWA enabling inventory operators to capture and catalog store items in under 15 seconds per unit.",
+          "Implemented asynchronous image offloading to Cloudflare R2 object storage, maintaining a smooth 60 FPS camera thread with zero UI freezing.",
+          "Integrated multimodal Vision AI APIs to parse product labels (brand, weight, ingredients) into Supabase PostgreSQL for validation and Shopify export.",
         ],
       },
       {
         id: "proj-minishell",
-        name: "Minishell",
+        name: "Minishell – POSIX Unix Command Interpreter",
         slug: "minishell",
         is42Project: true,
-        techStack: "C, Unix System Calls, Process Management",
-        date: "June 2024",
+        techStack: "C, Unix System Calls, POSIX Signals",
+        date: "December 2025",
         bulletPoints: [
-          "Developed a custom Unix shell in C with support for command execution, pipelines, and I/O redirections.",
-          "Implemented process management using fork, execve, and wait, replicating standard Bash built-in commands.",
-          "Designed a custom lexer and parser to tokenize user input, handle quotes, and expand environment variables.",
+          "Developed a modular POSIX Unix shell in C from scratch, implementing lexical analysis, tokenization, and Abstract Syntax Tree (AST) parsing.",
+          "Handled child process lifecycles via fork(), execve(), and IPC pipes, supporting file descriptor redirections and environment variable expansion.",
+          "Engineered custom built-ins (cd, echo, env, export, unset, pwd, exit) and handled asynchronous signals (SIGINT, SIGQUIT) with zero memory leaks.",
+        ],
+      },
+      {
+        id: "proj-inception",
+        name: "Inception – Cloud Microservices Infrastructure",
+        slug: "inception",
+        is42Project: true,
+        techStack: "Docker, Docker Compose, NGINX, MariaDB, Alpine Linux",
+        date: "September 2026",
+        bulletPoints: [
+          "Architected a multi-container microservice infrastructure using Docker Compose with dedicated virtual networks and persistent volume mounts.",
+          "Built lightweight, production-grade custom Dockerfiles based on Alpine Linux for NGINX, MariaDB, and WordPress, bypassing pre-packaged Hub images.",
+          "Configured NGINX as an edge reverse proxy with TLSv1.2/TLSv1.3 encryption, ensuring isolated container interconnectivity and data integrity.",
         ],
       },
       {
         id: "proj-cub3d",
-        name: "Cub3D",
+        name: "cub3D – 3D Raycasting Graphics Engine",
         slug: "cub3d",
         is42Project: true,
-        techStack: "C, MiniLibX, Raycasting",
-        date: "August 2024",
+        techStack: "C, Raycasting, DDA Algorithm, Linear Algebra, MiniLibX",
+        date: "August 2026",
         bulletPoints: [
-          "Built a 3D raycasting game engine in C using MiniLibX, rendering a first-person view based on a 2D map.",
-          "Implemented player movement, wall collision detection, and texture mapping using the DDA algorithm.",
-        ],
-      },
-      {
-        id: "proj-philosophers",
-        name: "Philosophers",
-        slug: "philosophers",
-        is42Project: true,
-        techStack: "C, POSIX Threads, Mutexes",
-        date: "April 2024",
-        bulletPoints: [
-          "Built a multithreaded simulation in C to solve the Dining Philosophers synchronization problem.",
-          "Prevented deadlocks and data races using asymmetric mutex locking verified with ThreadSanitizer.",
+          "Built a real-time raycasting engine in C utilizing the Digital Differential Analysis (DDA) algorithm to project dynamic 3D scenes from 2D grids.",
+          "Implemented vector-based camera rotations, fluid movement mechanics, and precise bounding-box collision detection at consistent 60 FPS.",
+          "Developed dynamic door interaction states, custom campus wall textures, and sorted 2D sprite rendering routines.",
         ],
       },
     ],
     skills: {
-      languages: ["C", "C++", "Python", "SQL", "Bash"],
-      developerTools: ["VS Code", "Git", "GDB", "Valgrind", "Docker"],
-      technologiesFrameworks: ["Linux", "Nginx", "POSIX Threads", "Make"],
-      projectManagementTools: ["GitHub", "JIRA"],
+      languages: ["C", "C++", "TypeScript", "JavaScript", "SQL", "Bash", "HTML/CSS"],
+      developerTools: ["Git", "GitHub", "Docker", "Docker Compose", "Make", "GDB", "Valgrind", "VS Code"],
+      technologiesFrameworks: ["Linux", "NGINX", "MariaDB", "PostgreSQL (Supabase)", "Cloudflare R2", "Shopify", "MiniLibX"],
+      projectManagementTools: ["JIRA", "GitHub Projects"],
     },
-    coursework: [
-      {
-        id: "cw-cyber",
-        title: "42 Beirut Extracurricular Cybersecurity Piscine",
-        date: "May 2025",
-        institution: "42 Beirut",
-      },
-    ],
-    extracurriculars: [
-      {
-        id: "ec-blackops",
-        organization: "42 Beirut Black Ops",
-        role: "Lead Peer Mentor",
-        startDate: "2024",
-        endDate: "Present",
-        isCurrent: true,
-        bulletPoints: [
-          "Mentored newer cadets through Common Core C programming and Unix system concepts.",
-          "Conducted structured peer evaluations and assisted with campus workshop organization.",
-        ],
-      },
-    ],
+    coursework: [],
+    extracurriculars: [],
   };
 }

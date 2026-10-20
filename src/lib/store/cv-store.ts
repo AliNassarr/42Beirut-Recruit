@@ -1114,19 +1114,19 @@ export const useCVStore = create<CVStore>()(
           currentStep: get().studentProfile ? "SETUP" : "LOGIN",
           targetRole: "Software Engineer",
           educationState: "STATE_A_CORE",
-          specializationTrack: "Advanced Software Architecture",
-          showExperience: false,
+          specializationTrack: undefined,
+          showExperience: true,
           styleDensity: "standard",
-          showExtracurriculars: true,
+          showExtracurriculars: false,
           selectedProjects: [
-            { name: "Webserv", slug: "webserv", techStack: "C++, HTTP/1.1, Sockets", date: "February 2025", is42Project: true },
-            { name: "Minishell", slug: "minishell", techStack: "C, Unix System Calls", date: "June 2024", is42Project: true },
-            { name: "Cub3D", slug: "cub3d", techStack: "C, MiniLibX, Raycasting", date: "August 2024", is42Project: true },
-            { name: "Philosophers", slug: "philosophers", techStack: "C, Threads, Mutexes", date: "April 2024", is42Project: true },
+            { name: "Mobile AI Product Ingestion Engine", slug: "mobile-ai-ingestion", techStack: "TypeScript, Vision AI, Supabase, Cloudflare R2", date: "2026", is42Project: false },
+            { name: "Minishell", slug: "minishell", techStack: "C, Unix System Calls, POSIX Signals", date: "December 2025", is42Project: true },
+            { name: "Inception", slug: "inception", techStack: "Docker, Docker Compose, NGINX, MariaDB, Alpine Linux", date: "September 2026", is42Project: true },
+            { name: "cub3D", slug: "cub3d", techStack: "C, Raycasting, DDA Algorithm, Linear Algebra, MiniLibX", date: "August 2026", is42Project: true },
           ],
           customProjects: [],
           projectAnswers: {},
-          selectedCampusRoles: ["Black Ops"],
+          selectedCampusRoles: [],
           campusRoleAnswers: {},
           selectedCoursework: [],
           cvData: initialCV,
@@ -1193,6 +1193,11 @@ export const useCVStore = create<CVStore>()(
               ...state.cvData,
               sectionOrder: [...DEFAULT_SECTION_ORDER],
             };
+          }
+          if (state.cvData?.contact?.fullName === "Mohammad Hamdan") {
+            const initialCV = createInitialCVFromIntra(MOCK_42_STUDENT);
+            state.cvData = initialCV;
+            state.studentProfile = MOCK_42_STUDENT;
           }
           state.setHasHydrated(true);
         }

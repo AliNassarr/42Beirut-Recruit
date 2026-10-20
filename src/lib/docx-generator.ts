@@ -64,7 +64,9 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
       spacing: { after: isCompact ? 30 : 60 },
       children: [
         new TextRun({
-          text: `42 Student – Level ${data.contact.level}`,
+          text: data.targetRole
+            ? `${data.targetRole.includes("42") ? data.targetRole : `${data.targetRole} | 42 Student – Level ${data.contact.level}`}`
+            : `42 Student – Level ${data.contact.level}`,
           bold: true,
           size: isCompact ? 20 : 22, // 10pt or 11pt
           font: FONT_FAMILY,
@@ -77,7 +79,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
       spacing: { after: isCompact ? 120 : 180 },
       children: [
         new TextRun({
-          text: `${data.contact.email}  |  ${data.contact.phoneNumber}  |  ${data.contact.linkedinUrl.replace(/^https?:\/\//, "")}  |  ${data.contact.githubUrl.replace(/^https?:\/\//, "")}`,
+          text: `${data.contact.location ? `${data.contact.location}  |  ` : ""}${data.contact.email}  |  ${data.contact.phoneNumber}  |  ${data.contact.linkedinUrl.replace(/^https?:\/\//, "")}  |  ${data.contact.githubUrl.replace(/^https?:\/\//, "")}`,
           size: isCompact ? 17 : 19, // 8.5pt or 9.5pt
           font: FONT_FAMILY,
           color: "4B5563",
@@ -105,7 +107,10 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
         }),
         new TextRun("\t"),
         new TextRun({
-          text: data.educationState === "STATE_C_ALUMNUS" ? "2024" : "2023 – Present",
+          text: (() => {
+            const e = data.education?.find((x) => x.institution.toLowerCase().includes("42 beirut"));
+            return e?.startDate ? `${e.startDate} – ${e.endDate || "Present"}` : (data.educationState === "STATE_C_ALUMNUS" ? "2024" : "2025 – Present");
+          })(),
           italics: true,
           size: 19,
           font: FONT_FAMILY,
