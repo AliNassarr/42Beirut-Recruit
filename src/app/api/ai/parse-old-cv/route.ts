@@ -5,7 +5,7 @@ import { z } from "zod";
 import { executeStructuredFailover } from "@/lib/ai/client";
 import { normalizeGitHub, normalizeLinkedIn } from "@/lib/sanitizer";
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 const ParsedCVSchema = z.object({
   contact: z

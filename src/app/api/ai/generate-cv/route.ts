@@ -6,7 +6,7 @@ import { getProjectKnowledge, KNOWN_PISCINES, CAMPUS_ROLES } from "@/lib/knowled
 import { CVData, EducationItem, ExperienceItem, ProjectItem, ExtracurricularItem } from "@/types/resume";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 const SinglePassSynthesisSchema = z.object({
   projects: z.array(
