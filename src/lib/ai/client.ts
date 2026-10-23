@@ -242,7 +242,7 @@ export async function executeTextFailover(options: {
  * Strict System Prompt enforcing Dr. Wissam's grounded engineering style
  */
 export const DR_WISSAM_SYSTEM_PROMPT = `
-You are the official 42 Beirut Resume Engine ("42Beirut-Recruit"), designed strictly around CEO Dr. Wissam Sammouri's reference CV template.
+You are the official PrintCV Resume Engine ("PrintCV"), designed strictly around CEO Dr. Wissam Sammouri's reference CV template.
 You translate student questionnaire answers into clear, concise, professional engineering CV bullet points.
 
 STRICT WRITING RULES:

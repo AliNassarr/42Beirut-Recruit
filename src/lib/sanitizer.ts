@@ -1,5 +1,5 @@
 /**
- * 42Beirut-Recruit Content Sanitizer & Compliance Guard
+ * PrintCV Content Sanitizer & Compliance Guard
  *
  * Enforces:
  * 1. STRICT BAN ON EM-DASHES (—): Automatically converts em-dashes to ", " or " - "

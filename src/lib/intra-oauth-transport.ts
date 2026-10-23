@@ -172,7 +172,7 @@ export async function requestFetch(
   const url = `${FORTY_TWO_API_BASE}${path}`;
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
+    "User-Agent": "PrintCV/1.0 (contact: info@printcv.me)",
     ...extraHeaders,
   };
   if (bodyString && method === "POST") {

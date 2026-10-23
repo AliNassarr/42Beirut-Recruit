@@ -14,7 +14,7 @@ export async function GET() {
     client_id: "probe_client_id",
     client_secret: "probe_client_secret",
     code: "probe_code_test",
-    redirect_uri: "https://42beirut-recruit.netlify.app/api/auth/callback/42-school",
+    redirect_uri: "https://printcv.me/api/auth/callback/42-school",
   }).toString();
 
   const dummyBasicAuth = Buffer.from("probe_client_id:probe_client_secret").toString("base64");

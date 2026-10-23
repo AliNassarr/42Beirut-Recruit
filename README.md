@@ -1,5 +1,5 @@
-# 42Beirut-Recruit 🎓🚀
-> The Official Automated ATS Resume Engine for 42 Beirut Cadets & Alumni. Strictly adheres to the single-page A4 curriculum vitae reference standard established by CEO Dr. Wissam Sammouri.
+# PrintCV 🎓🚀
+> The Official Automated ATS Resume Engine. Strictly adheres to the single-page A4 curriculum vitae reference standard established by CEO Dr. Wissam Sammouri.
 
 [![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-5.22-2D3748?logo=prisma)](https://www.prisma.io/)
@@ -11,14 +11,14 @@
 
 ## 🌟 Overview
 
-**42Beirut-Recruit** is an enterprise-grade CV generation platform purpose-built for the 42 Network pedagogy. It automatically ingests verified 42 Common Core projects, aligns them with recruiters' ATS requirements, and synthesizes 100% unique, grounded engineering bullet points with zero robotic fluff.
+**PrintCV** is an enterprise-grade CV generation platform purpose-built for engineers. It automatically ingests verified technical projects, aligns them with recruiters' ATS requirements, and synthesizes 100% unique, grounded engineering bullet points with zero robotic fluff.
 
 ### Core Capabilities
 * **Official Dr. Wissam Sammouri Layout**: Enforces strict single-page A4 typography, margin hierarchy, and the 4-category skills section (*Languages*, *Developer Tools*, *Technologies/Frameworks*, *Project Management Tools*).
 * **Live A4 Page-Budget Meter**: Real-time `1027px` print-height observer with 1-click Auto-Fit density adjustment to guarantee strict single-page output.
-* **1-Click Technical Highlight Chips**: Interactive discovery tags for Common Core projects (`minishell`, `cub3D`, `Inception`, `webserv`, `ft_irc`, etc.) that populate implementation notes in seconds.
+* **1-Click Technical Highlight Chips**: Interactive discovery tags for engineering projects (`minishell`, `cub3D`, `Inception`, `webserv`, `ft_irc`, etc.) that populate implementation notes in seconds.
 * **Anti-Verb Monotony Engine**: Grounded engineering action verbs with ledger-backed anti-duplication to prevent repetitive sentence openings across projects.
-* **Dual Export Pipeline**: Native browser print-to-PDF (`@media print`) and pixel-perfect Microsoft Word (`.docx`) file generation matching Dr. Wissam's exact tab stops and style rules.
+* **Dual Export Pipeline**: Native browser print-to-PDF (`@media print`) and pixel-perfect Microsoft Word (`.docx`) file generation matching exact tab stops and style rules.
 * **Zero-Cost Scale**: Powered by Google Gemini 1.5 Flash (15 RPM / 1M TPM free tier) with cascading failover to Groq Llama 3.3 70B and local deterministic fallback.
 
 ---
@@ -26,14 +26,14 @@
 ## 🛠️ Architecture & Tech Stack
 
 ```
-42Beirut-Recruit/
+printcv/
 ├── prisma/
 │   └── schema.prisma         # Neon PostgreSQL Prisma models & indices
 ├── src/
 │   ├── app/                  # Next.js 14 App Router (pages & serverless API routes)
-│   ├── components/           # Modular UI split across 4 wizard steps & templates
-│   │   ├── templates/        # WissamCleanTemplate DOM & Print Layout
-│   │   └── wizard/           # Step 1 (Auth), Step 2 (Setup), Step 3 (Chips), Step 4 (Editor)
+│   ├── components/           # Modular studio UI & templates
+│   │   ├── studio/           # ReziStudioLayout, BulletEditorRow, CanvasPreviewViewport
+│   │   └── templates/        # WissamCleanTemplate DOM & Print Layout
 │   ├── lib/                  # AI synthesis, DOCX generator, Intra OAuth, Sanitizers
 │   └── store/                # Persistent Zustand store with localStorage auto-save
 ```
@@ -50,8 +50,8 @@
 ### 2. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/AliNassarr/42Beirut-Recruit.git
-cd 42Beirut-Recruit
+git clone https://github.com/AliNassarr/printcv.git
+cd printcv
 
 # Install dependencies
 npm install
@@ -82,7 +82,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🚢 Production Deployment (Vercel + Neon)
 
-1. **Deploy to Vercel**: Connect the repository `https://github.com/AliNassarr/42Beirut-Recruit` to Vercel.
+1. **Deploy to Vercel**: Connect the repository `https://github.com/AliNassarr/printcv` to Vercel.
 2. **Add Environment Variables**: Populate all keys from `.env.example` in the Vercel Project Settings.
 3. **Database Migrations**:
    ```bash
@@ -93,6 +93,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ---
 
 ## 📜 License & Acknowledgements
-Created for **42 Beirut** cadets, peers, and alumni.
+Created for engineering students, peers, and alumni.
 Special thanks to CEO Dr. Wissam Sammouri for the CV formatting guidelines.
 Licensed under the [MIT License](LICENSE).

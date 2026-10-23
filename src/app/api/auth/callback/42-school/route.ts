@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
-          "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
+          "User-Agent": "PrintCV/1.0 (contact: info@printcv.me)",
         },
         body: new URLSearchParams({
           grant_type: "authorization_code",
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/json",
-            "User-Agent": "42Beirut-Recruit/1.0 (contact: info@42beirut.com)",
+            "User-Agent": "PrintCV/1.0 (contact: info@printcv.me)",
           },
         });
         if (meRes.ok) {

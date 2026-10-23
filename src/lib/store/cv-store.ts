@@ -1134,6 +1134,7 @@ export const useCVStore = create<CVStore>()(
         });
         if (typeof window !== "undefined") {
           try {
+            localStorage.removeItem("printcv_draft_v1");
             localStorage.removeItem("42beirut_recruit_draft_v1");
             localStorage.removeItem("42_rezi_draft_v1");
           } catch (e) {
@@ -1143,12 +1144,12 @@ export const useCVStore = create<CVStore>()(
       },
     }),
     {
-      name: "42beirut_recruit_draft_v1",
+      name: "printcv_draft_v1",
       storage: createJSONStorage(() => ({
         getItem: (name: string) => {
           if (typeof window === "undefined") return null;
           try {
-            return window.localStorage.getItem(name) || window.localStorage.getItem("42_rezi_draft_v1");
+            return window.localStorage.getItem(name) || window.localStorage.getItem("42beirut_recruit_draft_v1") || window.localStorage.getItem("42_rezi_draft_v1");
           } catch {
             return null;
           }
