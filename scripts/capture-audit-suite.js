@@ -29,7 +29,7 @@ async function runAuditCapture() {
     // Ensure cadet profile is hydrated (click Quick Start if landing is shown)
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll("button")).find((b) =>
-        b.textContent && b.textContent.includes("Quick Start with 42 Beirut")
+        b.textContent && (b.textContent.includes("Quick Start") || b.textContent.includes("Developer Profile"))
       );
       if (btn) btn.click();
     });

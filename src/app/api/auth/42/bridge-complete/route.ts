@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
       if (!meRes.ok) {
         const errText = await meRes.text();
-        console.error("42 /v2/me fetch in bridge-complete failed:", errText);
+        console.error("Developer Intra /v2/me fetch in bridge-complete failed:", errText);
         return NextResponse.json(
           { error: `Server profile fetch failed (${meRes.status}). Ensure browser fetches profile directly.` },
           { status: meRes.status }
@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
 
     if (!rawMe || !rawMe.login) {
       return NextResponse.json(
-        { error: "Invalid student profile payload. Expected valid 42 Intra profile from browser." },
+        { error: "Invalid profile payload. Expected valid Developer Intra profile from browser." },
         { status: 400 }
       );
     }
 
-    // 3. Transform raw 42 Intra profile into standard MockIntraUser format
+    // 3. Transform raw Developer Intra profile into standard MockIntraUser format
     const studentProfile = extractIntraProfile(rawMe);
 
     // 4. Persist or update student in Neon PostgreSQL database

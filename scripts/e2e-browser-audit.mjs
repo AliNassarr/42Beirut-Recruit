@@ -78,7 +78,7 @@ async function runFullAudit() {
 
     await page.screenshot({ path: "test/screenshots/01-step1-auth.png", fullPage: true });
 
-    // Click "Quick Start with 42 Beirut Cadet Profile" to advance to Step 2
+    // Click "Quick Start with Developer Profile" to advance to Step 2
     console.log("Advancing to Step 2 via Cadet Profile Quick Start...");
     await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll("button"));
@@ -97,7 +97,7 @@ async function runFullAudit() {
     const step2Details = await page.evaluate(() => {
       const dropzone = Boolean(document.querySelector("input#cv-file-upload"));
       const nameInput = document.querySelector("input[placeholder*='Mohammad Hamdan']")?.value;
-      const emailInput = document.querySelector("input[placeholder*='student.42beirut.com']")?.value;
+      const emailInput = document.querySelector("input[placeholder*='printcv.me']")?.value;
       const phoneInput = document.querySelector("input[placeholder*='961']")?.value;
       const linkedinInput = document.querySelector("input[placeholder*='linkedin.com/in']")?.value;
       const githubInput = document.querySelector("input[placeholder*='github.com']")?.value;

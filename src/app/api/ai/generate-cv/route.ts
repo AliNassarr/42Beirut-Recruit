@@ -142,13 +142,13 @@ Raw Implementation Notes: ${exp.rawNotes || "Delivered software features and sys
     const campusRolePromptBlocks =
       Array.isArray(selectedCampusRoles) && selectedCampusRoles.length > 0
         ? selectedCampusRoles.map((role: string) => `
-Campus Role: 42 Beirut ${role} (Title: "${role}")
+Campus Role: ${role} (Title: "${role}")
 Answers: ${JSON.stringify(campusRoleAnswers[role] || {})}
 `)
         : [];
 
     const unifiedPrompt = `
-Generate complete, grounded engineering CV content for a 42 school student targeting the role: "${targetRole}".
+Generate complete, grounded engineering CV content for a software engineering developer targeting the role: "${targetRole}".
 
 1. SELECTED PROJECTS:
 ${projectPromptBlocks.join("\n")}
@@ -316,7 +316,7 @@ ${
           id: exp.id || `exp-${Date.now()}-${Math.random()}`,
           company: exp.company || "Company",
           role: exp.role || "Software Engineer",
-          location: exp.location || "Beirut, Lebanon",
+          location: exp.location || "San Francisco, CA",
           startDate: exp.startDate || "2023",
           endDate: exp.endDate || "Present",
           isCurrent: exp.isCurrent ?? true,
@@ -377,13 +377,13 @@ ${
           );
           ecBullets = [
             sanitizeBulletPoint(roleDef?.description || `Assisted peers and contributed to campus technical operations.`),
-            sanitizeBulletPoint("Organized peer evaluation sessions and verified code compliance with 42 standards."),
+            sanitizeBulletPoint("Organized peer evaluation sessions and verified code compliance with industry standards."),
           ];
         }
 
         synthesizedExtracurriculars.push({
           id: `ec-${roleName.toLowerCase().replace(/\s+/g, "-")}`,
-          organization: `42 Beirut ${roleName}`,
+          organization: roleName,
           role: roleName,
           startDate: "2024",
           endDate: "Present",
@@ -398,12 +398,12 @@ ${
     // =========================================================================
     const finalEducation: EducationItem[] = [
       {
-        id: "edu-42",
-        institution: "42 Beirut",
+        id: "edu-primary",
+        institution: "School of Digital Technologies",
         program:
           educationState === "STATE_A_CORE"
-            ? "42 Core Curriculum - Architecture of Digital Technologies Program"
-            : "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
+            ? "Core Systems Curriculum – Architecture of Digital Technologies Program"
+            : "Completed the Core Systems Curriculum – Architecture of Digital Technologies Program",
         startDate: "2023",
         endDate: educationState === "STATE_C_ALUMNUS" ? "2024" : "Present",
         isCurrent: educationState !== "STATE_C_ALUMNUS",
@@ -418,7 +418,7 @@ ${
 
     if (Array.isArray(educationItems)) {
       for (const edu of educationItems) {
-        if (!edu.institution?.toLowerCase().includes("42 beirut")) {
+        if (!edu.institution?.toLowerCase().includes("digital technologies")) {
           finalEducation.push({
             id: edu.id || `edu-${Date.now()}-${Math.random()}`,
             institution: edu.institution,
@@ -444,13 +444,13 @@ ${
           ? specializationTrack || "Advanced Software Architecture"
           : undefined,
       contact: {
-        fullName: contactInfo?.fullName || profile?.displayname || "42 Cadet",
+        fullName: contactInfo?.fullName || profile?.displayname || "Software Engineer",
         level: profile?.level ? Math.floor(profile.level) : 9,
-        email: contactInfo?.email || profile?.email || "student@student.42beirut.com",
-        phoneNumber: contactInfo?.phoneNumber || profile?.phone || "+961 70 123 456",
-        githubUrl: normalizeGitHub(contactInfo?.githubUrl || (profile?.login ? profile.login : "42cadet")),
-        linkedinUrl: normalizeLinkedIn(contactInfo?.linkedinUrl || (profile?.login ? profile.login : "42cadet")),
-        location: contactInfo?.location || "Beirut, Lebanon",
+        email: contactInfo?.email || profile?.email || "developer@printcv.me",
+        phoneNumber: contactInfo?.phoneNumber || profile?.phone || "+1 (555) 019-2834",
+        githubUrl: normalizeGitHub(contactInfo?.githubUrl || (profile?.login ? profile.login : "developer")),
+        linkedinUrl: normalizeLinkedIn(contactInfo?.linkedinUrl || (profile?.login ? profile.login : "developer")),
+        location: contactInfo?.location || "San Francisco, CA",
       },
       education: finalEducation,
       experience: showExperience ? synthesizedExperience : [],
@@ -465,7 +465,7 @@ ${
         id: `cw-${typeof cw === "string" ? cw : cw.title}`,
         title: typeof cw === "string" ? cw : cw.title,
         date: typeof cw === "object" && cw.date ? cw.date : "2025",
-        institution: "42 Beirut",
+        institution: "School of Digital Technologies",
       })),
       extracurriculars: synthesizedExtracurriculars,
     };

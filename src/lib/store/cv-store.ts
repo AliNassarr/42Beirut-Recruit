@@ -281,14 +281,14 @@ export const useCVStore = create<CVStore>()(
             ...state.cvData,
             educationState,
             education: state.cvData.education.map((e) =>
-              e.institution.toLowerCase().includes("42 beirut")
+              (e.institution.toLowerCase().includes("digital technologies") || e.isCurrent)
                 ? {
                     ...e,
                     state: educationState,
                     program:
                       educationState === "STATE_A_CORE"
-                        ? "42 Core Curriculum - Architecture of Digital Technologies Program"
-                        : "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
+                        ? "Core Systems Curriculum - Software & Systems Engineering"
+                        : "Completed the Core Systems Curriculum - Software & Systems Engineering",
                   }
                 : e
             ),
@@ -642,7 +642,7 @@ export const useCVStore = create<CVStore>()(
             id: `exp-${Date.now()}`,
             company: item?.company || "Company Name",
             role: item?.role || "Software Developer",
-            location: item?.location || "Beirut, Lebanon",
+            location: item?.location || "San Francisco, CA",
             startDate: item?.startDate || "2023",
             endDate: item?.endDate || "Present",
             isCurrent: item?.isCurrent ?? true,
@@ -785,9 +785,9 @@ export const useCVStore = create<CVStore>()(
         set((state) => {
           const newItem: CourseworkItem = {
             id: `cw-${Date.now()}`,
-            title: item?.title || "Specialized 42 Bootcamp / Workshop",
+            title: item?.title || "Specialized Systems Bootcamp / Workshop",
             date: item?.date || "2025",
-            institution: item?.institution || "42 Beirut",
+            institution: item?.institution || "Systems Architecture Institute",
           };
           return {
             lastSavedTimestamp: Date.now(),
@@ -823,7 +823,7 @@ export const useCVStore = create<CVStore>()(
         set((state) => {
           const newItem: ExtracurricularItem = {
             id: `ec-${Date.now()}`,
-            organization: item?.organization || "42 Beirut Community Initiative",
+            organization: item?.organization || "Peer Mentorship & Campus Operations",
             role: item?.role || "Lead Peer Mentor",
             startDate: item?.startDate || "2024",
             endDate: item?.endDate || "Present",
@@ -920,10 +920,10 @@ export const useCVStore = create<CVStore>()(
           if (rawLi && rawLi.trim()) contactPatch.linkedinUrl = normalizeLinkedIn(rawLi);
           if (rawGh && rawGh.trim()) contactPatch.githubUrl = normalizeGitHub(rawGh);
 
-          // 2. Education: preserve 42 Beirut entries and hydrate all prior university entries
+          // 2. Education: preserve primary entries and hydrate all prior university entries
           let updatedEducation = [...state.cvData.education];
-          const beirutEntries = updatedEducation.filter((e) =>
-            e.institution.toLowerCase().includes("42 beirut")
+          const primaryEntries = updatedEducation.filter((e) =>
+            (e.institution.toLowerCase().includes("digital technologies") || e.isCurrent)
           );
 
           const incomingEduList =
@@ -934,7 +934,7 @@ export const useCVStore = create<CVStore>()(
               : [];
 
           const non42Entries: EducationItem[] = incomingEduList
-            .filter((edu: any) => !edu.institution?.toLowerCase().includes("42 beirut"))
+            .filter((edu: any) => !edu.institution?.toLowerCase().includes("digital technologies"))
             .map((edu: any, idx: number) => ({
               id: `edu-univ-${idx}-${Date.now()}`,
               institution: edu.institution || "University",
@@ -947,7 +947,7 @@ export const useCVStore = create<CVStore>()(
             }));
 
           if (non42Entries.length > 0) {
-            updatedEducation = [...beirutEntries, ...non42Entries];
+            updatedEducation = [...primaryEntries, ...non42Entries];
           }
 
           // 3. Work Experience: populate jobs and set showExperience = true
@@ -975,7 +975,7 @@ export const useCVStore = create<CVStore>()(
                 id: `exp-parsed-${i}-${Date.now()}`,
                 company: exp.company || "Company",
                 role: exp.role || "Software Developer",
-                location: exp.location || "Beirut, Lebanon",
+                location: exp.location || "San Francisco, CA",
                 startDate: exp.startDate || "2023",
                 endDate: exp.endDate || "Present",
                 isCurrent: exp.endDate?.toLowerCase().includes("present") ?? false,
@@ -1008,7 +1008,7 @@ export const useCVStore = create<CVStore>()(
             updatedSkills.projectManagementTools = mergeUnique(state.cvData.skills.projectManagementTools, data.skills.projectManagementTools);
           }
 
-          // 5. Custom / Non-42 Personal Projects
+          // 5. Custom / Additional Personal Projects
           let updatedCustomProjects = [...state.customProjects];
           let updatedSelectedProjects = [...state.selectedProjects];
           const updatedProjectAnswers = { ...state.projectAnswers };
@@ -1135,8 +1135,7 @@ export const useCVStore = create<CVStore>()(
         if (typeof window !== "undefined") {
           try {
             localStorage.removeItem("printcv_draft_v1");
-            localStorage.removeItem("42beirut_recruit_draft_v1");
-            localStorage.removeItem("42_rezi_draft_v1");
+            
           } catch (e) {
             console.warn("Could not clear localStorage draft:", e);
           }
@@ -1149,7 +1148,7 @@ export const useCVStore = create<CVStore>()(
         getItem: (name: string) => {
           if (typeof window === "undefined") return null;
           try {
-            return window.localStorage.getItem(name) || window.localStorage.getItem("42beirut_recruit_draft_v1") || window.localStorage.getItem("42_rezi_draft_v1");
+            return window.localStorage.getItem(name) ;
           } catch {
             return null;
           }

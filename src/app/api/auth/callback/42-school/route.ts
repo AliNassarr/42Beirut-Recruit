@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   const redirectUri = `${origin}/api/auth/callback/42-school`;
 
   if (error || !code) {
-    console.error("42 OAuth callback error:", error, errorDescription);
+    console.error("OAuth callback error:", error, errorDescription);
     return redirectToSafeError(origin, errorDescription || error || "OAuth authorization failed");
   }
 
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       } else {
         const errJson = await tokenRes.json().catch(() => null);
         if (errJson?.error) {
-          return redirectToSafeError(origin, `42 Intra: ${errJson.error_description || errJson.error}`);
+          return redirectToSafeError(origin, `Developer Intra: ${errJson.error_description || errJson.error}`);
         }
       }
     } catch (proxyErr) {
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         accessToken = transportResult.data.access_token;
       } else if (transportResult.passedCloudflare && transportResult.data?.error) {
         const errMsg = transportResult.data.error_description || transportResult.data.error;
-        return redirectToSafeError(origin, `42 Intra: ${errMsg}`);
+        return redirectToSafeError(origin, `Developer Intra: ${errMsg}`);
       }
     }
 
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
     });
     return bridgeResponse;
   } catch (err: any) {
-    console.error("42 OAuth callback processing error:", err);
+    console.error("OAuth callback processing error:", err);
     return redirectToSafeError(origin, err?.message || "OAuth error");
   }
 }

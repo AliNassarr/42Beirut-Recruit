@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useCVStore, useHasHydrated } from "@/lib/store/cv-store";
 import { ReziStudioLayout } from "@/components/studio/ReziStudioLayout";
-import { FortyTwoLogo } from "@/components/ui/FortyTwoLogo";
+import { PrintCVLogo } from "@/components/ui/PrintCVLogo";
 import { MOCK_42_STUDENT, createInitialCVFromIntra } from "@/lib/intra/mock-data";
 import { Loader2, AlertCircle } from "lucide-react";
 
@@ -84,7 +84,7 @@ export default function Home() {
     [setCVData, setEducationState, setSelectedProjects, setSpecializationTrack, setStudentProfile]
   );
 
-  // 1. Initial Load Hydration: Ensure MOCK_42_STUDENT is populated if no saved draft exists
+  // 1. Initial Load Hydration: Ensure baseline developer profile is populated if no saved draft exists
   useEffect(() => {
     if (hasHydrated) {
       if (!cvData?.contact?.fullName || cvData.projects.length === 0) {
@@ -131,7 +131,7 @@ export default function Home() {
       bridgeAttemptedRef.current = true;
 
       setAuthLoading(true);
-      setBridgeLoadingText("Validating 42 Intra handshake ticket...");
+      setBridgeLoadingText("Validating Developer Intra handshake ticket...");
 
       async function executeResidentialBridge() {
         try {
@@ -168,7 +168,7 @@ export default function Home() {
           const proxyJson = await proxyRes.json();
           const accessToken = proxyJson.access_token;
 
-          setBridgeLoadingText("Retrieving 42 student profile...");
+          setBridgeLoadingText("Retrieving developer profile...");
           const meRes = await fetch(`${FORTY_TWO_API_BASE}/v2/me`, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -199,7 +199,7 @@ export default function Home() {
           }
         } catch (err: any) {
           console.error("Bridge failed:", err);
-          setAuthError(err?.message || "42 Intra sync failed.");
+          setAuthError(err?.message || "Profile sync failed.");
         } finally {
           setAuthLoading(false);
           setBridgeLoadingText("");
@@ -235,11 +235,11 @@ export default function Home() {
       <main className="min-h-screen bg-[#09090B] text-white flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-sm">
-            <FortyTwoLogo className="w-7 h-5 text-white" />
+            <PrintCVLogo className="w-6 h-6 text-white" />
           </div>
           <div className="flex items-center gap-2 text-xs text-zinc-400">
             <Loader2 className="w-4 h-4 animate-spin text-white" />
-            <span>Loading Rezi Studio...</span>
+            <span>Loading PrintCV Studio...</span>
           </div>
         </div>
       </main>
@@ -255,10 +255,10 @@ export default function Home() {
           <Loader2 className="w-8 h-8 text-white absolute inset-0 m-auto animate-pulse" />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">
-          {bridgeLoadingText || "Syncing 42 Beirut Intra Profile..."}
+          {bridgeLoadingText || "Syncing Developer Profile..."}
         </h2>
         <p className="text-sm text-zinc-400 max-w-md">
-          Retrieving your validated cursus marks, calculating line budgets, and configuring your studio workspace.
+          Retrieving your validated project milestones, calculating line budgets, and configuring your studio workspace.
         </p>
       </main>
     );
@@ -271,7 +271,7 @@ export default function Home() {
         <div className="bg-red-500/10 border-b border-red-500/30 text-red-300 px-4 py-2.5 text-xs flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-            <span>42 Intra Authentication: {authError}</span>
+            <span>Profile Authentication: {authError}</span>
           </div>
           <button
             type="button"
@@ -283,7 +283,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Unified 42 Beirut Rezi Studio Workspace */}
+      {/* Unified PrintCV Studio Workspace */}
       <ReziStudioLayout />
     </div>
   );

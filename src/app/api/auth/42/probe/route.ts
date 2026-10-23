@@ -53,7 +53,7 @@ export async function GET() {
         // Not JSON
       }
 
-      // If status is 401 and response is JSON from 42 Intra, Cloudflare was 100% bypassed!
+      // If status is 401 and response is JSON from Developer Intra, Cloudflare was 100% bypassed!
       const passed = !isBlocked && (res.status === 401 || res.status === 200 || (parsed && parsed.error));
 
       if (passed && !anyPassed) {

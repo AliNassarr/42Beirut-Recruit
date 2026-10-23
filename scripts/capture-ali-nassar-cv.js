@@ -60,9 +60,9 @@ async function run() {
     // Clear stale draft in localStorage if it was Mohammad Hamdan, and trigger Intra sync
     await page.evaluate(() => {
       try {
-        const stored = localStorage.getItem("42beirut_recruit_draft_v1");
+        const stored = localStorage.getItem("printcv_studio_draft_v1");
         if (stored && stored.includes("Mohammad Hamdan")) {
-          localStorage.removeItem("42beirut_recruit_draft_v1");
+          localStorage.removeItem("printcv_studio_draft_v1");
           localStorage.removeItem("42_rezi_draft_v1");
           location.reload();
         }

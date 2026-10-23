@@ -255,7 +255,7 @@ export async function exchange42TokenOnServer(params: {
         return transportResult;
       }
 
-      // If we got a real OAuth error JSON from 42 Intra (e.g. invalid_grant), we bypassed Cloudflare!
+      // If we got a real OAuth error JSON from Developer Intra (e.g. invalid_grant), we bypassed Cloudflare!
       if (passed && parsedData?.error) {
         transportResult.error = parsedData.error_description || parsedData.error;
         return transportResult;

@@ -1,7 +1,7 @@
 import { MockIntraUser, format42ProjectDate } from "./mock-data";
 
 export function extractIntraProfile(me: any): MockIntraUser {
-  // 1. Extract 42cursus data (cursus_id === 21)
+  // 1. Extract curriculum data (cursus_id === 21)
   const cursus42 =
     me.cursus_users?.find((c: any) => c.cursus_id === 21) ||
     me.cursus_users?.sort((a: any, b: any) => (b.level || 0) - (a.level || 0))[0];
@@ -10,9 +10,9 @@ export function extractIntraProfile(me: any): MockIntraUser {
   const primaryCampus = me.campus_users?.find((c: any) => c.is_primary);
   const campusObj =
     me.campus?.find((c: any) => c.id === primaryCampus?.campus_id) ||
-    me.campus?.[0] || { id: 43, name: "Beirut" };
+    me.campus?.[0] || { id: 1, name: "Main Campus" };
 
-  // 3. Extract validated 42 projects (cursus 21)
+  // 3. Extract validated curriculum projects (cursus 21)
   const validatedProjects: MockIntraUser["validatedProjects"] = (me.projects_users || [])
     .filter((pu: any) => {
       const isValid = pu["validated?"] === true || (pu.status === "finished" && (pu.final_mark || 0) >= 75);
@@ -45,13 +45,13 @@ export function extractIntraProfile(me: any): MockIntraUser {
     email: me.email,
     displayname: me.usual_full_name || me.displayname || me.login,
     image: me.image?.link || me.image?.versions?.medium || "",
-    campusName: campusObj.name || "Beirut",
-    campusId: campusObj.id || 43,
+    campusName: campusObj.name || "Main Campus",
+    campusId: campusObj.id || 1,
     level: cursus42 ? parseFloat(cursus42.level.toFixed(2)) : 0.0,
     grade: cursus42?.grade || "Learner",
     poolMonth: me.pool_month || "",
     poolYear: me.pool_year ? parseInt(me.pool_year) : 2024,
-    coalition: "42 Beirut",
+    coalition: "Engineering Guild",
     beginAt: cursus42?.begin_at || new Date().toISOString(),
     validatedProjects,
   };

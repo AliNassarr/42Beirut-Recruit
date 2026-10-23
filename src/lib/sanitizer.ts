@@ -4,7 +4,7 @@
  * Enforces:
  * 1. STRICT BAN ON EM-DASHES (—): Automatically converts em-dashes to ", " or " - "
  * 2. Grounded engineering tone: Detects and replaces robotic AI buzzwords with simple, direct verbs
- * 3. Preserves standard en-dash (–) for date ranges and "42 Student – Level X"
+ * 3. Preserves standard en-dash (–) for date ranges and "Software Engineer – Level X"
  */
 
 // Banned robotic / exaggerated buzzwords mapped to humble, direct alternatives

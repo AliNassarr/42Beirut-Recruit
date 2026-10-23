@@ -44,21 +44,21 @@ export function AICoverLetterStudio({
 
   // Default synthesized cover letter paragraphs
   const [paragraphs, setParagraphs] = useState<string[]>([
-    `I am writing to express my strong enthusiasm for the ${role} position at ${company}. Having completed rigorous systems programming projects at 42 Beirut—where software must adhere strictly to POSIX standards, zero memory leaks under Valgrind, and 100% peer-evaluated test suites—I am eager to contribute my low-level problem-solving and software design capabilities to your team.`,
-    `Throughout my 42 cursus, I have engineered complex Unix infrastructure software from scratch in C and C++. In projects such as minishell and webserv, I implemented custom AST command interpreters, POSIX signal handling, and non-blocking I/O multiplexing with epoll. This hands-on experience taught me to optimize algorithmic time complexity, profile system resources, and write clean, maintainable code without relying on high-level runtime abstractions.`,
+    `I am writing to express my strong enthusiasm for the ${role} position at ${company}. Having completed rigorous systems programming projects—where software must adhere strictly to POSIX standards, zero memory leaks under Valgrind, and 100% peer-evaluated test suites—I am eager to contribute my low-level problem-solving and software design capabilities to your team.`,
+    `Throughout my systems engineering cursus, I have engineered complex Unix infrastructure software from scratch in C and C++. In projects such as minishell and webserv, I implemented custom AST command interpreters, POSIX signal handling, and non-blocking I/O multiplexing with epoll. This hands-on experience taught me to optimize algorithmic time complexity, profile system resources, and write clean, maintainable code without relying on high-level runtime abstractions.`,
     `What particularly attracts me to ${company} is your commitment to high-performance, resilient engineering. My background in collaborative peer learning and autonomous debugging has prepared me to ramp up rapidly on your codebase, identify subtle concurrency bottlenecks, and deliver production-grade modules.`,
-    `I welcome the opportunity to discuss how my systems programming foundation, 42 Beirut evaluation discipline, and passion for reliable software align with ${company}'s goals. Thank you for your time and consideration.`,
+    `I welcome the opportunity to discuss how my systems programming foundation, rigorous peer-review discipline, and passion for reliable software align with ${company}'s goals. Thank you for your time and consideration.`,
   ]);
 
   // AI Synthesis Trigger
   const handleSynthesize = () => {
     setIsSynthesizing(true);
     setTimeout(() => {
-      const p1 = `I am writing to formally apply for the ${role || "Software Engineer"} position at ${company || "your organization"}. As a developer trained in the rigorous peer-to-peer curriculum at 42 Beirut, I have cultivated deep proficiency in low-level systems programming, deterministic memory safety, and resilient architecture.`;
+      const p1 = `I am writing to formally apply for the ${role || "Software Engineer"} position at ${company || "your organization"}. As a developer trained in the rigorous peer-to-peer engineering curriculum, I have cultivated deep proficiency in low-level systems programming, deterministic memory safety, and resilient architecture.`;
 
       let p2 = "";
       if (focusArea === "systems") {
-        p2 = `At 42 Beirut, software engineering is practiced under stringent Norminette constraints with zero standard library dependencies. I have architected asynchronous HTTP/1.1 servers using epoll, built POSIX-compliant command line shells with custom AST parsers, and benchmarked multi-threaded applications to ensure zero deadlock under high concurrent loads.`;
+        p2 = `In my coursework, software engineering is practiced under stringent code quality constraints with zero standard library dependencies. I have architected asynchronous HTTP/1.1 servers using epoll, built POSIX-compliant command line shells with custom AST parsers, and benchmarked multi-threaded applications to ensure zero deadlock under high concurrent loads.`;
       } else if (focusArea === "architecture") {
         p2 = `My software engineering experience centers on scalable microservices and modular system design. In capstone projects like ft_transcendence and Inception, I orchestrated multi-container Docker environments, implemented sub-25ms real-time WebSocket communications, and automated CI/CD validation pipelines with comprehensive code coverage.`;
       } else {
@@ -78,7 +78,7 @@ export function AICoverLetterStudio({
   const handleCopy = () => {
     const fullText = [
       cvData.contact.fullName.toUpperCase(),
-      `${cvData.contact.email} | ${cvData.contact.phoneNumber} | ${cvData.contact.location || "Beirut, Lebanon"}`,
+      `${cvData.contact.email} | ${cvData.contact.phoneNumber} | ${cvData.contact.location || "San Francisco, CA"}`,
       "",
       new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
       "",
@@ -307,7 +307,7 @@ export function AICoverLetterStudio({
             <div className="mt-8 text-xs text-zinc-900 flex flex-col gap-1">
               <div>Sincerely,</div>
               <div className="font-bold text-sm mt-4">{cvData.contact.fullName}</div>
-              <div className="text-[11px] text-zinc-600">42 Beirut Cadet • {role}</div>
+              <div className="text-[11px] text-zinc-600">Software Engineer • {role}</div>
             </div>
           </div>
         </main>

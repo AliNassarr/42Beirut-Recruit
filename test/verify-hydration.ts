@@ -10,7 +10,7 @@ async function testHydration() {
   const mockParsedData: ParsedCVData = {
     contact: {
       fullName: "Mohammad Hamdan",
-      email: "mhamdan@student.42beirut.com",
+      email: "mhamdan@printcv.me",
       phone: "+961 70 123 456",
       linkedin: "https://www.linkedin.com/in/mhamdan",
       github: "https://github.com/mhamdan",
@@ -28,7 +28,7 @@ async function testHydration() {
       {
         company: "Balance Center",
         role: "Independent Mobile & Web Developer",
-        location: "Beirut, Lebanon",
+        location: "San Francisco, CA",
         startDate: "February 2026",
         endDate: "September 2026",
         descriptionBullets: [
@@ -66,7 +66,7 @@ async function testHydration() {
       },
     ],
     coursework: [
-      "42 Beirut Extracurricular Cybersecurity Piscine",
+      "Extracurricular Cybersecurity Intensive Bootcamp",
       "Harvard CS50x Certificate",
     ],
   };
@@ -97,7 +97,7 @@ async function testHydration() {
 
   // Assertions
   if (cv.contact.fullName !== "Mohammad Hamdan") throw new Error("Full name mismatch");
-  if (cv.contact.email !== "mhamdan@student.42beirut.com") throw new Error("Email mismatch");
+  if (cv.contact.email !== "mhamdan@printcv.me") throw new Error("Email mismatch");
   if (cv.contact.phoneNumber !== "+961 70 123 456") throw new Error("Phone mismatch");
   if (cv.contact.linkedinUrl !== "linkedin.com/in/mhamdan") throw new Error("LinkedIn normalization failed");
   if (cv.contact.githubUrl !== "github.com/mhamdan") throw new Error("GitHub normalization failed");
@@ -106,10 +106,10 @@ async function testHydration() {
   if (cv.experience.length < 1) throw new Error("Experience was not populated");
   if (cv.experience[0].company !== "Balance Center") throw new Error("Experience company mismatch");
 
-  // Verify education preserved 42 Beirut and added university
-  const has42 = cv.education.some((e) => e.institution.toLowerCase().includes("42 beirut"));
+  // Verify education preserved School of Digital Technologies and added university
+  const hasPrimary = cv.education.some((e) => e.institution.toLowerCase().includes("digital technologies"));
   const hasUniv = cv.education.some((e) => e.institution.includes("Lebanese University"));
-  if (!has42) throw new Error("42 Beirut entry was overwritten!");
+  if (!hasPrimary) throw new Error("School of Digital Technologies entry was overwritten!");
   if (!hasUniv) throw new Error("University degree was not added!");
 
   // Verify skills populated

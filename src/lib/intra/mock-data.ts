@@ -42,7 +42,7 @@ export const MOCK_42_STUDENT: MockIntraUser = {
   email: "alnassar.dev@gmail.com",
   displayname: "Ali Nassar",
   image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop",
-  campusName: "Beirut",
+  campusName: "San Francisco",
   campusId: 43,
   level: 7.0,
   grade: "Learner",
@@ -59,7 +59,7 @@ export const MOCK_42_STUDENT: MockIntraUser = {
 };
 
 /**
- * Pre-fills an initial baseline CV from 42 Intra profile data
+ * Pre-fills an initial baseline CV from developer profile data
  */
 export function createInitialCVFromIntra(
   user: MockIntraUser = MOCK_42_STUDENT,
@@ -86,16 +86,16 @@ export function createInitialCVFromIntra(
       phoneNumber: "+961 78 870 225",
       githubUrl: "github.com/alinassarr",
       linkedinUrl: "linkedin.com/in/ali-nassar-121719185",
-      location: "Beirut, Lebanon",
+      location: "San Francisco, CA",
     },
     education: [
       {
-        id: "edu-42",
-        institution: "42 Beirut",
+        id: "edu-main",
+        institution: "School of Digital Technologies",
         program:
           educationState === "STATE_A_CORE"
-            ? "42 Core Curriculum - Architecture of Digital Technologies Program"
-            : "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
+            ? "Core Systems Curriculum - Software & Systems Engineering"
+            : "Completed the Core Systems Curriculum - Software & Systems Engineering",
         startDate: "2025",
         endDate: "Present",
         isCurrent: true,
@@ -110,7 +110,7 @@ export function createInitialCVFromIntra(
         id: "exp-balance-center",
         company: "Balance Center",
         role: "Mobile & Web Developer",
-        location: "Beirut, Lebanon",
+        location: "San Francisco, CA",
         startDate: "February 2026",
         endDate: "September 2026",
         isCurrent: false,
@@ -172,7 +172,7 @@ export function createInitialCVFromIntra(
         bulletPoints: [
           "Built a real-time raycasting engine in C utilizing the Digital Differential Analysis (DDA) algorithm to project dynamic 3D scenes from 2D grids.",
           "Implemented vector-based camera rotations, fluid movement mechanics, and precise bounding-box collision detection at consistent 60 FPS.",
-          "Developed dynamic door interaction states, custom campus wall textures, and sorted 2D sprite rendering routines.",
+          "Developed dynamic door interaction states, custom texture mapping, and sorted 2D sprite rendering routines.",
         ],
       },
     ],

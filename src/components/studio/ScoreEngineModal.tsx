@@ -293,7 +293,7 @@ export function ScoreEngineModal({
                 CV Readiness Scorecard
               </h3>
               <p className="text-xs text-zinc-400">
-                42 Standard Engineering Audit
+                ATS Standard Engineering Audit
               </p>
             </div>
           </div>
@@ -435,7 +435,7 @@ export function ScoreEngineModal({
               <div>
                 <div className="font-semibold text-white">2. Format &amp; 1-Page Height Budget</div>
                 <div className="text-[11px] text-zinc-400">
-                  {heightBudget.isOverflow ? "Exceeds 1-page format" : "Fits 1-page format"} • 42 Standard single-column layout
+                  {heightBudget.isOverflow ? "Exceeds 1-page format" : "Fits 1-page format"} • ATS Standard single-column layout
                 </div>
               </div>
               <span className="font-mono font-bold text-white text-sm">
@@ -601,7 +601,7 @@ export function ScoreEngineModal({
                 <CheckCircle2 className="w-8 h-8 text-white" />
                 <div className="font-bold text-white">Zero Critical Issues Detected!</div>
                 <p className="text-xs max-w-sm">
-                  Your CV conforms to 42 standards with concise bullets and single-page format compliance.
+                  Your CV conforms to ATS standards with concise bullets and single-page format compliance.
                 </p>
               </div>
             )}

@@ -37,15 +37,15 @@ export async function POST(req: NextRequest) {
 
     // 2. Query with cascading failover
     const prompt = `
-Generate 2 to 3 grounded, 100% unique CV bullet points for this 42 project following Dr. Wissam Sammouri's reference template:
+Generate 2 to 3 grounded, 100% unique CV bullet points for this software systems project following Dr. Wissam Sammouri's reference template:
 Project: ${projectName || projectSlug}
 Tech Stack: ${techStack || "C / C++, Unix"}
 Target Role: ${targetRole || "Software Engineer"}
 Student's Personal Implementation Notes:
-${userNotes ? `- ${userNotes}` : "- Standard 42 Common Core project implementation"}
+${userNotes ? `- ${userNotes}` : "- Standard systems core project implementation"}
 
 CRITICAL UNIQUENESS RULE:
-Other 42 Beirut students have already been given the bullet points listed below:
+Other engineering candidates have already been given the bullet points listed below:
 <forbidden_already_used_bullets>
 ${forbiddenBulletList.map((b) => `- "${b}"`).join("\n")}
 </forbidden_already_used_bullets>

@@ -112,17 +112,17 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
           Education
         </div>
 
-        {/* 42 Beirut Entry (With Conditional States A, B, C) */}
+        {/* Primary Systems Academy Entry (With Conditional States A, B, C) */}
         <div className={isCompact ? "mb-1.5" : "mb-2"}>
           <div className="flex justify-between items-baseline">
             <span className="font-bold text-gray-900" style={{ fontSize: isCompact ? "9.5pt" : "10pt" }}>
-              42 Beirut - Level {contact.level}
+              School of Digital Technologies – Level {contact.level}
             </span>
             <span className="text-gray-800 italic" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
               {(() => {
-                const edu42 = education?.find((e) => e.institution.toLowerCase().includes("42 beirut"));
-                if (edu42?.startDate) {
-                  return `${edu42.startDate} – ${edu42.endDate || "Present"}`;
+                const eduPrimary = education?.find((e) => e.institution.toLowerCase().includes("digital technologies") || e.isCurrent);
+                if (eduPrimary?.startDate) {
+                  return `${eduPrimary.startDate} – ${eduPrimary.endDate || "Present"}`;
                 }
                 return educationState === "STATE_C_ALUMNUS" ? "2024" : "2025 – Present";
               })()}
@@ -131,14 +131,14 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
 
           {educationState === "STATE_A_CORE" && (
             <div className="flex justify-between items-baseline text-gray-800" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
-              <span>42 Core Curriculum - Architecture of Digital Technologies Program</span>
-              <span className="italic text-gray-600" style={{ fontSize: isCompact ? "8.5pt" : "9pt" }}>Beirut, Lebanon</span>
+              <span>Core Systems Curriculum – Architecture of Digital Technologies</span>
+              <span className="italic text-gray-600" style={{ fontSize: isCompact ? "8.5pt" : "9pt" }}>{contact.location || "San Francisco, CA"}</span>
             </div>
           )}
 
           {educationState === "STATE_B_SPECIALIZATION" && (
             <div className="text-gray-800" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
-              <div>Completed the 42 Core Curriculum - Architecture of Digital Technologies Program</div>
+              <div>Completed the Core Systems Curriculum – Architecture of Digital Technologies Program</div>
               <div className="italic text-gray-700">
                 Advanced Curriculum - {specializationTrack || "Advanced Software Architecture Track"}
               </div>
@@ -147,7 +147,7 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
 
           {educationState === "STATE_C_ALUMNUS" && (
             <div className="text-gray-800" style={{ fontSize: isCompact ? "9pt" : "9.5pt" }}>
-              <div>42 Beirut Graduate &amp; Alumnus</div>
+              <div>School of Digital Technologies Graduate &amp; Alumnus</div>
               {specializationTrack && (
                 <div className="italic text-gray-700">Specialization: {specializationTrack}</div>
               )}
@@ -158,7 +158,7 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
         {/* Previous University Degree (If provided) */}
         {education &&
           education
-            .filter((edu) => !edu.institution.toLowerCase().includes("42 beirut"))
+            .filter((edu) => !edu.institution.toLowerCase().includes("digital technologies") && !edu.isCurrent)
             .map((edu) => (
               <div key={edu.id} className={isCompact ? "mb-1.5" : "mb-2"}>
                 <div className="flex justify-between items-baseline">
@@ -276,7 +276,7 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             const bulletsToRender = hasExplicitBullets
               ? proj.bulletPoints
               : [
-                  `Developed ${cleanTitle} adhering to strict 42 Beirut C/POSIX system specifications.`,
+                  `Developed ${cleanTitle} adhering to strict C/POSIX system specifications.`,
                   "Implemented modular, memory-safe architecture verified via automated test suites.",
                 ];
 
@@ -532,7 +532,7 @@ export const WissamCleanTemplate = forwardRef<HTMLDivElement, WissamCleanTemplat
             className="text-gray-700 font-semibold mb-0.5"
             style={{ fontSize: isCompact ? "10pt" : "11pt" }}
           >
-            {data.targetRole ? `${data.targetRole.includes("42") ? data.targetRole : `${data.targetRole} | 42 Student – Level ${contact.level}`}` : `42 Student – Level ${contact.level}`}
+            {data.targetRole ? (data.targetRole.includes("Level") ? data.targetRole : `${data.targetRole} | Software Engineer – Level ${contact.level}`) : `Software Engineer – Level ${contact.level}`}
           </div>
 
           <div

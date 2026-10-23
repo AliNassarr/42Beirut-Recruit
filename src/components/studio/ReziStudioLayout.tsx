@@ -11,7 +11,7 @@ import { generateDrWissamDocx } from "@/lib/docx-generator";
 import { CanvasPreviewViewport } from "./CanvasPreviewViewport";
 import { BulletEditorRow } from "./BulletEditorRow";
 import { ScoreEngineModal } from "./ScoreEngineModal";
-import { FortyTwoLogo } from "@/components/ui/FortyTwoLogo";
+import { PrintCVLogo } from "@/components/ui/PrintCVLogo";
 import {
   RefreshCw,
   Sliders,
@@ -50,7 +50,7 @@ const SECTION_METADATA: Record<
 > = {
   education: {
     label: "Education",
-    desc: "42 Beirut cursus standing & academic degrees",
+    desc: "Academic standing, degrees & certifications",
     getCount: (cv) => `Level ${cv.contact?.level ?? 9}`,
   },
   experience: {
@@ -61,7 +61,7 @@ const SECTION_METADATA: Record<
   },
   projects: {
     label: "Technical Projects",
-    desc: "Selected 42 C/C++ projects with metrics",
+    desc: "Selected engineering projects with metrics",
     getCount: (cv) => `${cv.projects?.length || 0} selected`,
   },
   skills: {
@@ -79,7 +79,7 @@ const SECTION_METADATA: Record<
   },
   coursework: {
     label: "Relevant Coursework",
-    desc: "42 Piscines, workshops, and certifications",
+    desc: "Bootcamps, workshops, and certifications",
     getCount: (cv) => `${cv.coursework?.length || 0} items`,
   },
   extracurriculars: {
@@ -335,7 +335,7 @@ export function ReziStudioLayout() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${cvData.contact.fullName.replace(/\s+/g, "_")}_42_Beirut_CV.docx`;
+      a.download = `${cvData.contact.fullName.replace(/\s+/g, "_")}_CV.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -375,8 +375,8 @@ export function ReziStudioLayout() {
     const initialCV = createInitialCVFromIntra(mock);
     setCVData(initialCV);
     showToast({
-      title: "42 Intra Synced",
-      desc: `Synced 42 Intra profile for ${mock.displayname}.`,
+      title: "Profile Synced",
+      desc: `Synced developer profile for ${mock.displayname}.`,
     });
   };
 
@@ -393,19 +393,19 @@ export function ReziStudioLayout() {
         {/* Top Header Bar */}
         <header className="h-[72px] bg-[#0C0C0E]/95 backdrop-blur border-b border-zinc-800 sticky top-0 z-30">
           <div className="w-full max-w-[1800px] h-full mx-auto px-4 md:px-6 flex items-center justify-between gap-2 lg:gap-4">
-            {/* Left: 42 Mark & Static Brand Label & Quick Intra Sync & CV Readiness Badge */}
+            {/* Left: Brand Logo & Static Brand Label & Quick Intra Sync & CV Readiness Badge */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
-                <FortyTwoLogo className="w-5 h-4 text-white" />
+                <PrintCVLogo className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-bold text-white px-1 select-none tracking-tight">
-                42 Beirut
+                PrintCV
               </span>
               <button
                 type="button"
                 onClick={handleIntraSync}
                 className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-400 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 rounded-md transition cursor-pointer"
-                title="Sync from 42 Intra profile"
+                title="Sync developer profile"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Sync Intra</span>
@@ -515,7 +515,7 @@ export function ReziStudioLayout() {
                 showSlideOverPreview ? "hidden xl:flex xl:w-[250px] 2xl:w-[280px]" : "lg:w-[308px]"
               }`}>
                 {activeSection === "EDUCATION" ? (
-                  /* Education Entries Management & 42 Standing */
+                  /* Education Entries Management & Academic Standing */
                   <div className="bg-[#141417] border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-3 shadow-sm flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
@@ -568,13 +568,13 @@ export function ReziStudioLayout() {
 
                     <div className="p-3 bg-[#0C0C0E] border border-zinc-800/90 rounded-lg flex flex-col gap-2 mt-auto">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">42 Beirut Standing</span>
+                        <span className="text-xs font-bold text-white">Academic Standing</span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-700">
                           Level {cvData.contact.level ?? 9}
                         </span>
                       </div>
                       <p className="text-[11px] text-zinc-400 leading-relaxed">
-                        Common Core peer-evaluated curriculum accredited by École 42 Paris.
+                        Peer-evaluated systems curriculum emphasizing low-level architecture.
                       </p>
                       <button
                         type="button"
@@ -807,7 +807,7 @@ export function ReziStudioLayout() {
                           techStack: "C, POSIX, Make",
                           date: "2024",
                           bulletPoints: [
-                            "Engineered scalable systems software module conforming to 42 Norminette standards.",
+                            "Engineered scalable systems software module conforming to strict code quality standards.",
                           ],
                           isCustom: true,
                         };
@@ -827,7 +827,7 @@ export function ReziStudioLayout() {
                           id: `exp-${Date.now()}`,
                           company: "Engineering Co.",
                           role: "Software Engineering Intern",
-                          location: "Beirut, Lebanon",
+                          location: "San Francisco, CA",
                           startDate: "June 2024",
                           endDate: "September 2024",
                           bulletPoints: [
@@ -881,7 +881,7 @@ export function ReziStudioLayout() {
                     type="text"
                     value={cvData.contact.location || ""}
                     onChange={(e) => updateContact({ location: e.target.value })}
-                    placeholder="e.g. Beirut, Lebanon"
+                    placeholder="e.g. San Francisco, CA or Remote"
                     className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                   />
                 </div>
@@ -894,7 +894,7 @@ export function ReziStudioLayout() {
                     type="email"
                     value={cvData.contact.email}
                     onChange={(e) => updateContact({ email: e.target.value })}
-                    placeholder="cadet@student.42beirut.com"
+                    placeholder="engineer@domain.com"
                     className="w-full h-11 px-3.5 py-2.5 bg-[#0A0A0D] border border-zinc-800/90 hover:border-zinc-700 focus:border-zinc-400 focus:ring-2 focus:ring-white/[0.08] rounded-lg text-[15px] font-normal text-zinc-100 placeholder:text-zinc-600 transition-all focus:outline-none"
                   />
                 </div>
@@ -942,11 +942,11 @@ export function ReziStudioLayout() {
 
             {activeSection === "EDUCATION" && (
               <div className="flex flex-col gap-5">
-                {/* 42 Common Core Standing / Level */}
+                {/* Core Systems Standing / Level */}
                 <div className="p-4 sm:p-5 bg-[#0C0C0E] border border-zinc-800/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                   <div>
-                    <h4 className="text-sm font-bold text-white">42 Common Core Level</h4>
-                    <p className="text-xs text-zinc-400 mt-0.5">Your official cursus level on 42 Network Intra.</p>
+                    <h4 className="text-sm font-bold text-white">Core Systems Level</h4>
+                    <p className="text-xs text-zinc-400 mt-0.5">Your official standing in the systems programming curriculum.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-zinc-400">Level</span>
@@ -1188,7 +1188,7 @@ export function ReziStudioLayout() {
                     ))
                   ) : (
                     <div className="p-8 text-center bg-[#0C0C0E]/60 rounded-xl border border-dashed border-zinc-800 text-zinc-500 text-sm">
-                      Work Experience is hidden. 100% of vertical line budget is allocated to your 42 Projects.
+                      Work Experience is hidden. 100% of vertical line budget is allocated to your Technical Projects.
                     </div>
                   )}
                 </div>
@@ -1266,9 +1266,9 @@ export function ReziStudioLayout() {
                         type="button"
                         onClick={() =>
                           addCourseworkItem({
-                            title: "42 Beirut Piscine: C Language & Unix Foundations",
+                            title: "Intensive Systems Bootcamp: C Language & Unix Foundations",
                             date: "2024",
-                            institution: "42 Beirut",
+                            institution: "Systems Architecture Institute",
                           })
                         }
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold transition cursor-pointer"
@@ -1300,7 +1300,7 @@ export function ReziStudioLayout() {
                                   onChange={(e) =>
                                     updateCourseworkItem(cw.id, { title: e.target.value })
                                   }
-                                  placeholder="e.g. 42 Beirut Piscine: C Language & Unix"
+                                  placeholder="e.g. Intensive Systems Bootcamp: C Language & Unix"
                                   className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
                                 />
                               </div>
@@ -1355,7 +1355,7 @@ export function ReziStudioLayout() {
                           </label>
                         </div>
                         <p className="text-xs text-zinc-400 mt-0.5">
-                          Peer evaluations, 42 Black Ops, mentoring, hackathons, and community leadership.
+                          Peer mentorship, technical workshops, hackathons, and community leadership.
                         </p>
                       </div>
 
@@ -1364,7 +1364,7 @@ export function ReziStudioLayout() {
                           type="button"
                           onClick={() =>
                             addExtracurricularItem({
-                              organization: "42 Beirut Community Initiative",
+                              organization: "Peer Mentorship & Campus Operations",
                               role: "Lead Peer Mentor",
                               startDate: "2024",
                               endDate: "Present",
@@ -1408,7 +1408,7 @@ export function ReziStudioLayout() {
                                     onChange={(e) =>
                                       updateExtracurricularItem(ec.id, { organization: e.target.value })
                                     }
-                                    placeholder="e.g. 42 Beirut Black Ops"
+                                    placeholder="e.g. Peer Mentorship Initiative"
                                     className="w-full h-9 px-3 bg-[#141417] border border-zinc-800 hover:border-zinc-700 focus:border-zinc-500 rounded-lg text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
                                   />
                                 </div>
@@ -1601,7 +1601,7 @@ export function ReziStudioLayout() {
               <h3 className="text-base font-bold text-white">Reset CV Draft?</h3>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              This will re-hydrate your CV from your 42 Intra profile and reset all bullet points to default. Any custom edits not backed up will be lost.
+              This will re-hydrate your CV from your developer profile and reset all bullet points to default. Any custom edits not backed up will be lost.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -1633,7 +1633,7 @@ export function ReziStudioLayout() {
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-white" />
-                <span>42 Template Rules</span>
+                <span>ATS Template Rules</span>
               </h3>
               <button
                 type="button"

@@ -1,6 +1,6 @@
-// 42 Project Knowledge Base - Pre-seeded data for questionnaire generation
-// Based on real CV analysis of 42 Beirut students + Dr. Wissam template
-// Covers ALL 42 Common Core projects + smart universal fallback for unlisted projects
+// Systems Project Knowledge Base - Pre-seeded data for questionnaire generation
+// Based on real engineering CV analysis + Wissam Clean ATS template standards
+// Covers ALL core curriculum projects + smart universal fallback for unlisted projects
 
 export interface ProjectKnowledge {
   slug: string;
@@ -55,7 +55,7 @@ export const PROJECT_KNOWLEDGE_BASE: ProjectKnowledge[] = [
     ],
     defaultBullets: [
       "Implemented 40+ standard C library functions from scratch, including string manipulation, memory management, and linked list operations.",
-      "Built a reusable static library used as the low-level foundation for all subsequent C projects at 42.",
+      "Built a reusable static library used as the low-level foundation for all subsequent C systems projects.",
     ],
     relatedSkills: {
       languages: ["C"],
@@ -717,7 +717,7 @@ export const PROJECT_KNOWLEDGE_BASE: ProjectKnowledge[] = [
         question: "Which features did you personally implement?",
         options: [
           "Real-time multiplayer Pong game with WebSockets and matchmaking",
-          "OAuth2 42 Intra authentication and two-factor authentication (2FA/TOTP)",
+          "OAuth2 Intra authentication and two-factor authentication (2FA/TOTP)",
           "Live chat system with direct messages, channels, and game invites",
           "Relational database schema with PostgreSQL and ORM migrations",
           "Docker Compose multi-container deployment architecture",
@@ -992,7 +992,7 @@ export const COMMON_CORE_TECHNICAL_CHIPS: Record<string, string[]> = {
   ft_transcendence: [
     "Full-Stack SPA Architecture",
     "Real-Time WebSockets Game Loop",
-    "OAuth2 42 Authentication",
+    "OAuth2 Intra Authentication",
     "Two-Factor Auth (2FA / TOTP)",
     "PostgreSQL Relational Schema",
     "Docker Compose Microservices",
@@ -1061,7 +1061,7 @@ export function getProjectTechnicalChips(slugOrName: string, techStack?: string)
   return chips.slice(0, 6);
 }
 
-// 42 Campus Roles
+// Engineering Network & Campus Roles
 export interface CampusRole {
   internalName: string;
   professionalTitle: string;
@@ -1075,7 +1075,7 @@ export const CAMPUS_ROLES: CampusRole[] = [
     internalName: "Black Ops",
     professionalTitle: "Lead Peer Mentor",
     description:
-      "Senior student mentoring program at 42 Beirut - mentoring newer students, supervising Piscine bootcamps, and conducting peer evaluations.",
+      "Senior student mentoring program - mentoring junior peers, supervising intensive bootcamps, and conducting peer evaluations.",
     questionnaireQuestions: [
       {
         id: "bo-activities",
@@ -1096,14 +1096,14 @@ export const CAMPUS_ROLES: CampusRole[] = [
       },
     ],
     defaultBullets: [
-      "Mentored newer students in C programming, memory management, and Unix system fundamentals as part of the 42 Black Ops program.",
+      "Mentored newer students in C programming, memory management, and Unix system fundamentals as part of the Infrastructure Guild program.",
       "Supervised Piscine bootcamp sessions, providing guidance and code review to incoming candidates.",
     ],
   },
   {
     internalName: "Peer Evaluator",
     professionalTitle: "Technical Code Reviewer",
-    description: "Conducted structured peer evaluations for fellow students' project submissions at 42.",
+    description: "Conducted structured peer evaluations for fellow students' project submissions.",
     questionnaireQuestions: [
       {
         id: "pe-count",
@@ -1119,7 +1119,7 @@ export const CAMPUS_ROLES: CampusRole[] = [
   {
     internalName: "Piscine Tuteur",
     professionalTitle: "Bootcamp Instructor",
-    description: "Assisted as a tutor during 42's intensive Piscine admissions bootcamp.",
+    description: "Assisted as a tutor during intensive C & Unix systems admissions bootcamps.",
     questionnaireQuestions: [
       {
         id: "pt-piscine",
@@ -1129,19 +1129,19 @@ export const CAMPUS_ROLES: CampusRole[] = [
       },
     ],
     defaultBullets: [
-      "Assisted as a tutor during 42's 4-week intensive C bootcamp, helping candidates with debugging, algorithms, and shell scripting.",
+      "Assisted as a tutor during the 4-week intensive C systems bootcamp, helping candidates with debugging, algorithms, and shell scripting.",
     ],
   },
   {
     internalName: "Club / BDE Member",
     professionalTitle: "Developer Community Organizer",
-    description: "Participated in or led a student club or BDE activities at 42 Beirut.",
+    description: "Participated in or led a student engineering club or student technical association.",
     questionnaireQuestions: [
       {
         id: "club-name",
         type: "text",
         question: "Which club or organization?",
-        placeholder: "e.g., 42 Beirut Cybersecurity Club, BDE",
+        placeholder: "e.g., Cybersecurity Club, Student Association",
       },
       {
         id: "club-role",
@@ -1151,15 +1151,15 @@ export const CAMPUS_ROLES: CampusRole[] = [
       },
     ],
     defaultBullets: [
-      "Organized campus events and workshops to foster community engagement among 42 Beirut students.",
+      "Organized campus events and workshops to foster community engagement among software engineering students.",
     ],
   },
 ];
 
-// Extracurricular piscines known at 42 Beirut
+// Extracurricular intensive bootcamps
 export const KNOWN_PISCINES = [
-  "42 Beirut Extracurricular Cybersecurity Piscine",
-  "42 Beirut Extracurricular Mobile Development Piscine",
-  "42 Beirut Extracurricular Python for Data Science Piscine",
-  "42 Beirut Extracurricular Blockchain Piscine",
+  "Extracurricular Cybersecurity Intensive Bootcamp",
+  "Extracurricular Mobile Development Intensive Bootcamp",
+  "Extracurricular Python for Data Science Intensive Bootcamp",
+  "Extracurricular Blockchain Intensive Bootcamp",
 ];

@@ -4,7 +4,7 @@ export function getBridgeSecret(): string {
   const secret =
     process.env.NEXTAUTH_SECRET ||
     process.env.FORTY_TWO_CLIENT_SECRET ||
-    "42_beirut_default_secret_fallback";
+    "printcv_bridge_default_secret_fallback";
   return secret.replace(/^["']|["']$/g, "").trim();
 }
 

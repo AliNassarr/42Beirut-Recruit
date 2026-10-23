@@ -39,7 +39,7 @@ const ParsedCVSchema = z.object({
       z.object({
         company: z.string().default(""),
         role: z.string().default(""),
-        location: z.string().default("Beirut, Lebanon"),
+        location: z.string().default("San Francisco, CA"),
         startDate: z.string().default(""),
         endDate: z.string().default(""),
         descriptionBullets: z.array(z.string()).default([]),
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
     // 3. ATOMIC STRUCTURED INGESTION VIA CASCADING FAILOVER
     // =========================================================================
     const systemPrompt = `
-You are an expert ATS CV parser for 42 school software engineering candidates.
+You are an expert ATS CV parser for software engineering candidates.
 Extract ALL information from the candidate's previous CV into typed JSON adhering strictly to the schema.
 
 CRITICAL INSTRUCTIONS:
@@ -225,9 +225,9 @@ CRITICAL INSTRUCTIONS:
    - Extract candidate's full name, email, phone number, LinkedIn, and GitHub.
    - Use the provided contact hints if present.
 2. "education":
-   - Extract ALL university degrees, diplomas, or institutions outside 42 (e.g. Lebanese University, AUB, LAU, etc.).
+   - Extract ALL university degrees, diplomas, or higher education institutions (e.g. State University, BS in Computer Science, etc.).
    - Capture institution, degree/program, location, startDate, and endDate.
-   - If no prior university degree outside 42 is found, return [].
+   - If no prior university degree is found, return [].
 3. "experience":
    - Extract EVERY past job, internship, or freelance software position.
    - Capture company name, role/title, location, startDate, endDate.
@@ -241,7 +241,7 @@ CRITICAL INSTRUCTIONS:
      - "technologiesFrameworks": Frameworks, libraries, platforms, databases (e.g. React, Next.js, Node.js, Express, NGINX, Supabase, PostgreSQL, MySQL, Redis, Tailwind CSS, Shopify, Cloudflare R2).
      - "projectManagementTools": Collaboration & management tools (e.g. JIRA, Trello, Notion, GitHub Projects, Agile, Scrum).
 5. "customProjects":
-   - Extract non-42 personal, client, or freelance software projects (e.g. "BC Capture", "E-commerce Website", hackathons, portfolio apps).
+   - Extract personal, client, open-source, or freelance software projects (e.g. "Cloud File Storage", "E-commerce Website", hackathons, portfolio apps).
    - Capture name, techStack (comma-separated), date, summaryBullets, and rawNotes.
 6. "extracurriculars":
    - Extract community service, clubs, hackathons, or leadership roles.

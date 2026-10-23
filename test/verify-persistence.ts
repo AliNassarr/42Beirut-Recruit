@@ -38,7 +38,7 @@ async function runPersistenceAudit() {
   await new Promise((r) => setTimeout(r, 20));
 
   store.setCurrentStep("SETUP");
-  store.updateContact({ fullName: "Test Cadet Beirut" });
+  store.updateContact({ fullName: "Test Candidate Engineer" });
 
   const stateAfterUpdate = useCVStore.getState();
   console.log("  - Updated Step:        ", stateAfterUpdate.currentStep);
@@ -46,7 +46,7 @@ async function runPersistenceAudit() {
   console.log("  - New Timestamp:       ", stateAfterUpdate.lastSavedTimestamp);
 
   if (stateAfterUpdate.currentStep !== "SETUP") throw new Error("Step did not update");
-  if (stateAfterUpdate.cvData.contact.fullName !== "Test Cadet Beirut") throw new Error("Contact fullName did not update");
+  if (stateAfterUpdate.cvData.contact.fullName !== "Test Candidate Engineer") throw new Error("Contact fullName did not update");
   if (stateAfterUpdate.lastSavedTimestamp <= oldTimestamp) throw new Error("Timestamp did not advance on mutation");
   console.log("✓ TEST 2 PASSED: Mutation successfully updated timestamp and state.\n");
 
@@ -55,7 +55,7 @@ async function runPersistenceAudit() {
   const resetState = useCVStore.getState();
   console.log("  - Reset Step:          ", resetState.currentStep);
   console.log("  - Reset Full Name:     ", resetState.cvData.contact.fullName);
-  if (resetState.cvData.contact.fullName === "Test Cadet Beirut") {
+  if (resetState.cvData.contact.fullName === "Test Candidate Engineer") {
     throw new Error("resetToDefaults did not restore initial contact!");
   }
   console.log("✓ TEST 3 PASSED: resetToDefaults successfully restored clean state.\n");

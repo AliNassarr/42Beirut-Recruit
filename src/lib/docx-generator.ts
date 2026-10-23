@@ -65,8 +65,8 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
       children: [
         new TextRun({
           text: data.targetRole
-            ? `${data.targetRole.includes("42") ? data.targetRole : `${data.targetRole} | 42 Student – Level ${data.contact.level}`}`
-            : `42 Student – Level ${data.contact.level}`,
+            ? `${data.targetRole.includes("Level") ? data.targetRole : `${data.targetRole} | Software Engineer – Level ${data.contact.level}`}`
+            : `Software Engineer – Level ${data.contact.level}`,
           bold: true,
           size: isCompact ? 20 : 22, // 10pt or 11pt
           font: FONT_FAMILY,
@@ -93,14 +93,14 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
   // ==============================================================
   addSectionHeader("Education");
 
-  // 42 Beirut Entry
+  // Primary Systems Academy Entry
   sections.push(
     new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
       spacing: { before: 40, after: 20 },
       children: [
         new TextRun({
-          text: `42 Beirut - Level ${data.contact.level}`,
+          text: `School of Digital Technologies – Level ${data.contact.level}`,
           bold: true,
           size: 20, // 10pt
           font: FONT_FAMILY,
@@ -108,7 +108,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
         new TextRun("\t"),
         new TextRun({
           text: (() => {
-            const e = data.education?.find((x) => x.institution.toLowerCase().includes("42 beirut"));
+            const e = data.education?.find((x) => x.institution.toLowerCase().includes("digital technologies") || x.isCurrent);
             return e?.startDate ? `${e.startDate} – ${e.endDate || "Present"}` : (data.educationState === "STATE_C_ALUMNUS" ? "2024" : "2025 – Present");
           })(),
           italics: true,
@@ -125,7 +125,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
         spacing: { after: 60 },
         children: [
           new TextRun({
-            text: "42 Core Curriculum - Architecture of Digital Technologies Program",
+            text: "Core Systems Curriculum – Architecture of Digital Technologies",
             size: 19,
             font: FONT_FAMILY,
           }),
@@ -138,7 +138,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
         spacing: { after: 20 },
         children: [
           new TextRun({
-            text: "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
+            text: "Completed the Core Systems Curriculum – Architecture of Digital Technologies Program",
             size: 19,
             font: FONT_FAMILY,
           }),
@@ -162,7 +162,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
         spacing: { after: 60 },
         children: [
           new TextRun({
-            text: "Completed the 42 Core Curriculum - Architecture of Digital Technologies Program",
+            text: "Completed the Core Systems Curriculum – Architecture of Digital Technologies Program",
             size: 19,
             font: FONT_FAMILY,
           }),
@@ -173,7 +173,7 @@ export async function generateDrWissamDocx(data: CVData): Promise<Blob> {
 
   // Additional Universities
   for (const edu of data.education.filter(
-    (e) => !e.institution.toLowerCase().includes("42 beirut")
+    (e) => !e.institution.toLowerCase().includes("digital technologies") && !e.isCurrent
   )) {
     sections.push(
       new Paragraph({

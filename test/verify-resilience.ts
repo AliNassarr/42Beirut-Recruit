@@ -13,7 +13,7 @@ async function runAudit() {
   // --------------------------------------------------------------------------
   function createValidPdf(): Buffer {
     const streamContent =
-      "BT\n/F1 10 Tf\n50 700 Td\n(mhamdan@student.42beirut.com) Tj\n0 -15 Td\n(+961 70 123 456) Tj\n0 -15 Td\n(https://linkedin.com/in/mhamdan) Tj\n0 -15 Td\n(https://github.com/mhamdan) Tj\nET\n";
+      "BT\n/F1 10 Tf\n50 700 Td\n(mhamdan@printcv.me) Tj\n0 -15 Td\n(+961 70 123 456) Tj\n0 -15 Td\n(https://linkedin.com/in/mhamdan) Tj\n0 -15 Td\n(https://github.com/mhamdan) Tj\nET\n";
     const streamLen = Buffer.byteLength(streamContent);
     let body = "%PDF-1.4\n";
     const offsets: number[] = [];
@@ -59,7 +59,7 @@ async function runAudit() {
   console.log(`  - Clean LinkedIn: ${cleanLinkedIn}`);
   console.log(`  - Clean GitHub:   ${cleanGitHub}`);
 
-  if (cleanEmail !== "mhamdan@student.42beirut.com") throw new Error("Email extraction failed");
+  if (cleanEmail !== "mhamdan@printcv.me") throw new Error("Email extraction failed");
   if (cleanLinkedIn !== "linkedin.com/in/mhamdan") throw new Error("LinkedIn normalization failed");
   if (cleanGitHub !== "github.com/mhamdan") throw new Error("GitHub normalization failed");
   console.log("✓ TEST 1 PASSED: Deterministic unpdf extraction verified.\n");
@@ -96,7 +96,7 @@ async function runAudit() {
     showExtracurriculars: true,
     contactInfo: {
       fullName: "Mohammad Hamdan",
-      email: "mhamdan@student.42beirut.com",
+      email: "mhamdan@printcv.me",
       phoneNumber: "+961 70 123 456",
       linkedinUrl: "https://linkedin.com/in/mhamdan",
       githubUrl: "https://github.com/mhamdan",
@@ -130,7 +130,7 @@ async function runAudit() {
         id: "exp-test-1",
         company: "Balance Center",
         role: "Independent Mobile & Web Developer",
-        location: "Beirut, Lebanon",
+        location: "San Francisco, CA",
         startDate: "February 2026",
         endDate: "September 2026",
         rawNotes: "Built BC Capture mobile-first inventory application using Next.js, Supabase, and Vision AI for rapid scanning.",
@@ -142,7 +142,7 @@ async function runAudit() {
         scope: "Mentored 30+ newer students in C pointers and memory management.",
       },
     },
-    selectedCoursework: ["42 Beirut Extracurricular Cybersecurity Piscine"],
+    selectedCoursework: ["Extracurricular Cybersecurity Intensive Bootcamp"],
   };
 
   try {

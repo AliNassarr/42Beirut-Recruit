@@ -18,8 +18,8 @@ export interface ContactInfo {
 
 export interface EducationItem {
   id: string;
-  institution: string; // e.g., "42 Beirut" or "Lebanese University"
-  program: string; // e.g., "42 Core Curriculum - Architecture of Digital Technologies Program"
+  institution: string; // e.g., "School of Digital Technologies" or "State University"
+  program: string; // e.g., "Core Systems Curriculum - Software & Systems Engineering"
   degree?: string; // e.g., "Bachelor in Computer Science"
   level?: number | string;
   startDate: string; // e.g., "2024"
@@ -61,14 +61,14 @@ export interface SkillsData {
 
 export interface CourseworkItem {
   id: string;
-  title: string; // e.g., "42 Beirut Extracurricular Cybersecurity Piscine"
+  title: string; // e.g., "Intensive Cybersecurity Bootcamp"
   date: string; // e.g., "May 2025"
   institution?: string;
 }
 
 export interface ExtracurricularItem {
   id: string;
-  organization: string; // e.g., "42 Beirut Black Ops" or "Lebanese Alpine Skiing Federation"
+  organization: string; // e.g., "Peer Mentorship & Campus Operations" or "Open Source Guild"
   role: string; // e.g., "Lead Peer Mentor" or "Secretary"
   startDate: string;
   endDate?: string;

@@ -23,15 +23,15 @@ model User {
   emailVerified    DateTime?
   image            String?
 
-  // 42 Intra Specific Metadata
+  // Developer Intra Specific Metadata
   intraId          Int?      @unique
   login            String?   @unique
   firstLoginAt     DateTime  @default(now())
   lastSyncedAt     DateTime  @default(now())
 
-  // 42 Academic Standing
+  // Academic Standing
   primaryCampusId  Int?
-  campusName       String?   @default("Beirut")
+  campusName       String?   @default("Main Campus")
   currentLevel     Float?    @default(0.0)
   grade            String?   @default("Learner")
   poolMonth        String?
@@ -108,7 +108,7 @@ model Resume {
   fullName           String
   email              String
   phoneNumber        String?
-  location           String   @default("Beirut, Lebanon")
+  location           String   @default("San Francisco, CA")
   githubUrl          String?
   linkedinUrl        String?
 
@@ -141,10 +141,10 @@ model EducationEntry {
   resumeId       String
   resume         Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  institution    String  @default("42 Beirut")
+  institution    String  @default("School of Digital Technologies")
   degree         String
   fieldOfStudy   String  @default("Computer Science")
-  location       String  @default("Beirut, Lebanon")
+  location       String  @default("San Francisco, CA")
   startDate      String  // "2024" or "2024-01"
   endDate        String? // null = Present
   isCurrent      Boolean @default(true)
@@ -184,7 +184,7 @@ model ProjectEntry {
   resume         Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   title          String  // Display name, e.g. "Minishell"
-  slug           String? // 42 project slug, e.g. "minishell"
+  slug           String? // Core project slug, e.g. "minishell"
   is42Project    Boolean @default(true)
   intraProjectId Int?
   validatedMark  Int?    // 100, 125, etc.
@@ -223,8 +223,8 @@ model CourseworkEntry {
   resumeId    String
   resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  name        String   // e.g., "42 Beirut Extracurricular Cybersecurity Piscine"
-  institution String   @default("42 Beirut")
+  name        String   // e.g., "Extracurricular Cybersecurity Intensive Bootcamp"
+  institution String   @default("School of Digital Technologies")
   date        String?  // "May 2025"
   sortOrder   Int      @default(0)
 
@@ -239,7 +239,7 @@ model ExtracurricularEntry {
   resumeId     String
   resume       Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  organization String  @default("42 Beirut")
+  organization String  @default("School of Digital Technologies")
   role         String
   startDate    String
   endDate      String?
@@ -253,7 +253,7 @@ model ExtracurricularEntry {
   @@index([resumeId])
 }
 
-// Pre-seeded 42 project knowledge base for questionnaire generation
+// Pre-seeded project knowledge base for questionnaire generation
 model ProjectKnowledgeBase {
   id              String @id @default(cuid())
   slug            String @unique  // "minishell", "webserv", etc.

@@ -40,7 +40,7 @@ const PRONOUNS_REGEX = /\b(I|me|my|mine|myself|we|us|our|ours|ourselves)\b/i;
 // Number/Metric detection regex
 const METRIC_REGEX = /\b(\d+(?:[\.,]\d+)?(?:\%|x|ms|s|kb|mb|gb|k)?)\b/i;
 
-// Authentic 42 peer metrics library
+// Authentic peer-reviewed systems metrics library
 const PEER_METRICS_BY_SLUG: Record<string, string[]> = {
   minishell: [
     "handling 120+ POSIX command permutations with 0 memory leaks via Valgrind",
@@ -289,7 +289,7 @@ export function BulletEditorRow({
             value={customSeed}
             onChange={(e) => setCustomSeed(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleApplyCustomAngle()}
-            placeholder="Seed note (e.g. optimized linked list traversal for 42 push_swap)..."
+            placeholder="Seed note (e.g. optimized linked list traversal for push_swap)..."
             className="flex-1 bg-zinc-900 border border-zinc-800 text-xs text-white rounded px-2.5 py-1.5 outline-none focus:border-white placeholder:text-zinc-500"
             autoFocus
           />
